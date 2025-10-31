@@ -51,7 +51,7 @@ const players = [
     nickname: "Frenzy",
     lastName: "Brown",
     team: "ozark",
-    photo: "nick.jpg", // now you can just write the filename
+    photo: "nick.jpg",
     handicap: 10,
     notes: "Organizer / TD"
   },
@@ -85,7 +85,6 @@ const players = [
     handicap: 12,
     notes: "Short game guy"
   },
-  
   // add more players here
 ];
 
@@ -108,8 +107,8 @@ function getPlayerPhotoUrl(p) {
 }
 
 // =======================
-// 4. ROUNDS / CARTS / PAIRINGS
-//    (edit this when you want to move people)
+// 4. ROUNDS (no carts / no fixed pairings)
+//    we just describe the round + events
 // =======================
 const rounds = [
   {
@@ -119,27 +118,6 @@ const rounds = [
       { name: "Best Ball (Front 9)", format: "Best Ball" },
       { name: "2-Man Scramble (Back 9)", format: "Scramble" },
     ],
-    carts: [
-      {
-        cartId: "Cart 1",
-        playerIds: ["1", "3"],
-      },
-      {
-        cartId: "Cart 2",
-        playerIds: ["2", "4"],
-      },
-      
-    ],
-    pairings: [
-      {
-        match: "Match 1",
-        playerIds: ["1", "3"],
-      },
-      {
-        match: "Match 2",
-        playerIds: ["2", "4"],
-      },
-    ],
   },
   {
     id: "round-2",
@@ -148,27 +126,8 @@ const rounds = [
       { name: "Alternate Shot (Front 9)", format: "Alt Shot" },
       { name: "Singles (Back 9)", format: "Singles" },
     ],
-    carts: [
-      {
-        cartId: "Cart 1",
-        playerIds: ["1", "3"],
-      },
-      {
-        cartId: "Cart 2",
-        playerIds: ["2", "4"],
-      },
-    ],
-    pairings: [
-      {
-        match: "Match 1",
-        playerIds: ["1", "2"],
-      },
-      {
-        match: "Match 2",
-        playerIds: ["3", "4"],
-      },
-    ],
   },
+  // add more rounds here if you want
 ];
 
 // helper to find a player
@@ -238,7 +197,34 @@ teamButtons.forEach((btn) => {
 });
 
 // =======================
-// 6. RENDER ROUNDS / CARTS / PAIRINGS
+// 6. RANDOM PAIRING UTILS
+// =======================
+
+// Fisher–Yates shuffle so we get a good random order
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// given a list of players, make 2-person matches
+function createRandomPairings(playerList) {
+  const shuffled = shuffleArray(playerList);
+  const matches = [];
+  let i = 0;
+  while (i < shuffled.length - 1) {
+    matches.push([shuffled[i], shuffled[i + 1]]);
+    i += 2;
+  }
+  const leftover = shuffled.length % 2 === 1 ? shuffled[shuffled.length - 1] : null;
+  return { matches, leftover };
+}
+
+// =======================
+// 7. RENDER ROUNDS / RANDOM PAIRINGS
 // =======================
 const roundTabs = document.getElementById("roundTabs");
 const roundContent = document.getElementById("roundContent");
@@ -281,44 +267,48 @@ function renderRoundContent(roundId) {
     )
     .join("");
 
-  // carts
-  const cartsHtml = round.carts
-    .map((cart) => {
-      const cartPlayers = cart.playerIds
-        .map((pid) => {
-          const p = getPlayerById(pid);
-          if (!p) return `<li>Unknown player (${pid})</li>`;
-          const photoUrl = getPlayerPhotoUrl(p);
-          const teamLabel = TEAM_LABELS[p.team] ?? p.team;
-          return `<li>
-            ${photoUrl ? `<img src="${photoUrl}" alt="${formatPlayerName(p)}" class="round-photo" />` : ""}
-            <span>${formatPlayerName(p)}</span>
-            <small>${teamLabel}</small>
-          </li>`;
-        })
-        .join("");
+  // build random pairings from ALL current players
+  const { matches, leftover } = createRandomPairings(players);
+
+  const pairingsHtml = matches
+    .map((pair, idx) => {
+      const p1 = pair[0];
+      const p2 = pair[1];
+      const p1Photo = getPlayerPhotoUrl(p1);
+      const p2Photo = getPlayerPhotoUrl(p2);
+      const p1Team = TEAM_LABELS[p1.team] ?? p1.team;
+      const p2Team = TEAM_LABELS[p2.team] ?? p2.team;
+
       return `
-        <div class="cart-card">
-          <h3>${cart.cartId}</h3>
-          <ul>${cartPlayers}</ul>
-        </div>
+        <li class="pairing-item">
+          <strong>Match ${idx + 1}:</strong>
+          <div class="pairing-players">
+            <div class="pairing-player">
+              ${p1Photo ? `<img src="${p1Photo}" alt="${formatPlayerName(p1)}" class="round-photo" />` : ""}
+              <span>${formatPlayerName(p1)}</span>
+              <small>${p1Team}</small>
+            </div>
+            <span class="vs">vs</span>
+            <div class="pairing-player">
+              ${p2Photo ? `<img src="${p2Photo}" alt="${formatPlayerName(p2)}" class="round-photo" />` : ""}
+              <span>${formatPlayerName(p2)}</span>
+              <small>${p2Team}</small>
+            </div>
+          </div>
+        </li>
       `;
     })
     .join("");
 
-  // pairings
-  const pairingsHtml = round.pairings
-    .map((pair) => {
-      const listed = pair.playerIds
-        .map((pid) => {
-          const p = getPlayerById(pid);
-          return p ? formatPlayerName(p) : pid;
-        })
-        .join(" vs ");
-      return `<li><strong>${pair.match}:</strong> ${listed}</li>`;
-    })
-    .join("");
+  const leftoverHtml = leftover
+    ? `
+      <div class="leftover-box">
+        <p><strong>Unpaired this round:</strong> ${formatPlayerName(leftover)} (${TEAM_LABELS[leftover.team] ?? leftover.team})</p>
+      </div>
+    `
+    : "";
 
+  // no carts anymore
   roundContent.innerHTML = `
     <div class="round-layout">
       <div>
@@ -326,16 +316,11 @@ function renderRoundContent(roundId) {
         <div class="event-grid">
           ${eventsHtml}
         </div>
-        <h2 class="subhead">Pairings</h2>
+        <h2 class="subhead">Pairings (randomized on load)</h2>
         <ul class="pairings-list">
-          ${pairingsHtml || "<li>No pairings set.</li>"}
+          ${pairingsHtml || "<li>No pairings created.</li>"}
         </ul>
-      </div>
-      <div>
-        <h2 class="subhead">Carts</h2>
-        <div class="cart-grid">
-          ${cartsHtml || "<p>No carts assigned.</p>"}
-        </div>
+        ${leftoverHtml}
       </div>
     </div>
   `;
@@ -347,7 +332,7 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 7. SPONSORS
+// 8. SPONSORS
 // =======================
 const sponsors = [
   { name: "Sponsor 1", tier: "Hole Sponsor" },
@@ -367,7 +352,7 @@ if (sponsorGrid) {
 }
 
 // =======================
-// 8. SIGNUP FORM (static-site friendly)
+// 9. SIGNUP FORM (static-site friendly)
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
@@ -398,13 +383,12 @@ if (signupForm) {
       firstName: firstName,
       nickname: "",
       lastName: lastName,
-      team: "valley", // or "ozark" — change default
+      team: "valley", // default — change if you want
       photo: "",
       handicap: handicap ? Number(handicap) : null,
       notes: notes || (contact ? `Contact: ${contact}` : "Signed up via form"),
     };
 
-    // show the user the JS they can paste
     const formatted = `{
   id: "${playerObj.id}",
   firstName: "${playerObj.firstName}",
@@ -418,7 +402,6 @@ if (signupForm) {
 
     formMsg.textContent = "Sign-up captured! Scroll to copy the code below.";
 
-    // put it in (or create) a code box
     let codeBox = document.getElementById("signupCodeBox");
     if (!codeBox) {
       codeBox = document.createElement("pre");
@@ -433,15 +416,13 @@ if (signupForm) {
     }
     codeBox.textContent = `// paste this into your players[] in script.js\n${formatted}`;
 
-    // also open an email draft with it
     const subject = encodeURIComponent("New Ozark Invitational signup");
     const body = encodeURIComponent(
       `New signup for Ozark Invitational:\n\n${formatted}\n\nAdd this to players[] in script.js.`
     );
-    // change this to your real email
+
     window.location.href = `mailto:nick@example.com?subject=${subject}&body=${body}`;
 
     signupForm.reset();
   });
 }
-
