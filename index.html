@@ -4,15 +4,14 @@
   <meta charset="UTF-8" />
   <title>Ozark Invitational – Family Golf Weekend</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, and bragging rights." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" />
-  <meta name="description" content="Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, bragging rights.">
 </head>
 <body>
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="logo-wrap">
-      <!-- swap this out for your actual crest -->
       <div class="logo-circle">OI</div>
       <div class="logo-text">
         <span class="title">Ozark Invitational</span>
@@ -23,7 +22,8 @@
       <a href="#top">Home</a>
       <a href="#about">Event</a>
       <a href="#schedule">Schedule</a>
-      <a href="#teams">Teams</a>
+      <a href="#teams">Players</a>
+      <a href="#rounds">Carts & Pairings</a>
       <a href="#sponsors">Sponsors</a>
       <a href="#signup" class="btn-nav">Sign Up</a>
     </nav>
@@ -39,7 +39,7 @@
         <h1>2-Day Ryder Cup Style Golf Tournament</h1>
         <p class="lead">
           Diamond Hills Country Club • Diamond City, Arkansas.
-          Friendly competition, bragging rights, and a traveling trophy that MUST be displayed all year.
+          Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
         </p>
         <div class="hero-pills">
           <div class="pill">
@@ -70,7 +70,7 @@
             <li><strong>Teams:</strong> Ozark vs Valley</li>
             <li><strong>Prizes:</strong> Trophy + side prizes</li>
           </ul>
-          <p class="small">Questions? <a href="mailto:nicholasbrownworship@gmail.com">Nick</a></p>
+          <p class="small">Questions? <a href="mailto:nick@example.com">nick@example.com</a></p>
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@
     <section id="about" class="section section-tight">
       <div class="section-head center">
         <h2>About the Tournament</h2>
-        <p>We want one weekend every year where everybody shows up, plays, and has a story to tell until next spring.</p>
+        <p>One weekend every year where everybody shows up, plays, and has a story to tell until next spring.</p>
       </div>
       <div class="info-row">
         <article class="info-card">
@@ -116,7 +116,7 @@
       </div>
     </section>
 
-    <!-- SCHEDULE -->
+    <!-- SCHEDULE (high-level) -->
     <section id="schedule" class="section section-alt pro-schedule">
       <div class="section-head center">
         <h2>Weekend Schedule</h2>
@@ -141,7 +141,7 @@
           </div>
           <div class="sched-card">
             <span class="sched-time">10:30 AM</span>
-            <h3>Round 2 – 2-Man Scramble (Back 9)</h3>
+            <h3>Round 1 – 2-Man Scramble (Back 9)</h3>
             <p>Pick best shot every stroke. Low scores win.</p>
           </div>
           <div class="sched-card highlight">
@@ -159,12 +159,12 @@
           </div>
           <div class="sched-card">
             <span class="sched-time">9:30 AM</span>
-            <h3>Round 3 – Alternate Shot (Front 9)</h3>
+            <h3>Round 2 – Alternate Shot (Front 9)</h3>
             <p>True team golf. Alternate every shot.</p>
           </div>
           <div class="sched-card">
             <span class="sched-time">11:00 AM</span>
-            <h3>Round 4 – Singles (Back 9)</h3>
+            <h3>Round 2 – Singles (Back 9)</h3>
             <p>1v1 matches, each worth 1 point toward team total.</p>
           </div>
           <div class="sched-card highlight">
@@ -176,11 +176,11 @@
       </div>
     </section>
 
-    <!-- TEAMS -->
+    <!-- PLAYERS -->
     <section id="teams" class="section">
       <div class="section-head center">
-        <h2>Teams & Players</h2>
-        <p>These will auto-populate from <code>script.js</code>. Update names there.</p>
+        <h2>Players</h2>
+        <p>Tap a team to filter. Edit players in <code>script.js</code>.</p>
       </div>
       <div class="team-toggle">
         <button class="team-btn active" data-team="all">All Players</button>
@@ -192,14 +192,28 @@
       </div>
     </section>
 
+    <!-- ROUNDS / CARTS / PAIRINGS -->
+    <section id="rounds" class="section section-alt">
+      <div class="section-head center">
+        <h2>Rounds, Carts & Pairings</h2>
+        <p>Edit round assignments in <code>script.js</code>. Each round can have two events.</p>
+      </div>
+      <div class="tabs tabs-centered" id="roundTabs">
+        <!-- JS will inject round buttons -->
+      </div>
+      <div id="roundContent" class="round-content">
+        <!-- JS will inject selected round here -->
+      </div>
+    </section>
+
     <!-- SPONSORS -->
-    <section id="sponsors" class="section section-alt">
+    <section id="sponsors" class="section section-tight">
       <div class="section-head center">
         <h2>2026 Sponsors</h2>
         <p>These folks help cover lunch, prizes, and course costs.</p>
       </div>
       <div class="sponsor-grid" id="sponsorGrid">
-        <!-- JS injects sponsor cards here -->
+        <!-- JS injects sponsor cards -->
       </div>
       <p class="sponsor-cta">
         Want to sponsor a hole or prize?
@@ -211,7 +225,7 @@
     <section id="signup" class="section">
       <div class="section-head center">
         <h2>Register to Play</h2>
-        <p>Fill this out and we’ll confirm your spot. If you’re family — you’re in.</p>
+        <p>Fill this out and we’ll confirm your spot.</p>
       </div>
       <form class="signup-form" id="signupForm">
         <div class="form-group">
@@ -228,7 +242,7 @@
         </div>
         <div class="form-group">
           <label for="notes">Notes</label>
-          <textarea id="notes" name="notes" rows="3" placeholder="Playing with Dad? Need to ride?"></textarea>
+          <textarea id="notes" name="notes" rows="3" placeholder="Riding? Pair me with Dad?"></textarea>
         </div>
         <button type="submit" class="btn primary">Submit</button>
         <p class="form-msg" id="formMsg" aria-live="polite"></p>
