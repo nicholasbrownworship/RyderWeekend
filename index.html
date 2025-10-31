@@ -6,10 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="favicon.ico" />
+  <meta name="description" content="Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, bragging rights.">
 </head>
 <body>
+  <!-- TOP BAR -->
   <header class="topbar">
     <div class="logo-wrap">
+      <!-- swap this out for your actual crest -->
       <div class="logo-circle">OI</div>
       <div class="logo-text">
         <span class="title">Ozark Invitational</span>
@@ -17,6 +20,7 @@
       </div>
     </div>
     <nav class="nav">
+      <a href="#top">Home</a>
       <a href="#about">Event</a>
       <a href="#schedule">Schedule</a>
       <a href="#teams">Teams</a>
@@ -26,63 +30,217 @@
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
   </header>
 
-  <section class="hero" id="top">
-    <div class="hero-inner">
-      <p class="tagline">Diamond Hills Country Club • Diamond City, AR</p>
-      <h1>Ozark Invitational 2026</h1>
-      <p class="lead">2-day Ryder Cup style event for the Brown crew & friends. 36 holes • mixed formats • bragging rights forever.</p>
-      <div class="hero-actions">
-        <a href="#signup" class="btn primary">Reserve my spot</a>
-        <a href="#schedule" class="btn ghost">View schedule</a>
+  <!-- HERO -->
+  <section class="hero pro-hero" id="top">
+    <div class="hero-bg"></div>
+    <div class="hero-inner hero-grid">
+      <div class="hero-left">
+        <p class="tagline">Brown Family • Ozark Invitational 2026</p>
+        <h1>2-Day Ryder Cup Style Golf Tournament</h1>
+        <p class="lead">
+          Diamond Hills Country Club • Diamond City, Arkansas.
+          Friendly competition, bragging rights, and a traveling trophy that MUST be displayed all year.
+        </p>
+        <div class="hero-pills">
+          <div class="pill">
+            <span class="pill-label">Dates</span>
+            <span class="pill-value">May 23–24, 2026</span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Venue</span>
+            <span class="pill-value">DHCC – Diamond City, AR</span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Entry</span>
+            <span class="pill-value">$150 (lunch incl.)</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a href="#signup" class="btn primary">Reserve my spot</a>
+          <a href="#schedule" class="btn ghost">View format</a>
+        </div>
+        <p class="hero-footnote">Spots limited to family & invited guests • Captains announced closer to event.</p>
       </div>
-      <p class="pricing">Entry: <strong>$150</strong> – includes lunch</p>
+      <div class="hero-right">
+        <div class="hero-card">
+          <h2>Event Snapshot</h2>
+          <ul class="hero-list">
+            <li><strong>Day 1:</strong> Best Ball (F9) • 2-Man Scramble (B9)</li>
+            <li><strong>Day 2:</strong> Alternate Shot (F9) • Singles (B9)</li>
+            <li><strong>Teams:</strong> Ozark vs Valley</li>
+            <li><strong>Prizes:</strong> Trophy + side prizes</li>
+          </ul>
+          <p class="small">Questions? <a href="mailto:nick@example.com">nick@example.com</a></p>
+        </div>
+      </div>
     </div>
   </section>
 
   <main>
-    <section id="about" class="section">
-      <div class="section-head"><h2>Event Details</h2></div>
-      <div class="details-grid">
-        <article class="card"><h3>Date & Location</h3><ul><li>Saturday, May 23–24, 2026</li><li>Diamond Hills Country Club</li></ul></article>
-        <article class="card"><h3>Format</h3><ul><li>Ryder Cup style teams</li><li>Best Ball, Scramble, Alternate Shot, Singles</li></ul></article>
-        <article class="card"><h3>Costs</h3><ul><li>$150 per player</li><li>Includes greens fees, cart, lunch, prizes</li></ul></article>
+    <!-- EVENT DETAILS -->
+    <section id="about" class="section section-tight">
+      <div class="section-head center">
+        <h2>About the Tournament</h2>
+        <p>We want one weekend every year where everybody shows up, plays, and has a story to tell until next spring.</p>
+      </div>
+      <div class="info-row">
+        <article class="info-card">
+          <h3>Date & Location</h3>
+          <p class="muted">Locked, not tentative.</p>
+          <ul>
+            <li><strong>Saturday, May 23, 2026</strong> – Rounds 1–2</li>
+            <li><strong>Sunday, May 24, 2026</strong> – Rounds 3–4</li>
+            <li>Diamond Hills Country Club, Diamond City, AR</li>
+          </ul>
+        </article>
+        <article class="info-card">
+          <h3>Format</h3>
+          <p class="muted">Ryder Cup inspired.</p>
+          <ul>
+            <li>2 teams: Team Ozark vs Team Valley</li>
+            <li>Pairings announced morning-of</li>
+            <li>Each match = 1 point for team</li>
+            <li>Most points wins the Invitational</li>
+          </ul>
+        </article>
+        <article class="info-card">
+          <h3>Cost & Inclusions</h3>
+          <p class="muted">Straightforward pricing.</p>
+          <ul>
+            <li><strong>$150 per player</strong></li>
+            <li>Greens fees + cart both days</li>
+            <li>Lunch (Day 1)</li>
+            <li>Prizes & traveling trophy</li>
+          </ul>
+        </article>
       </div>
     </section>
 
-    <section id="schedule" class="section section-alt">
-      <div class="section-head"><h2>Schedule</h2></div>
-      <div class="tabs">
-        <button class="tab-btn active" data-day="day1">Day 1</button>
-        <button class="tab-btn" data-day="day2">Day 2</button>
+    <!-- SCHEDULE -->
+    <section id="schedule" class="section section-alt pro-schedule">
+      <div class="section-head center">
+        <h2>Weekend Schedule</h2>
+        <p>Tap a day to see what we’re playing.</p>
       </div>
-      <div class="schedule-wrap">
-        <div class="schedule-day active" id="day1"><p>Day 1 Schedule</p></div>
-        <div class="schedule-day" id="day2"><p>Day 2 Schedule</p></div>
+      <div class="tabs tabs-centered">
+        <button class="tab-btn active" data-day="day1">Day 1 • Saturday</button>
+        <button class="tab-btn" data-day="day2">Day 2 • Sunday</button>
+      </div>
+      <div class="schedule-cols">
+        <!-- DAY 1 -->
+        <div class="schedule-day active" id="day1">
+          <div class="sched-card">
+            <span class="sched-time">8:00 AM</span>
+            <h3>Check-in & Range</h3>
+            <p>Grab carts, hit balls, team photos.</p>
+          </div>
+          <div class="sched-card">
+            <span class="sched-time">9:00 AM</span>
+            <h3>Round 1 – Best Ball (Front 9)</h3>
+            <p>Each plays own ball, best score counts to team.</p>
+          </div>
+          <div class="sched-card">
+            <span class="sched-time">10:30 AM</span>
+            <h3>Round 2 – 2-Man Scramble (Back 9)</h3>
+            <p>Pick best shot every stroke. Low scores win.</p>
+          </div>
+          <div class="sched-card highlight">
+            <span class="sched-time">12:30 PM</span>
+            <h3>Lunch & Day 1 Scoring</h3>
+            <p>Included. Scores posted to main board.</p>
+          </div>
+        </div>
+        <!-- DAY 2 -->
+        <div class="schedule-day" id="day2">
+          <div class="sched-card">
+            <span class="sched-time">8:30 AM</span>
+            <h3>Warm-up & Singles Pairings</h3>
+            <p>Captains finalize Day 2 rotation.</p>
+          </div>
+          <div class="sched-card">
+            <span class="sched-time">9:30 AM</span>
+            <h3>Round 3 – Alternate Shot (Front 9)</h3>
+            <p>True team golf. Alternate every shot.</p>
+          </div>
+          <div class="sched-card">
+            <span class="sched-time">11:00 AM</span>
+            <h3>Round 4 – Singles (Back 9)</h3>
+            <p>1v1 matches, each worth 1 point toward team total.</p>
+          </div>
+          <div class="sched-card highlight">
+            <span class="sched-time">1:00 PM</span>
+            <h3>Trophy & Photos</h3>
+            <p>Winning team name engraved, family photo, wrap-up.</p>
+          </div>
+        </div>
       </div>
     </section>
 
+    <!-- TEAMS -->
     <section id="teams" class="section">
-      <div class="section-head"><h2>Teams</h2></div>
-      <div id="playerList" class="players-grid"></div>
+      <div class="section-head center">
+        <h2>Teams & Players</h2>
+        <p>These will auto-populate from <code>script.js</code>. Update names there.</p>
+      </div>
+      <div class="team-toggle">
+        <button class="team-btn active" data-team="all">All Players</button>
+        <button class="team-btn" data-team="ozark">Team Ozark</button>
+        <button class="team-btn" data-team="valley">Team Valley</button>
+      </div>
+      <div id="playerList" class="players-grid">
+        <!-- JS injects player cards here -->
+      </div>
     </section>
 
+    <!-- SPONSORS -->
     <section id="sponsors" class="section section-alt">
-      <div class="section-head"><h2>Sponsors</h2></div>
-      <div id="sponsorGrid" class="sponsor-grid"></div>
+      <div class="section-head center">
+        <h2>2026 Sponsors</h2>
+        <p>These folks help cover lunch, prizes, and course costs.</p>
+      </div>
+      <div class="sponsor-grid" id="sponsorGrid">
+        <!-- JS injects sponsor cards here -->
+      </div>
+      <p class="sponsor-cta">
+        Want to sponsor a hole or prize?
+        <a href="mailto:nick@example.com">Email Nick</a>
+      </p>
     </section>
 
+    <!-- SIGNUP -->
     <section id="signup" class="section">
-      <div class="section-head"><h2>Sign Up</h2></div>
-      <form id="signupForm">
-        <input type="text" id="name" placeholder="Your name" required />
-        <input type="email" id="email" placeholder="Email" required />
-        <button type="submit">Submit</button>
+      <div class="section-head center">
+        <h2>Register to Play</h2>
+        <p>Fill this out and we’ll confirm your spot. If you’re family — you’re in.</p>
+      </div>
+      <form class="signup-form" id="signupForm">
+        <div class="form-group">
+          <label for="name">Player name</label>
+          <input type="text" id="name" name="name" required placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email / Phone</label>
+          <input type="text" id="email" name="email" required placeholder="you@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="handicap">Handicap (approx)</label>
+          <input type="number" id="handicap" name="handicap" min="0" max="40" placeholder="12" />
+        </div>
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Playing with Dad? Need to ride?"></textarea>
+        </div>
+        <button type="submit" class="btn primary">Submit</button>
+        <p class="form-msg" id="formMsg" aria-live="polite"></p>
       </form>
-      <p id="formMsg"></p>
     </section>
   </main>
 
-  <footer class="footer"><p>Ozark Invitational © 2026</p></footer>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
