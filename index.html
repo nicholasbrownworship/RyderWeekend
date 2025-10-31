@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ozark Invitational – Family Golf Weekend</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo-wrap">
+      <div class="logo-circle">OI</div>
+      <div class="logo-text">
+        <span class="title">Ozark Invitational</span>
+        <span class="subtitle">Family Golf Tournament</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#about">Event</a>
+      <a href="#schedule">Schedule</a>
+      <a href="#teams">Teams</a>
+      <a href="#sponsors">Sponsors</a>
+      <a href="#signup" class="btn-nav">Sign Up</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="hero-inner">
+      <p class="tagline">Diamond Hills Country Club • Diamond City, AR</p>
+      <h1>Ozark Invitational 2026</h1>
+      <p class="lead">2-day Ryder Cup style event for the Brown crew & friends. 36 holes • mixed formats • bragging rights forever.</p>
+      <div class="hero-actions">
+        <a href="#signup" class="btn primary">Reserve my spot</a>
+        <a href="#schedule" class="btn ghost">View schedule</a>
+      </div>
+      <p class="pricing">Entry: <strong>$150</strong> – includes lunch</p>
+    </div>
+  </section>
+
+  <main>
+    <section id="about" class="section">
+      <div class="section-head"><h2>Event Details</h2></div>
+      <div class="details-grid">
+        <article class="card"><h3>Date & Location</h3><ul><li>Saturday, May 23–24, 2026</li><li>Diamond Hills Country Club</li></ul></article>
+        <article class="card"><h3>Format</h3><ul><li>Ryder Cup style teams</li><li>Best Ball, Scramble, Alternate Shot, Singles</li></ul></article>
+        <article class="card"><h3>Costs</h3><ul><li>$150 per player</li><li>Includes greens fees, cart, lunch, prizes</li></ul></article>
+      </div>
+    </section>
+
+    <section id="schedule" class="section section-alt">
+      <div class="section-head"><h2>Schedule</h2></div>
+      <div class="tabs">
+        <button class="tab-btn active" data-day="day1">Day 1</button>
+        <button class="tab-btn" data-day="day2">Day 2</button>
+      </div>
+      <div class="schedule-wrap">
+        <div class="schedule-day active" id="day1"><p>Day 1 Schedule</p></div>
+        <div class="schedule-day" id="day2"><p>Day 2 Schedule</p></div>
+      </div>
+    </section>
+
+    <section id="teams" class="section">
+      <div class="section-head"><h2>Teams</h2></div>
+      <div id="playerList" class="players-grid"></div>
+    </section>
+
+    <section id="sponsors" class="section section-alt">
+      <div class="section-head"><h2>Sponsors</h2></div>
+      <div id="sponsorGrid" class="sponsor-grid"></div>
+    </section>
+
+    <section id="signup" class="section">
+      <div class="section-head"><h2>Sign Up</h2></div>
+      <form id="signupForm">
+        <input type="text" id="name" placeholder="Your name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <button type="submit">Submit</button>
+      </form>
+      <p id="formMsg"></p>
+    </section>
+  </main>
+
+  <footer class="footer"><p>Ozark Invitational © 2026</p></footer>
+  <script src="script.js"></script>
+</body>
+</html>
