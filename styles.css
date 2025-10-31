@@ -1,1 +1,276 @@
-:root {--green:#265b42;--gold:#d6a344;--cream:#f5f0e6;}body{font-family:sans-serif;margin:0;background:var(--cream);color:#222;}header{background:var(--green);color:white;display:flex;justify-content:space-between;align-items:center;padding:10px 20px;}nav a{color:white;margin:0 8px;text-decoration:none;}section{padding:40px 20px;}footer{text-align:center;padding:20px;background:#eee;}
+:root {
+  --green: #244f3c;
+  --green-dark: #163023;
+  --gold: #d1a14b;
+  --cream: #f5f0e6;
+  --bg: #fcfaf6;
+  --text: #222;
+  --radius: 18px;
+  --shadow: 0 14px 38px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(245, 240, 230, 0.9);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.035);
+}
+
+.hero.pro-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 5.5rem 1.5rem 4.5rem;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(14, 50, 28, 0.45), rgba(3, 0, 0, 0)),
+              linear-gradient(130deg, #173627 0%, #244f3c 42%, rgba(245, 240, 230, 0) 65%);
+  background-size: cover;
+  filter: saturate(1.1);
+  pointer-events: none;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  color: #fff;
+}
+
+.hero-left h1 {
+  font-size: clamp(2.4rem, 5vw, 3.3rem);
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.02em;
+}
+
+.hero-left .lead {
+  max-width: 560px;
+  opacity: 0.9;
+  margin-bottom: 1.4rem;
+}
+
+.hero-pills {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
+.pill {
+  background: rgba(245, 240, 230, 0.12);
+  border: 1px solid rgba(245, 240, 230, 0.28);
+  border-radius: 16px;
+  padding: 0.4rem 0.9rem 0.5rem;
+  min-width: 160px;
+}
+
+.pill-label {
+  display: block;
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.pill-value {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.hero-right .hero-card {
+  background: rgba(245, 240, 230, 0.06);
+  border: 1px solid rgba(245, 240, 230, 0.4);
+  border-radius: 20px;
+  padding: 1.3rem 1.3rem 1.1rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 20px 40px rgba(9, 24, 17, 0.15);
+}
+
+.hero-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+  font-size: 1.25rem;
+}
+
+.hero-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.hero-list li {
+  margin-bottom: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.hero-footnote {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin-top: 1rem;
+}
+
+.section {
+  padding: 4rem 1.5rem 3.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-tight {
+  max-width: 1050px;
+}
+
+.section-alt {
+  background: rgba(245, 240, 230, 0.55);
+}
+
+.section-head.center {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.section-head h2 {
+  font-size: 2.1rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.4rem;
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.3rem 1.2rem 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow);
+}
+
+.info-card h3 {
+  margin: 0 0 0.25rem 0;
+  color: var(--green);
+}
+
+.info-card .muted {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.info-card ul {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+
+.pro-schedule .schedule-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.1rem;
+}
+
+.sched-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem 1.1rem 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.02);
+}
+
+.sched-card .sched-time {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(36, 79, 60, 0.09);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem 0.3rem;
+  margin-bottom: 0.5rem;
+  color: var(--green);
+}
+
+.sched-card.highlight {
+  border: 1px solid rgba(209, 161, 75, 0.7);
+  background: radial-gradient(circle at top, rgba(209, 161, 75, 0.12), #fff);
+}
+
+.tabs-centered {
+  justify-content: center;
+}
+
+.team-toggle,
+.players-grid,
+.sponsor-grid,
+.signup-form {
+  max-width: 100%;
+}
+
+.sponsor-strip {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1.4rem 1rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 14px;
+  margin-bottom: 1.7rem;
+}
+
+.sponsor-strip span {
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-right {
+    order: -1;
+  }
+  .topbar {
+    padding-inline: 1.1rem;
+  }
+  .nav {
+    display: none;
+  }
+  .nav.open {
+    display: flex;
+    position: absolute;
+    right: 1.1rem;
+    top: 60px;
+    background: #fff;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem 1.2rem;
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+  }
+  .nav-toggle {
+    display: block;
+  }
+}
