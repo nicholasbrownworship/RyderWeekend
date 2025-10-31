@@ -46,7 +46,7 @@ scheduleTabButtons.forEach((btn) => {
 // =======================
 const players = [
   {
-    id: "nick-brown",
+    id: "1",
     firstName: "Nick",
     nickname: "Frenzy",
     lastName: "Brown",
@@ -56,7 +56,7 @@ const players = [
     notes: "Organizer / TD"
   },
   {
-    id: "barry-brown",
+    id: "2",
     firstName: "Barry",
     nickname: "Aim Right",
     lastName: "Brown",
@@ -66,7 +66,7 @@ const players = [
     notes: "OG"
   },
   {
-    id: "josh-brown",
+    id: "3",
     firstName: "Joshua",
     nickname: "Long Ball",
     lastName: "Brown",
@@ -76,7 +76,7 @@ const players = [
     notes: "Long hitter"
   },
   {
-    id: "matt-brown",
+    id: "4",
     firstName: "Matthew",
     nickname: "Hands",
     lastName: "Brown",
@@ -122,25 +122,22 @@ const rounds = [
     carts: [
       {
         cartId: "Cart 1",
-        playerIds: ["nick-brown", "dad-brown"],
+        playerIds: ["1", "3"],
       },
       {
         cartId: "Cart 2",
-        playerIds: ["brother-1", "brother-2"],
+        playerIds: ["2", "4"],
       },
-      {
-        cartId: "Cart 3",
-        playerIds: ["cousin-mike"],
-      },
+      
     ],
     pairings: [
       {
         match: "Match 1",
-        playerIds: ["nick-brown", "brother-1"],
+        playerIds: ["1", "3"],
       },
       {
         match: "Match 2",
-        playerIds: ["dad-brown", "brother-2"],
+        playerIds: ["2", "4"],
       },
     ],
   },
@@ -154,21 +151,21 @@ const rounds = [
     carts: [
       {
         cartId: "Cart 1",
-        playerIds: ["nick-brown", "brother-2"],
+        playerIds: ["1", "3"],
       },
       {
         cartId: "Cart 2",
-        playerIds: ["dad-brown", "cousin-mike"],
+        playerIds: ["2", "4"],
       },
     ],
     pairings: [
       {
         match: "Match 1",
-        playerIds: ["nick-brown", "dad-brown"],
+        playerIds: ["1", "2"],
       },
       {
         match: "Match 2",
-        playerIds: ["brother-1", "brother-2"],
+        playerIds: ["3", "4"],
       },
     ],
   },
