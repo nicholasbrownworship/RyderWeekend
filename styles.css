@@ -479,37 +479,6 @@ a {
   border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.cart-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.7rem;
-}
-
-.cart-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 0.55rem 0.6rem 0.4rem;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.cart-card h3 {
-  margin-top: 0;
-  margin-bottom: 0.4rem;
-}
-
-.cart-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.cart-card li {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  margin-bottom: 0.4rem;
-}
-
 .round-photo {
   width: 26px;
   height: 26px;
