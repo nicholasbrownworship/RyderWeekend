@@ -1,15 +1,11 @@
 // =======================
-// 0. CONFIG (easy to edit)
+// 0. CONFIG
 // =======================
 const TEAM_LABELS = {
   ozark: "Team Ozark",
   valley: "Team Valley",
 };
-
-// If you put all your headshots in /images, you can just write "nick.jpg"
 const PLAYER_PHOTO_BASE_PATH = "images/";
-
-// prefix for localStorage keys
 const PAIRING_STORAGE_PREFIX = "ozarkPairings_";
 
 // =======================
@@ -104,7 +100,7 @@ function getPlayerPhotoUrl(p) {
 }
 
 // =======================
-// 4. ROUNDS (no carts / no fixed pairings)
+// 4. ROUNDS (no carts)
 // =======================
 const rounds = [
   {
@@ -146,7 +142,6 @@ function renderPlayers(filter = "all") {
 
     const photoUrl = getPlayerPhotoUrl(p);
     const teamLabel = TEAM_LABELS[p.team] ?? p.team;
-
     const statText =
       p.handicap != null
         ? `Handicap: ${p.handicap}`
@@ -184,10 +179,8 @@ teamButtons.forEach((btn) => {
 });
 
 // =======================
-// 6. RANDOM PAIRING UTILS (LOCKED)
+// 6. RANDOM PAIRING (LOCKED)
 // =======================
-
-// shuffle
 function shuffleArray(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -197,29 +190,24 @@ function shuffleArray(arr) {
   return a;
 }
 
-// build matches in pairs
 function createRandomPairingsFromPlayers(playerList) {
   const shuffled = shuffleArray(playerList);
   const matches = [];
   let i = 0;
   while (i < shuffled.length - 1) {
-    matches.push([shuffled[i].id, shuffled[i + 1].id]); // store IDs so it survives reloads
+    matches.push([shuffled[i].id, shuffled[i + 1].id]);
     i += 2;
   }
   const leftoverId = shuffled.length % 2 === 1 ? shuffled[shuffled.length - 1].id : null;
   return { matches, leftoverId };
 }
 
-// save to localStorage
 function savePairings(roundId, data) {
-  const key = PAIRING_STORAGE_PREFIX + roundId;
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem(PAIRING_STORAGE_PREFIX + roundId, JSON.stringify(data));
 }
 
-// load from localStorage
 function loadPairings(roundId) {
-  const key = PAIRING_STORAGE_PREFIX + roundId;
-  const raw = localStorage.getItem(key);
+  const raw = localStorage.getItem(PAIRING_STORAGE_PREFIX + roundId);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -228,16 +216,14 @@ function loadPairings(roundId) {
   }
 }
 
-// OPTIONAL: helper to clear one round (run in console)
-// clearPairings("round-1");
-window.clearPairings = function (roundId) {
-  const key = PAIRING_STORAGE_PREFIX + roundId;
-  localStorage.removeItem(key);
+// expose a tiny helper for YOU only (not shown on page)
+window._ozarkClearPairings = function (roundId) {
+  localStorage.removeItem(PAIRING_STORAGE_PREFIX + roundId);
   console.log("Cleared pairings for", roundId);
 };
 
 // =======================
-// 7. RENDER ROUNDS / USE LOCKED PAIRINGS
+// 7. RENDER ROUNDS + PAIRINGS
 // =======================
 const roundTabs = document.getElementById("roundTabs");
 const roundContent = document.getElementById("roundContent");
@@ -267,51 +253,48 @@ function renderRoundContent(roundId) {
     return;
   }
 
-  // 1. try to load existing pairings
+  // 1. load or create pairings
   let pairingData = loadPairings(roundId);
-
-  // 2. if none, create and store
   if (!pairingData) {
     pairingData = createRandomPairingsFromPlayers(players);
     savePairings(roundId, pairingData);
   }
 
-  // events list
+  // 2. build events
   const eventsHtml = round.events
     .map(
       (ev) => `
-      <div class="event-card">
-        <h3>${ev.name}</h3>
-        <p class="muted">${ev.format}</p>
-      </div>
-    `
+        <div class="event-card">
+          <h3>${ev.name}</h3>
+          <p class="muted">${ev.format}</p>
+        </div>
+      `
     )
     .join("");
 
-  // render matches
+  // 3. build pairings
   const pairingsHtml = pairingData.matches
     .map((pair, idx) => {
-      const p1 = getPlayerById(pair[0]);
-      const p2 = getPlayerById(pair[1]);
-      const p1Photo = p1 ? getPlayerPhotoUrl(p1) : "";
-      const p2Photo = p2 ? getPlayerPhotoUrl(p2) : "";
-      const p1Team = p1 ? (TEAM_LABELS[p1.team] ?? p1.team) : "";
-      const p2Team = p2 ? (TEAM_LABELS[p2.team] ?? p2.team) : "";
-
+      const p1 = players.find((p) => p.id === pair[0]);
+      const p2 = players.find((p) => p.id === pair[1]);
       return `
         <li class="pairing-item">
-          <strong>Match ${idx + 1}:</strong>
+          <div class="pairing-title">Match ${idx + 1}</div>
           <div class="pairing-players">
             <div class="pairing-player">
-              ${p1Photo ? `<img src="${p1Photo}" alt="${p1 && formatPlayerName(p1)}" class="round-photo" />` : ""}
-              <span>${p1 ? formatPlayerName(p1) : "Unknown"}</span>
-              <small>${p1Team}</small>
+              ${p1 && getPlayerPhotoUrl(p1) ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : ""}
+              <div>
+                <div class="name">${p1 ? formatPlayerName(p1) : "Unknown"}</div>
+                <div class="team">${p1 ? (TEAM_LABELS[p1.team] ?? p1.team) : ""}</div>
+              </div>
             </div>
-            <span class="vs">vs</span>
+            <div class="vs">vs</div>
             <div class="pairing-player">
-              ${p2Photo ? `<img src="${p2Photo}" alt="${p2 && formatPlayerName(p2)}" class="round-photo" />` : ""}
-              <span>${p2 ? formatPlayerName(p2) : "Unknown"}</span>
-              <small>${p2Team}</small>
+              ${p2 && getPlayerPhotoUrl(p2) ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />` : ""}
+              <div>
+                <div class="name">${p2 ? formatPlayerName(p2) : "Unknown"}</div>
+                <div class="team">${p2 ? (TEAM_LABELS[p2.team] ?? p2.team) : ""}</div>
+              </div>
             </div>
           </div>
         </li>
@@ -320,16 +303,13 @@ function renderRoundContent(roundId) {
     .join("");
 
   const leftover =
-    pairingData.leftoverId ? getPlayerById(pairingData.leftoverId) : null;
+    pairingData.leftoverId ? players.find((p) => p.id === pairingData.leftoverId) : null;
 
   const leftoverHtml = leftover
-    ? `
-      <div class="leftover-box">
-        <p><strong>Unpaired this round:</strong> ${formatPlayerName(leftover)} (${TEAM_LABELS[leftover.team] ?? leftover.team})</p>
-      </div>
-    `
+    ? `<div class="leftover-box"><strong>Unpaired this round:</strong> ${formatPlayerName(leftover)} (${TEAM_LABELS[leftover.team] ?? leftover.team})</div>`
     : "";
 
+  // 4. render
   roundContent.innerHTML = `
     <div class="round-layout">
       <div>
@@ -337,8 +317,7 @@ function renderRoundContent(roundId) {
         <div class="event-grid">
           ${eventsHtml}
         </div>
-        <h2 class="subhead">Pairings (locked)</h2>
-        <p class="muted">These were randomized the first time this round was opened and saved in your browser.</p>
+        <h2 class="subhead">Pairings</h2>
         <ul class="pairings-list">
           ${pairingsHtml || "<li>No pairings created.</li>"}
         </ul>
@@ -374,7 +353,7 @@ if (sponsorGrid) {
 }
 
 // =======================
-// 9. SIGNUP FORM (static-site friendly)
+// 9. SIGNUP FORM (no backend text shown to users)
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
@@ -389,7 +368,7 @@ if (signupForm) {
     const notes = (data.get("notes") || "").trim();
 
     if (!rawName) {
-      formMsg.textContent = "Please enter a name.";
+      if (formMsg) formMsg.textContent = "Please enter a name.";
       return;
     }
 
@@ -403,44 +382,25 @@ if (signupForm) {
       firstName: firstName,
       nickname: "",
       lastName: lastName,
-      team: "valley", // default
+      team: "valley",
       photo: "",
       handicap: handicap ? Number(handicap) : null,
-      notes: notes || (contact ? `Contact: ${contact}` : "Signed up via form"),
+      notes: notes || (contact ? `Contact: ${contact}` : ""),
     };
 
-    const formatted = `{
-  id: "${playerObj.id}",
-  firstName: "${playerObj.firstName}",
-  nickname: "",
-  lastName: "${playerObj.lastName}",
-  team: "${playerObj.team}",
-  photo: "",
-  ${playerObj.handicap !== null ? `handicap: ${playerObj.handicap},` : ""}
-  notes: "${playerObj.notes.replace(/"/g, '\\"')}"
-},`;
+    // show a simple success, nothing about "paste here"
+    if (formMsg) formMsg.textContent = "Thanks! We'll be in touch.";
 
-    formMsg.textContent = "Sign-up captured! Scroll to copy the code below.";
-
-    let codeBox = document.getElementById("signupCodeBox");
-    if (!codeBox) {
-      codeBox = document.createElement("pre");
-      codeBox.id = "signupCodeBox";
-      codeBox.style.background = "#1a1a1a";
-      codeBox.style.color = "#fff";
-      codeBox.style.padding = "1rem";
-      codeBox.style.borderRadius = "12px";
-      codeBox.style.marginTop = "0.75rem";
-      codeBox.style.whiteSpace = "pre-wrap";
-      signupForm.parentElement.appendChild(codeBox);
-    }
-    codeBox.textContent = `// paste this into your players[] in script.js\n${formatted}`;
-
+    // still open the email draft for you
     const subject = encodeURIComponent("New Ozark Invitational signup");
+    const formatted =
+`Name: ${playerObj.firstName} ${playerObj.lastName}
+Team: ${playerObj.team}
+Handicap: ${playerObj.handicap ?? "—"}
+Notes: ${playerObj.notes || "—"}`;
     const body = encodeURIComponent(
-      `New signup for Ozark Invitational:\n\n${formatted}\n\nAdd this to players[] in script.js.`
+      `New signup for Ozark Invitational:\n\n${formatted}\n\n(Add them to players[] in script.js later.)`
     );
-
     window.location.href = `mailto:nick@example.com?subject=${subject}&body=${body}`;
 
     signupForm.reset();
