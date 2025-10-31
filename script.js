@@ -9,6 +9,9 @@ const TEAM_LABELS = {
 // If you put all your headshots in /images, you can just write "nick.jpg"
 const PLAYER_PHOTO_BASE_PATH = "images/";
 
+// prefix for localStorage keys
+const PAIRING_STORAGE_PREFIX = "ozarkPairings_";
+
 // =======================
 // 1. NAV TOGGLE (mobile)
 // =======================
@@ -29,10 +32,8 @@ const scheduleDays = document.querySelectorAll(".schedule-day");
 
 scheduleTabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    // remove active from all
     scheduleTabButtons.forEach((b) => b.classList.remove("active"));
     scheduleDays.forEach((d) => d.classList.remove("active"));
-    // activate this one
     btn.classList.add("active");
     const dayId = btn.dataset.day;
     const dayEl = document.getElementById(dayId);
@@ -42,7 +43,6 @@ scheduleTabButtons.forEach((btn) => {
 
 // =======================
 // 3. MASTER PLAYER LIST
-//    (edit this for your family)
 // =======================
 const players = [
   {
@@ -88,7 +88,6 @@ const players = [
   // add more players here
 ];
 
-// convenience
 function formatPlayerName(p) {
   if (p.nickname && p.nickname.trim() !== "") {
     return `${p.firstName} "${p.nickname}" ${p.lastName}`;
@@ -96,10 +95,8 @@ function formatPlayerName(p) {
   return `${p.firstName} ${p.lastName}`;
 }
 
-// turn "nick.jpg" into "images/nick.jpg"
 function getPlayerPhotoUrl(p) {
   if (!p.photo) return "";
-  // if they already gave you a path or URL, just use it
   if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) {
     return p.photo;
   }
@@ -108,7 +105,6 @@ function getPlayerPhotoUrl(p) {
 
 // =======================
 // 4. ROUNDS (no carts / no fixed pairings)
-//    we just describe the round + events
 // =======================
 const rounds = [
   {
@@ -127,13 +123,7 @@ const rounds = [
       { name: "Singles (Back 9)", format: "Singles" },
     ],
   },
-  // add more rounds here if you want
 ];
-
-// helper to find a player
-function getPlayerById(id) {
-  return players.find((p) => p.id === id);
-}
 
 // =======================
 // 5. RENDER PLAYERS
@@ -157,7 +147,6 @@ function renderPlayers(filter = "all") {
     const photoUrl = getPlayerPhotoUrl(p);
     const teamLabel = TEAM_LABELS[p.team] ?? p.team;
 
-    // show handicap OR average score, whichever you filled in
     const statText =
       p.handicap != null
         ? `Handicap: ${p.handicap}`
@@ -184,10 +173,8 @@ function renderPlayers(filter = "all") {
   });
 }
 
-// initial render
 renderPlayers();
 
-// team filter buttons
 teamButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     teamButtons.forEach((b) => b.classList.remove("active"));
@@ -197,10 +184,10 @@ teamButtons.forEach((btn) => {
 });
 
 // =======================
-// 6. RANDOM PAIRING UTILS
+// 6. RANDOM PAIRING UTILS (LOCKED)
 // =======================
 
-// Fisher–Yates shuffle so we get a good random order
+// shuffle
 function shuffleArray(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -210,21 +197,47 @@ function shuffleArray(arr) {
   return a;
 }
 
-// given a list of players, make 2-person matches
-function createRandomPairings(playerList) {
+// build matches in pairs
+function createRandomPairingsFromPlayers(playerList) {
   const shuffled = shuffleArray(playerList);
   const matches = [];
   let i = 0;
   while (i < shuffled.length - 1) {
-    matches.push([shuffled[i], shuffled[i + 1]]);
+    matches.push([shuffled[i].id, shuffled[i + 1].id]); // store IDs so it survives reloads
     i += 2;
   }
-  const leftover = shuffled.length % 2 === 1 ? shuffled[shuffled.length - 1] : null;
-  return { matches, leftover };
+  const leftoverId = shuffled.length % 2 === 1 ? shuffled[shuffled.length - 1].id : null;
+  return { matches, leftoverId };
 }
 
+// save to localStorage
+function savePairings(roundId, data) {
+  const key = PAIRING_STORAGE_PREFIX + roundId;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+// load from localStorage
+function loadPairings(roundId) {
+  const key = PAIRING_STORAGE_PREFIX + roundId;
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+// OPTIONAL: helper to clear one round (run in console)
+// clearPairings("round-1");
+window.clearPairings = function (roundId) {
+  const key = PAIRING_STORAGE_PREFIX + roundId;
+  localStorage.removeItem(key);
+  console.log("Cleared pairings for", roundId);
+};
+
 // =======================
-// 7. RENDER ROUNDS / RANDOM PAIRINGS
+// 7. RENDER ROUNDS / USE LOCKED PAIRINGS
 // =======================
 const roundTabs = document.getElementById("roundTabs");
 const roundContent = document.getElementById("roundContent");
@@ -238,7 +251,6 @@ function renderRoundTabs() {
     btn.dataset.round = r.id;
     btn.textContent = r.title;
     btn.addEventListener("click", () => {
-      // clear active
       roundTabs.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       renderRoundContent(r.id);
@@ -255,6 +267,15 @@ function renderRoundContent(roundId) {
     return;
   }
 
+  // 1. try to load existing pairings
+  let pairingData = loadPairings(roundId);
+
+  // 2. if none, create and store
+  if (!pairingData) {
+    pairingData = createRandomPairingsFromPlayers(players);
+    savePairings(roundId, pairingData);
+  }
+
   // events list
   const eventsHtml = round.events
     .map(
@@ -267,31 +288,29 @@ function renderRoundContent(roundId) {
     )
     .join("");
 
-  // build random pairings from ALL current players
-  const { matches, leftover } = createRandomPairings(players);
-
-  const pairingsHtml = matches
+  // render matches
+  const pairingsHtml = pairingData.matches
     .map((pair, idx) => {
-      const p1 = pair[0];
-      const p2 = pair[1];
-      const p1Photo = getPlayerPhotoUrl(p1);
-      const p2Photo = getPlayerPhotoUrl(p2);
-      const p1Team = TEAM_LABELS[p1.team] ?? p1.team;
-      const p2Team = TEAM_LABELS[p2.team] ?? p2.team;
+      const p1 = getPlayerById(pair[0]);
+      const p2 = getPlayerById(pair[1]);
+      const p1Photo = p1 ? getPlayerPhotoUrl(p1) : "";
+      const p2Photo = p2 ? getPlayerPhotoUrl(p2) : "";
+      const p1Team = p1 ? (TEAM_LABELS[p1.team] ?? p1.team) : "";
+      const p2Team = p2 ? (TEAM_LABELS[p2.team] ?? p2.team) : "";
 
       return `
         <li class="pairing-item">
           <strong>Match ${idx + 1}:</strong>
           <div class="pairing-players">
             <div class="pairing-player">
-              ${p1Photo ? `<img src="${p1Photo}" alt="${formatPlayerName(p1)}" class="round-photo" />` : ""}
-              <span>${formatPlayerName(p1)}</span>
+              ${p1Photo ? `<img src="${p1Photo}" alt="${p1 && formatPlayerName(p1)}" class="round-photo" />` : ""}
+              <span>${p1 ? formatPlayerName(p1) : "Unknown"}</span>
               <small>${p1Team}</small>
             </div>
             <span class="vs">vs</span>
             <div class="pairing-player">
-              ${p2Photo ? `<img src="${p2Photo}" alt="${formatPlayerName(p2)}" class="round-photo" />` : ""}
-              <span>${formatPlayerName(p2)}</span>
+              ${p2Photo ? `<img src="${p2Photo}" alt="${p2 && formatPlayerName(p2)}" class="round-photo" />` : ""}
+              <span>${p2 ? formatPlayerName(p2) : "Unknown"}</span>
               <small>${p2Team}</small>
             </div>
           </div>
@@ -299,6 +318,9 @@ function renderRoundContent(roundId) {
       `;
     })
     .join("");
+
+  const leftover =
+    pairingData.leftoverId ? getPlayerById(pairingData.leftoverId) : null;
 
   const leftoverHtml = leftover
     ? `
@@ -308,7 +330,6 @@ function renderRoundContent(roundId) {
     `
     : "";
 
-  // no carts anymore
   roundContent.innerHTML = `
     <div class="round-layout">
       <div>
@@ -316,7 +337,8 @@ function renderRoundContent(roundId) {
         <div class="event-grid">
           ${eventsHtml}
         </div>
-        <h2 class="subhead">Pairings (randomized on load)</h2>
+        <h2 class="subhead">Pairings (locked)</h2>
+        <p class="muted">These were randomized the first time this round was opened and saved in your browser.</p>
         <ul class="pairings-list">
           ${pairingsHtml || "<li>No pairings created.</li>"}
         </ul>
@@ -371,19 +393,17 @@ if (signupForm) {
       return;
     }
 
-    // split name
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
     const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
-    // build the object in the exact format your script uses
     const playerId = `signup-${Date.now()}`;
     const playerObj = {
       id: playerId,
       firstName: firstName,
       nickname: "",
       lastName: lastName,
-      team: "valley", // default — change if you want
+      team: "valley", // default
       photo: "",
       handicap: handicap ? Number(handicap) : null,
       notes: notes || (contact ? `Contact: ${contact}` : "Signed up via form"),
