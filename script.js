@@ -1,4 +1,15 @@
 // =======================
+// 0. CONFIG (easy to edit)
+// =======================
+const TEAM_LABELS = {
+  ozark: "Team Ozark",
+  valley: "Team Valley",
+};
+
+// If you put all your headshots in /images, you can just write "nick.jpg"
+const PLAYER_PHOTO_BASE_PATH = "images/";
+
+// =======================
 // 1. NAV TOGGLE (mobile)
 // =======================
 const navToggle = document.getElementById("navToggle");
@@ -40,50 +51,42 @@ const players = [
     nickname: "Frenzy",
     lastName: "Brown",
     team: "ozark",
-    photo: "images/nick.jpg", // put your real path
+    photo: "nick.jpg", // now you can just write the filename
     handicap: 10,
     notes: "Organizer / TD"
   },
   {
-    id: "dad-brown",
-    firstName: "James",
-    nickname: "",
+    id: "barry-brown",
+    firstName: "Barry",
+    nickname: "Aim Right",
     lastName: "Brown",
     team: "ozark",
-    photo: "images/dad.jpg",
+    photo: "dad.jpg",
     handicap: 14,
-    notes: "OG • must ride"
+    notes: "OG"
   },
   {
-    id: "brother-1",
-    firstName: "Ethan",
-    nickname: "",
+    id: "josh-brown",
+    firstName: "Joshua",
+    nickname: "Long Ball",
     lastName: "Brown",
     team: "valley",
-    photo: "images/brother1.jpg",
+    photo: "brother1.jpg",
     handicap: 6,
     notes: "Long hitter"
   },
   {
-    id: "brother-2",
-    firstName: "Caleb",
-    nickname: "",
+    id: "matt-brown",
+    firstName: "Matthew",
+    nickname: "Hands",
     lastName: "Brown",
     team: "valley",
-    photo: "images/brother2.jpg",
+    photo: "brother2.jpg",
     handicap: 12,
     notes: "Short game guy"
   },
-  {
-    id: "cousin-mike",
-    firstName: "Mike",
-    nickname: "",
-    lastName: "Carter",
-    team: "ozark",
-    photo: "",
-    handicap: 18,
-    notes: "New this year"
-  },
+  
+  // add more players here
 ];
 
 // convenience
@@ -92,6 +95,16 @@ function formatPlayerName(p) {
     return `${p.firstName} "${p.nickname}" ${p.lastName}`;
   }
   return `${p.firstName} ${p.lastName}`;
+}
+
+// turn "nick.jpg" into "images/nick.jpg"
+function getPlayerPhotoUrl(p) {
+  if (!p.photo) return "";
+  // if they already gave you a path or URL, just use it
+  if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) {
+    return p.photo;
+  }
+  return PLAYER_PHOTO_BASE_PATH + p.photo;
 }
 
 // =======================
@@ -184,24 +197,32 @@ function renderPlayers(filter = "all") {
   filtered.forEach((p) => {
     const card = document.createElement("div");
     card.className = "player-card";
+
+    const photoUrl = getPlayerPhotoUrl(p);
+    const teamLabel = TEAM_LABELS[p.team] ?? p.team;
+
+    // show handicap OR average score, whichever you filled in
+    const statText =
+      p.handicap != null
+        ? `Handicap: ${p.handicap}`
+        : p.averageScore != null
+        ? `Avg score: ${p.averageScore}`
+        : "—";
+
     card.innerHTML = `
       <div class="player-top">
         ${
-          p.photo
-            ? `<img src="${p.photo}" alt="${formatPlayerName(p)}" class="player-photo" />`
+          photoUrl
+            ? `<img src="${photoUrl}" alt="${formatPlayerName(p)}" class="player-photo" />`
             : `<div class="player-photo placeholder">${p.firstName[0]}${p.lastName[0]}</div>`
         }
         <div class="player-head">
-          <span class="badge">${p.team === "ozark" ? "Team Ozark" : "Team Valley"}</span>
+          <span class="badge">${teamLabel}</span>
           <h3>${formatPlayerName(p)}</h3>
-          <p class="muted">Handicap: ${p.handicap ?? "—"}</p>
+          <p class="muted">${statText}</p>
         </div>
       </div>
-      ${
-        p.notes
-          ? `<p class="player-notes">${p.notes}</p>`
-          : ""
-      }
+      ${p.notes ? `<p class="player-notes">${p.notes}</p>` : ""}
     `;
     playerList.appendChild(card);
   });
@@ -270,10 +291,12 @@ function renderRoundContent(roundId) {
         .map((pid) => {
           const p = getPlayerById(pid);
           if (!p) return `<li>Unknown player (${pid})</li>`;
+          const photoUrl = getPlayerPhotoUrl(p);
+          const teamLabel = TEAM_LABELS[p.team] ?? p.team;
           return `<li>
-            ${p.photo ? `<img src="${p.photo}" alt="${formatPlayerName(p)}" class="round-photo" />` : ""}
+            ${photoUrl ? `<img src="${photoUrl}" alt="${formatPlayerName(p)}" class="round-photo" />` : ""}
             <span>${formatPlayerName(p)}</span>
-            <small>${p.team === "ozark" ? "Ozark" : "Valley"}</small>
+            <small>${teamLabel}</small>
           </li>`;
         })
         .join("");
