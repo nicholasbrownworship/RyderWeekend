@@ -370,7 +370,7 @@ if (sponsorGrid) {
 }
 
 // =======================
-// 8. SIGNUP FORM
+// 8. SIGNUP FORM (static-site friendly)
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
@@ -379,11 +379,72 @@ if (signupForm) {
   signupForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const data = new FormData(signupForm);
-    const name = data.get("name");
-    formMsg.textContent = `Thanks, ${name || "player"}! We'll confirm your spot.`;
+    const rawName = (data.get("name") || "").trim();
+    const contact = (data.get("email") || "").trim();
+    const handicap = (data.get("handicap") || "").trim();
+    const notes = (data.get("notes") || "").trim();
+
+    if (!rawName) {
+      formMsg.textContent = "Please enter a name.";
+      return;
+    }
+
+    // split name
+    const parts = rawName.split(" ").filter(Boolean);
+    const firstName = parts[0];
+    const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
+
+    // build the object in the exact format your script uses
+    const playerId = `signup-${Date.now()}`;
+    const playerObj = {
+      id: playerId,
+      firstName: firstName,
+      nickname: "",
+      lastName: lastName,
+      team: "valley", // or "ozark" — change default
+      photo: "",
+      handicap: handicap ? Number(handicap) : null,
+      notes: notes || (contact ? `Contact: ${contact}` : "Signed up via form"),
+    };
+
+    // show the user the JS they can paste
+    const formatted = `{
+  id: "${playerObj.id}",
+  firstName: "${playerObj.firstName}",
+  nickname: "",
+  lastName: "${playerObj.lastName}",
+  team: "${playerObj.team}",
+  photo: "",
+  ${playerObj.handicap !== null ? `handicap: ${playerObj.handicap},` : ""}
+  notes: "${playerObj.notes.replace(/"/g, '\\"')}"
+},`;
+
+    formMsg.textContent = "Sign-up captured! Scroll to copy the code below.";
+
+    // put it in (or create) a code box
+    let codeBox = document.getElementById("signupCodeBox");
+    if (!codeBox) {
+      codeBox = document.createElement("pre");
+      codeBox.id = "signupCodeBox";
+      codeBox.style.background = "#1a1a1a";
+      codeBox.style.color = "#fff";
+      codeBox.style.padding = "1rem";
+      codeBox.style.borderRadius = "12px";
+      codeBox.style.marginTop = "0.75rem";
+      codeBox.style.whiteSpace = "pre-wrap";
+      signupForm.parentElement.appendChild(codeBox);
+    }
+    codeBox.textContent = `// paste this into your players[] in script.js\n${formatted}`;
+
+    // also open an email draft with it
+    const subject = encodeURIComponent("New Ozark Invitational signup");
+    const body = encodeURIComponent(
+      `New signup for Ozark Invitational:\n\n${formatted}\n\nAdd this to players[] in script.js.`
+    );
+    // change this to your real email
+    window.location.href = `mailto:nick@example.com?subject=${subject}&body=${body}`;
+
     signupForm.reset();
-    setTimeout(() => {
-      formMsg.textContent = "";
-    }, 6000);
   });
 }
+
