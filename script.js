@@ -359,7 +359,7 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
     nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
     nicknameInput.placeholder = "e.g., Long Ball";
-    nicknameInput.required = true; // make required now
+    nicknameInput.required = false; // 
 
     if (nameInput && nameInput.parentElement) {
       nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
