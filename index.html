@@ -33,14 +33,6 @@
   <!-- HERO -->
   <section class="hero pro-hero" id="top">
     <div class="hero-bg"></div>
-
-    <!-- ✅ HERO LOGOS (watermark overlay) -->
-    <div class="hero-logos">
-      <img src="images/ozark-logo.png" alt="Ozark Invitational Logo" class="hero-logo" />
-      <!-- You can duplicate this line for additional logos -->
-      <!-- <img src="images/valley-logo.png" alt="Valley Team Logo" class="hero-logo" /> -->
-    </div>
-
     <div class="hero-inner hero-grid">
       <div class="hero-left">
         <p class="tagline">Brown Family • Ozark Invitational 2026</p>
@@ -78,7 +70,7 @@
             <li><strong>Teams:</strong> Ozark vs Valley</li>
             <li><strong>Prizes:</strong> Trophy + side prizes</li>
           </ul>
-          <p class="small">Questions? <a href="mailto:nicholasbrownworship@gmai.com">Contact Us</a></p>
+          <p class="small">Questions? <a href="mailto:nicholasbrownworship@gmail.com">Contact Us</a></p>
         </div>
       </div>
     </div>
@@ -124,7 +116,7 @@
       </div>
     </section>
 
-    <!-- SCHEDULE -->
+    <!-- SCHEDULE (high-level) -->
     <section id="schedule" class="section section-alt pro-schedule">
       <div class="section-head center">
         <h2>Weekend Schedule</h2>
@@ -135,6 +127,7 @@
         <button class="tab-btn" data-day="day2">Day 2 • Sunday</button>
       </div>
       <div class="schedule-cols">
+        <!-- DAY 1 -->
         <div class="schedule-day active" id="day1">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
@@ -157,7 +150,7 @@
             <p>Included. Scores posted to main board.</p>
           </div>
         </div>
-
+        <!-- DAY 2 -->
         <div class="schedule-day" id="day2">
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
@@ -194,17 +187,23 @@
         <button class="team-btn" data-team="ozark">Team Ozark</button>
         <button class="team-btn" data-team="valley">Team Valley</button>
       </div>
-      <div id="playerList" class="players-grid"></div>
+      <div id="playerList" class="players-grid">
+        <!-- JS injects player cards here -->
+      </div>
     </section>
 
-    <!-- ROUNDS -->
+    <!-- ROUNDS / CARTS / PAIRINGS -->
     <section id="rounds" class="section section-alt">
       <div class="section-head center">
         <h2>Rounds, Carts & Pairings</h2>
         <p>Edit round assignments in <code>script.js</code>. Each round can have two events.</p>
       </div>
-      <div class="tabs tabs-centered" id="roundTabs"></div>
-      <div id="roundContent" class="round-content"></div>
+      <div class="tabs tabs-centered" id="roundTabs">
+        <!-- JS will inject round buttons -->
+      </div>
+      <div id="roundContent" class="round-content">
+        <!-- JS will inject selected round here -->
+      </div>
     </section>
 
     <!-- SPONSORS -->
@@ -213,7 +212,9 @@
         <h2>2026 Sponsors</h2>
         <p>These folks help cover lunch, prizes, and course costs.</p>
       </div>
-      <div class="sponsor-grid" id="sponsorGrid"></div>
+      <div class="sponsor-grid" id="sponsorGrid">
+        <!-- JS injects sponsor cards -->
+      </div>
       <p class="sponsor-cta">
         Want to sponsor a hole or prize?
         <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
