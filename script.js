@@ -369,7 +369,7 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (nickname + team dropdown + phone) + duplicate protection
+// 9. SIGNUP FORM (optional nickname + required team dropdown + dupes + Formspree)
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
@@ -378,45 +378,36 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
 // ---- Duplicate tracking (localStorage) ----
 const SIGNUPS_KEY = "ozarkSignups_v1";
 function loadSignups() {
-  try {
-    const raw = localStorage.getItem(SIGNUPS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
 }
-function saveSignups(arr) {
-  localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
-}
-function normalizeNameEmail(name, email) {
-  return {
-    normName: String(name || "").toLowerCase().replace(/\s+/g, " ").trim(),
-    normEmail: String(email || "").toLowerCase().trim(),
-  };
-}
+function saveSignups(arr) { localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || [])); }
+const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-// --- Build/ensure fields: nickname + team dropdown ---
+// --- Ensure Nickname (optional) + Team dropdown (required) exist ---
 (function ensureSignupFields() {
   if (!signupForm) return;
 
-  let nameInput = signupForm.querySelector('[name="name"]');
-  let nicknameInput = signupForm.querySelector('[name="nickname"]');
-  let teamSelect = signupForm.querySelector('[name="team"]');
+  const nameInput = signupForm.querySelector('[name="name"]');
 
-  // Create nickname input if missing (optional)
+  // Nickname (optional): add if missing
+  let nicknameInput = signupForm.querySelector('[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
     nnLabel.setAttribute("for", "nickname");
     nnLabel.textContent = "Nickname (optional)";
+
     nicknameInput = document.createElement("input");
     nicknameInput.type = "text";
     nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
     nicknameInput.placeholder = "e.g., Long Ball";
-    nicknameInput.required = false; // ✅ optional
+    // no 'required' (optional)
 
     if (nameInput && nameInput.parentElement) {
       nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
+      nnLabel.insertAdjacentElement("afterend", nicknameInput);
+    } else if (nameInput) {
+      nameInput.insertAdjacentElement("afterend", nnLabel);
       nnLabel.insertAdjacentElement("afterend", nicknameInput);
     } else {
       signupForm.prepend(nicknameInput);
@@ -424,31 +415,40 @@ function normalizeNameEmail(name, email) {
     }
   }
 
-  // Create team dropdown if missing
+  // Team dropdown (required): add if missing
+  let teamSelect = signupForm.querySelector('[name="team"]');
   if (!teamSelect) {
     const label = document.createElement("label");
     label.setAttribute("for", "signupTeam");
     label.textContent = "Team";
+
     teamSelect = document.createElement("select");
     teamSelect.name = "team";
     teamSelect.id = "signupTeam";
     teamSelect.required = true;
+
     populateTeamDropdown(teamSelect);
 
-    if (nicknameInput && nicknameInput.parentElement) {
-      nicknameInput.insertAdjacentElement("afterend", label);
+    // place near nickname if present, else near name
+    const anchor = signupForm.querySelector('#nickname') || nameInput;
+    if (anchor) {
+      anchor.insertAdjacentElement("afterend", label);
       label.insertAdjacentElement("afterend", teamSelect);
     } else {
       signupForm.prepend(teamSelect);
       signupForm.prepend(label);
     }
   } else {
+    // If present, (re)populate from TEAM_LABELS but preserve current value if possible
+    const current = teamSelect.value;
     populateTeamDropdown(teamSelect);
+    if (current && TEAM_LABELS[current]) teamSelect.value = current;
   }
 })();
 
 function populateTeamDropdown(selectEl) {
   if (!selectEl) return;
+  const current = selectEl.value;
   selectEl.innerHTML = "";
   Object.entries(TEAM_LABELS).forEach(([value, label]) => {
     const opt = document.createElement("option");
@@ -456,24 +456,26 @@ function populateTeamDropdown(selectEl) {
     opt.textContent = label;
     selectEl.appendChild(opt);
   });
+  // try to restore previous selection
+  if (current && TEAM_LABELS[current]) selectEl.value = current;
 }
 
 if (signupForm) {
   signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = new FormData(signupForm);
+    e.preventDefault(); // stop native submit/refresh
 
-    const rawName   = (data.get("name")     || "").trim();
-    const nickname  = (data.get("nickname") || "").trim();       // optional
-    const selectedTeam = (data.get("team")  || "").trim();
-    const contact   = (data.get("email")    || "").trim();
-    const phone     = (data.get("phone")    || "").trim();
-    const handicap  = (data.get("handicap") || "").trim();
-    const notes     = (data.get("notes")    || "").trim();
+    // Read values from your existing fields (+ the ones we ensured)
+    const rawName     = (signupForm.querySelector('[name="name"]')?.value || "").trim();
+    const nickname    = (signupForm.querySelector('[name="nickname"]')?.value || "").trim(); // optional
+    const selectedTeam= (signupForm.querySelector('[name="team"]')?.value || "").trim();     // required
+    const contact     = (signupForm.querySelector('[name="email"]')?.value || "").trim();    // required
+    const phone       = (signupForm.querySelector('[name="phone"]')?.value || "").trim();    // required
+    const handicap    = (signupForm.querySelector('[name="handicap"]')?.value || "").trim(); // required
+    const notes       = (signupForm.querySelector('[name="notes"]')?.value || "").trim();    // required
 
     if (formMsg) formMsg.classList.remove("error");
 
-    // ✅ Validate required fields (nickname excluded)
+    // Validate required (nickname excluded)
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
       if (formMsg) {
         formMsg.textContent = "Please complete all required fields.";
@@ -482,36 +484,41 @@ if (signupForm) {
       return;
     }
 
-    // ✅ Duplicate protection: same normalized full name + email
-    const { normName, normEmail } = normalizeNameEmail(rawName, contact);
+    // Duplicate check by normalized Full Name + Email
     const prior = loadSignups();
-    const isDupe = prior.some(p => p.normName === normName && p.normEmail === normEmail);
+    const isDupe = prior.some(p => p.name === normalize(rawName) && p.email === normalize(contact));
     if (isDupe) {
       if (formMsg) {
-        formMsg.textContent = "It looks like you've already signed up with this email. If you need to make a change, reply to your confirmation email.";
+        formMsg.textContent = "It looks like you've already signed up with this email.";
         formMsg.classList.add("error");
       }
       return;
     }
 
-    // Prepare pretty fields
+    // Split name for nicer formatting
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
-    const teamLabel = TEAM_LABELS[selectedTeam] ?? selectedTeam;
 
-    // Normalize payload for Formspree
+    // Human-readable team label (if available)
+    let teamLabel = selectedTeam;
+    if (typeof TEAM_LABELS === "object" && TEAM_LABELS && TEAM_LABELS[selectedTeam]) {
+      teamLabel = TEAM_LABELS[selectedTeam];
+    }
+
+    // Build FormData for Formspree (don’t rely on native submission)
+    const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
-    data.set("nickname", nickname || "—");
-    data.set("team", selectedTeam);     // key
-    data.set("team_label", teamLabel);  // human label
-    data.set("handicap", handicap);
+    data.set("nickname", nickname || "—"); // optional
+    data.set("team", selectedTeam);        // key
+    data.set("team_label", teamLabel);     // human label
     data.set("email", contact);
     data.set("phone", phone);
+    data.set("handicap", handicap);
     data.set("notes", notes);
     data.set("_subject", "New Ozark Invitational signup");
 
-    const formatted = `
+    const summary = `
 Name: ${firstName} ${lastName}
 Nickname: ${nickname || "—"}
 Team: ${teamLabel}
@@ -519,7 +526,7 @@ Handicap: ${handicap}
 Email: ${contact}
 Phone: ${phone}
 Notes: ${notes}`.trim();
-    data.set("summary", formatted);
+    data.set("summary", summary);
 
     try {
       const res = await fetch(FORMSPREE_URL, {
@@ -529,13 +536,8 @@ Notes: ${notes}`.trim();
       });
 
       if (res.ok) {
-        // Save this signup locally so future attempts are flagged as duplicate
-        prior.push({
-          normName,
-          normEmail,
-          ts: Date.now(),
-          display: { firstName, lastName, email: contact }
-        });
+        // store dedupe key after successful send
+        prior.push({ name: normalize(rawName), email: normalize(contact), ts: Date.now() });
         saveSignups(prior);
 
         if (formMsg) {
@@ -544,7 +546,7 @@ Notes: ${notes}`.trim();
         }
         signupForm.reset();
 
-        // Re-populate team options after reset (autofill quirks)
+        // Re-populate team options (in case browser clears them)
         const teamSelect = signupForm.querySelector('[name="team"]');
         if (teamSelect) populateTeamDropdown(teamSelect);
       } else {
@@ -566,17 +568,3 @@ Notes: ${notes}`.trim();
     }
   });
 }
-
-
-(function autoFormatPhone() {
-  const phoneInput = document.getElementById("phone");
-  if (!phoneInput) return;
-  phoneInput.addEventListener("input", () => {
-    const digits = phoneInput.value.replace(/\D/g, "").slice(0, 10);
-    const parts = [];
-    if (digits.length > 0) parts.push("(" + digits.slice(0,3));
-    if (digits.length >= 4) parts[0] += ") " + digits.slice(3,6);
-    if (digits.length >= 7) parts[0] += "-" + digits.slice(6,10);
-    phoneInput.value = parts[0] || "";
-  });
-})();
