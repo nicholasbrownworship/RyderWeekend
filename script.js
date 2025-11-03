@@ -111,7 +111,13 @@ const players = [
     notes: "Short game guy"
   },
   // add more players here
+  
 ];
+
+// Pull prior signups from localStorage into players[]
+const _savedSignups = loadSignupPlayers();
+_savedSignups.forEach(upsertPlayerToMasterList);
+
 
 function formatPlayerName(p) {
   if (p.nickname && p.nickname.trim() !== "") {
@@ -363,11 +369,31 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (nickname + team dropdown + phone)
+// 9. SIGNUP FORM (nickname + team dropdown + phone) + duplicate protection
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
 const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
+
+// ---- Duplicate tracking (localStorage) ----
+const SIGNUPS_KEY = "ozarkSignups_v1";
+function loadSignups() {
+  try {
+    const raw = localStorage.getItem(SIGNUPS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+function saveSignups(arr) {
+  localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
+}
+function normalizeNameEmail(name, email) {
+  return {
+    normName: String(name || "").toLowerCase().replace(/\s+/g, " ").trim(),
+    normEmail: String(email || "").toLowerCase().trim(),
+  };
+}
 
 // --- Build/ensure fields: nickname + team dropdown ---
 (function ensureSignupFields() {
@@ -377,7 +403,7 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
   let nicknameInput = signupForm.querySelector('[name="nickname"]');
   let teamSelect = signupForm.querySelector('[name="team"]');
 
-  // Create nickname input if missing
+  // Create nickname input if missing (optional)
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
     nnLabel.setAttribute("for", "nickname");
@@ -387,7 +413,7 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
     nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
     nicknameInput.placeholder = "e.g., Long Ball";
-    nicknameInput.required = false; // 
+    nicknameInput.required = false; // ✅ optional
 
     if (nameInput && nameInput.parentElement) {
       nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
@@ -437,18 +463,18 @@ if (signupForm) {
     e.preventDefault();
     const data = new FormData(signupForm);
 
-    const rawName = (data.get("name") || "").trim();
-    const nickname = (data.get("nickname") || "").trim();
-    const selectedTeam = (data.get("team") || "").trim();
-    const contact = (data.get("email") || "").trim();
-    const phone = (data.get("phone") || "").trim();
-    const handicap = (data.get("handicap") || "").trim();
-    const notes = (data.get("notes") || "").trim();
+    const rawName   = (data.get("name")     || "").trim();
+    const nickname  = (data.get("nickname") || "").trim();       // optional
+    const selectedTeam = (data.get("team")  || "").trim();
+    const contact   = (data.get("email")    || "").trim();
+    const phone     = (data.get("phone")    || "").trim();
+    const handicap  = (data.get("handicap") || "").trim();
+    const notes     = (data.get("notes")    || "").trim();
 
     if (formMsg) formMsg.classList.remove("error");
 
-    // Validate all required fields manually (extra safety)
-    if (!rawName || !nickname || !selectedTeam || !contact || !phone || !handicap || !notes) {
+    // ✅ Validate required fields (nickname excluded)
+    if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
       if (formMsg) {
         formMsg.textContent = "Please complete all required fields.";
         formMsg.classList.add("error");
@@ -456,14 +482,29 @@ if (signupForm) {
       return;
     }
 
+    // ✅ Duplicate protection: same normalized full name + email
+    const { normName, normEmail } = normalizeNameEmail(rawName, contact);
+    const prior = loadSignups();
+    const isDupe = prior.some(p => p.normName === normName && p.normEmail === normEmail);
+    if (isDupe) {
+      if (formMsg) {
+        formMsg.textContent = "It looks like you've already signed up with this email. If you need to make a change, reply to your confirmation email.";
+        formMsg.classList.add("error");
+      }
+      return;
+    }
+
+    // Prepare pretty fields
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
-    const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
+    const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
     const teamLabel = TEAM_LABELS[selectedTeam] ?? selectedTeam;
 
+    // Normalize payload for Formspree
     data.set("name", `${firstName} ${lastName}`);
-    data.set("nickname", nickname);
-    data.set("team_label", teamLabel);
+    data.set("nickname", nickname || "—");
+    data.set("team", selectedTeam);     // key
+    data.set("team_label", teamLabel);  // human label
     data.set("handicap", handicap);
     data.set("email", contact);
     data.set("phone", phone);
@@ -472,14 +513,13 @@ if (signupForm) {
 
     const formatted = `
 Name: ${firstName} ${lastName}
-Nickname: ${nickname}
+Nickname: ${nickname || "—"}
 Team: ${teamLabel}
 Handicap: ${handicap}
 Email: ${contact}
 Phone: ${phone}
-Notes: ${notes}`;
-
-    data.set("summary", formatted.trim());
+Notes: ${notes}`.trim();
+    data.set("summary", formatted);
 
     try {
       const res = await fetch(FORMSPREE_URL, {
@@ -489,18 +529,29 @@ Notes: ${notes}`;
       });
 
       if (res.ok) {
+        // Save this signup locally so future attempts are flagged as duplicate
+        prior.push({
+          normName,
+          normEmail,
+          ts: Date.now(),
+          display: { firstName, lastName, email: contact }
+        });
+        saveSignups(prior);
+
         if (formMsg) {
           formMsg.textContent = "Thanks! Your signup has been submitted.";
           formMsg.classList.remove("error");
         }
         signupForm.reset();
+
+        // Re-populate team options after reset (autofill quirks)
         const teamSelect = signupForm.querySelector('[name="team"]');
         if (teamSelect) populateTeamDropdown(teamSelect);
       } else {
         let msg = "Something went wrong. Please try again.";
         try {
           const err = await res.json();
-          if (err.errors?.length) msg = err.errors.map(e => e.message).join(", ");
+          if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", ");
         } catch (_) {}
         if (formMsg) {
           formMsg.textContent = msg;
@@ -517,4 +568,15 @@ Notes: ${notes}`;
 }
 
 
-
+(function autoFormatPhone() {
+  const phoneInput = document.getElementById("phone");
+  if (!phoneInput) return;
+  phoneInput.addEventListener("input", () => {
+    const digits = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+    const parts = [];
+    if (digits.length > 0) parts.push("(" + digits.slice(0,3));
+    if (digits.length >= 4) parts[0] += ") " + digits.slice(3,6);
+    if (digits.length >= 7) parts[0] += "-" + digits.slice(6,10);
+    phoneInput.value = parts[0] || "";
+  });
+})();
