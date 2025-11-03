@@ -10,6 +10,34 @@ const PLAYER_PHOTO_BASE_PATH = "images/";
 const PAIRING_STORAGE_PREFIX = "ozarkPairings_"; // we'll add round+event to this
 
 // =======================
+// SIGNUP PERSISTENCE
+// =======================
+const SIGNUPS_KEY = "ozarkSignups_v1";
+
+function loadSignupPlayers() {
+  try {
+    const raw = localStorage.getItem(SIGNUPS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+function saveSignupPlayers(arr) {
+  localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
+}
+function upsertPlayerToMasterList(p) {
+  // avoid duplicates by id or by (name+email)
+  const exists = players.some(x =>
+    x.id === p.id ||
+    (x.firstName.toLowerCase() === p.firstName.toLowerCase() &&
+     x.lastName.toLowerCase() === p.lastName.toLowerCase() &&
+     (p.email ? (x.notes||"").toLowerCase().includes(p.email.toLowerCase()) : false))
+  );
+  if (!exists) players.push(p);
+}
+
+
+// =======================
 // 1. NAV TOGGLE (mobile)
 // =======================
 const navToggle = document.getElementById("navToggle");
