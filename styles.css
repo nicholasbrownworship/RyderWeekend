@@ -628,3 +628,25 @@ textarea:focus {
     justify-content: center;
   }
 }
+
+.hero-logos {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.18; /* watermark level */
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-logo {
+  height: 160px; /* adjust as needed */
+  width: auto;
+  filter: brightness(1.1) contrast(0.9) saturate(0.8);
+  mix-blend-mode: overlay; /* smooths into gradient */
+}
+
