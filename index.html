@@ -221,7 +221,7 @@
       </p>
     </section>
 
-    <!-- ===================
+<!-- ===================
      SIGN UP SECTION
 =================== -->
 <section class="section section-tight section-alt" id="signup">
@@ -232,7 +232,14 @@
         <span class="muted">Join the Ozark Invitational</span>
       </div>
 
-      <form id="signupForm">
+      <!-- Connected to Formspree for automated email submissions -->
+      <form id="signupForm" action="https://formspree.io/f/xnnokdqb" method="POST">
+        <!-- Hidden fields for spam + subject line -->
+        <div style="position: absolute; left: -5000px;" aria-hidden="true">
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+        </div>
+        <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
+
         <!-- Top row: name + nickname (nickname will be auto-injected by JS) -->
         <div class="form-row">
           <div class="full">
@@ -272,12 +279,11 @@
   </div>
 </section>
 
+<!-- FOOTER -->
+<footer class="footer">
+  <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
+</footer>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
-  </footer>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
