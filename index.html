@@ -234,50 +234,54 @@
 
       <!-- Connected to Formspree for automated email submissions -->
       <form id="signupForm" action="https://formspree.io/f/xnnokdqb" method="POST">
-        <!-- Hidden fields for spam + subject line -->
-        <div style="position: absolute; left: -5000px;" aria-hidden="true">
-          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
-        </div>
-        <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
+  <!-- Hidden fields for spam + subject line -->
+  <div style="position: absolute; left: -5000px;" aria-hidden="true">
+    <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
 
-        <!-- Top row: name + nickname (nickname will be auto-injected by JS) -->
-        <div class="form-row">
-          <div class="full">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" placeholder="Full Name" required />
-          </div>
-        </div>
-
-        <!-- Second row: team + handicap -->
-        <div class="form-row">
-          <!-- JS will inject the Team dropdown automatically -->
-          <div class="full">
-            <label for="handicap">Handicap</label>
-            <input type="number" id="handicap" name="handicap" placeholder="Handicap" />
-          </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="full">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" placeholder="Email" />
-        </div>
-
-        <!-- Notes -->
-        <div class="full">
-          <label for="notes">Notes</label>
-          <textarea id="notes" name="notes" placeholder="Notes or comments"></textarea>
-        </div>
-
-        <!-- Submit -->
-        <div class="actions">
-          <button class="btn" type="submit">Submit</button>
-          <span id="formMsg" aria-live="polite"></span>
-        </div>
-      </form>
+  <!-- Full Name -->
+  <div class="form-row">
+    <div class="full">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" placeholder="Full Name" required />
     </div>
   </div>
-</section>
+
+  <!-- Team + Handicap (team dropdown added by JS) -->
+  <div class="form-row">
+    <!-- JS will inject the Team dropdown automatically -->
+    <div class="full">
+      <label for="handicap">Handicap</label>
+      <input type="number" id="handicap" name="handicap" placeholder="Handicap" required />
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div class="full">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" placeholder="Email" required />
+  </div>
+
+  <!-- Phone -->
+  <div class="full">
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required />
+  </div>
+
+  <!-- Notes -->
+  <div class="full">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" placeholder="Notes or comments" required></textarea>
+  </div>
+
+  <!-- Submit -->
+  <div class="actions">
+    <button class="btn" type="submit">Submit</button>
+    <span id="formMsg" aria-live="polite"></span>
+  </div>
+</form>
+
 
 <!-- FOOTER -->
 <footer class="footer">
