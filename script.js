@@ -335,10 +335,13 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (nickname + team dropdown)
+// 9. SIGNUP FORM (nickname + team dropdown) — Formspree POST
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
+
+// Use your Formspree endpoint directly (works even if the form tag is missing action)
+const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
 
 // --- Build/ensure fields: nickname + team dropdown ---
 (function ensureSignupFields() {
@@ -426,7 +429,7 @@ function populateTeamDropdown(selectEl) {
 }
 
 if (signupForm) {
-  signupForm.addEventListener("submit", (e) => {
+  signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = new FormData(signupForm);
 
@@ -458,41 +461,65 @@ if (signupForm) {
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
     const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
+    const teamLabel = TEAM_LABELS[selectedTeam] ?? selectedTeam;
 
-    const playerId = `signup-${Date.now()}`;
-    const playerObj = {
-      id: playerId,
-      firstName: firstName,
-      nickname: nickname || "",
-      lastName: lastName,
-      team: selectedTeam, // from dropdown
-      photo: "",
-      handicap: handicap ? Number(handicap) : null,
-      notes: notes || (contact ? `Contact: ${contact}` : ""),
-    };
+    // Normalize fields Formspree will receive
+    data.set("name", `${firstName} ${lastName}`);
+    data.set("nickname", nickname || "—");
+    data.set("team", selectedTeam);     // machine key
+    data.set("team_label", teamLabel);  // human label
+    data.set("handicap", handicap || "—");
+    data.set("email", contact || "—");
+    data.set("notes", notes || "—");
+    data.set("_subject", "New Ozark Invitational signup");
 
-    if (formMsg) {
-      formMsg.textContent = "Thanks! We'll be in touch.";
-      formMsg.classList.remove("error");
-    }
-
-    const subject = encodeURIComponent("New Ozark Invitational signup");
+    // Add a pretty summary for your inbox
     const formatted =
-`Name: ${playerObj.firstName} ${playerObj.lastName}
-Nickname: ${playerObj.nickname || "—"}
-Team: ${TEAM_LABELS[playerObj.team] ?? playerObj.team}
-Handicap: ${playerObj.handicap ?? "—"}
-Notes: ${playerObj.notes || "—"}`;
-    const body = encodeURIComponent(
-      `New signup for Ozark Invitational:\n\n${formatted}`
-    );
-    window.location.href = `mailto:nick@example.com?subject=${subject}&body=${body}`;
+      `Name: ${firstName} ${lastName}\n` +
+      `Nickname: ${nickname || "—"}\n` +
+      `Team: ${teamLabel}\n` +
+      `Handicap: ${handicap || "—"}\n` +
+      `Notes: ${notes || "—"}\n` +
+      (contact ? `Contact: ${contact}\n` : "");
+    data.set("summary", formatted.trim());
 
-    signupForm.reset();
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: data
+      });
 
-    // Repopulate team to reflect current TEAM_LABELS after reset (some browsers keep last value)
-    const teamSelect = signupForm.querySelector('[name="team"]');
-    if (teamSelect) populateTeamDropdown(teamSelect);
+      if (res.ok) {
+        if (formMsg) {
+          formMsg.textContent = "Thanks! Your signup has been submitted.";
+          formMsg.classList.remove("error");
+        }
+        signupForm.reset();
+
+        // Re-populate team options after reset (browser autofill quirks)
+        const teamSelect = signupForm.querySelector('[name="team"]');
+        if (teamSelect) populateTeamDropdown(teamSelect);
+      } else {
+        let message = "Something went wrong. Please try again.";
+        try {
+          const err = await res.json();
+          if (err && err.errors && err.errors.length) {
+            message = err.errors.map(e => e.message).join(", ");
+          }
+        } catch (_) {}
+        if (formMsg) {
+          formMsg.textContent = message;
+          formMsg.classList.add("error");
+        }
+      }
+    } catch (err) {
+      if (formMsg) {
+        formMsg.textContent = "Network error. Please try again.";
+        formMsg.classList.add("error");
+      }
+    }
   });
 }
+
 
