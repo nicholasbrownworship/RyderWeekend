@@ -369,52 +369,28 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (force-inject Nickname + Team rows, dupes, Formspree)
+// 9. SIGNUP FORM (optional nickname + required team dropdown + dupes + Formspree)
 // =======================
-document.addEventListener("DOMContentLoaded", () => {
-  const signupForm = document.getElementById("signupForm");
-  const formMsg = document.getElementById("formMsg");
-  const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
+const signupForm = document.getElementById("signupForm");
+const formMsg = document.getElementById("formMsg");
+const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
 
+// ---- Duplicate tracking (localStorage) ----
+const SIGNUPS_KEY = "ozarkSignups_v1";
+function loadSignups() {
+  try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
+}
+function saveSignups(arr) { localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || [])); }
+const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+
+// --- Ensure Nickname (optional) + Team dropdown (required) exist ---
+(function ensureSignupFields() {
   if (!signupForm) return;
 
-  // ---- Duplicate tracking (localStorage) ----
-  const SIGNUPS_KEY = "ozarkSignups_v1";
-  const loadSignups = () => {
-    try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
-  };
-  const saveSignups = (arr) => localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
-  const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+  const nameInput = signupForm.querySelector('[name="name"]');
 
-  // Helpers to build rows that match your CSS (.form-row > .full > label+input)
-  const makeRow = (innerEl1, innerEl2) => {
-    const row = document.createElement("div");
-    row.className = "form-row";
-    if (innerEl1) {
-      const full1 = document.createElement("div");
-      full1.className = "full";
-      full1.appendChild(innerEl1);
-      row.appendChild(full1);
-    }
-    if (innerEl2) {
-      const full2 = document.createElement("div");
-      full2.className = "full";
-      full2.appendChild(innerEl2);
-      row.appendChild(full2);
-    }
-    return row;
-  };
-  const insertAfter = (newNode, referenceNode) => {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
-  };
-
-  // Find anchors we’ll use for positioning
-  const nameInput = signupForm.querySelector('#name,[name="name"]');
-  const nameRow = nameInput ? nameInput.closest(".form-row") : null;
-  const actionsRow = signupForm.querySelector(".actions");
-
-  // --- Ensure Nickname (optional) row exists ---
-  let nicknameInput = signupForm.querySelector('#nickname,[name="nickname"]');
+  // Nickname (optional): add if missing
+  let nicknameInput = signupForm.querySelector('[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
     nnLabel.setAttribute("for", "nickname");
@@ -422,70 +398,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
     nicknameInput = document.createElement("input");
     nicknameInput.type = "text";
-    nicknameInput.id = "nickname";
     nicknameInput.name = "nickname";
-    nicknameInput.placeholder = "e.g., Long Ball"; // optional, not required
+    nicknameInput.id = "nickname";
+    nicknameInput.placeholder = "e.g., Long Ball";
+    // no 'required' (optional)
 
-    const nicknameRow = makeRow(nnLabel, nicknameInput);
-
-    if (nameRow) {
-      insertAfter(nicknameRow, nameRow);
-    } else if (actionsRow) {
-      signupForm.insertBefore(nicknameRow, actionsRow);
+    if (nameInput && nameInput.parentElement) {
+      nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
+      nnLabel.insertAdjacentElement("afterend", nicknameInput);
+    } else if (nameInput) {
+      nameInput.insertAdjacentElement("afterend", nnLabel);
+      nnLabel.insertAdjacentElement("afterend", nicknameInput);
     } else {
-      signupForm.appendChild(nicknameRow);
+      signupForm.prepend(nicknameInput);
+      signupForm.prepend(nnLabel);
     }
   }
 
-  // --- Ensure Team (required) row exists ---
-  let teamSelect = signupForm.querySelector('#signupTeam,[name="team"]');
+  // Team dropdown (required): add if missing
+  let teamSelect = signupForm.querySelector('[name="team"]');
   if (!teamSelect) {
-    const teamLabel = document.createElement("label");
-    teamLabel.setAttribute("for", "signupTeam");
-    teamLabel.textContent = "Team";
+    const label = document.createElement("label");
+    label.setAttribute("for", "signupTeam");
+    label.textContent = "Team";
 
     teamSelect = document.createElement("select");
-    teamSelect.id = "signupTeam";
     teamSelect.name = "team";
+    teamSelect.id = "signupTeam";
     teamSelect.required = true;
 
-    // Placeholder to force a choice
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Select a team…";
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    teamSelect.appendChild(placeholder);
+    populateTeamDropdown(teamSelect);
 
-    // Populate from TEAM_LABELS
-    if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
-      Object.entries(TEAM_LABELS).forEach(([val, label]) => {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = label;
-        teamSelect.appendChild(opt);
-      });
-    }
-
-    const teamRow = makeRow(teamLabel, teamSelect);
-
-    // Place Team row after Nickname row if possible, else near name, else before actions
-    const nnRow = signupForm.querySelector("#nickname")?.closest(".form-row");
-    if (nnRow) {
-      insertAfter(teamRow, nnRow);
-    } else if (nameRow) {
-      insertAfter(teamRow, nameRow);
-    } else if (actionsRow) {
-      signupForm.insertBefore(teamRow, actionsRow);
+    // place near nickname if present, else near name
+    const anchor = signupForm.querySelector('#nickname') || nameInput;
+    if (anchor) {
+      anchor.insertAdjacentElement("afterend", label);
+      label.insertAdjacentElement("afterend", teamSelect);
     } else {
-      signupForm.appendChild(teamRow);
+      signupForm.prepend(teamSelect);
+      signupForm.prepend(label);
     }
+  } else {
+    // If present, (re)populate from TEAM_LABELS but preserve current value if possible
+    const current = teamSelect.value;
+    populateTeamDropdown(teamSelect);
+    if (current && TEAM_LABELS[current]) teamSelect.value = current;
   }
+})();
 
-  // --- Submit handler with Formspree + duplicate protection ---
+function populateTeamDropdown(selectEl) {
+  if (!selectEl) return;
+  const current = selectEl.value;
+  selectEl.innerHTML = "";
+  Object.entries(TEAM_LABELS).forEach(([value, label]) => {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = label;
+    selectEl.appendChild(opt);
+  });
+  // try to restore previous selection
+  if (current && TEAM_LABELS[current]) selectEl.value = current;
+}
+
+if (signupForm) {
   signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // stop native submit/refresh
 
+    // Read values from your existing fields (+ the ones we ensured)
     const rawName     = (signupForm.querySelector('[name="name"]')?.value || "").trim();
     const nickname    = (signupForm.querySelector('[name="nickname"]')?.value || "").trim(); // optional
     const selectedTeam= (signupForm.querySelector('[name="team"]')?.value || "").trim();     // required
@@ -496,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (formMsg) formMsg.classList.remove("error");
 
-    // Required checks (nickname intentionally excluded)
+    // Validate required (nickname excluded)
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
       if (formMsg) {
         formMsg.textContent = "Please complete all required fields.";
@@ -516,23 +495,23 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Split name for nice formatting
+    // Split name for nicer formatting
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
-    // Human label for team if available
+    // Human-readable team label (if available)
     let teamLabel = selectedTeam;
     if (typeof TEAM_LABELS === "object" && TEAM_LABELS && TEAM_LABELS[selectedTeam]) {
       teamLabel = TEAM_LABELS[selectedTeam];
     }
 
-    // Build FormData for Formspree
+    // Build FormData for Formspree (don’t rely on native submission)
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
-    data.set("nickname", nickname || "—");
-    data.set("team", selectedTeam);
-    data.set("team_label", teamLabel);
+    data.set("nickname", nickname || "—"); // optional
+    data.set("team", selectedTeam);        // key
+    data.set("team_label", teamLabel);     // human label
     data.set("email", contact);
     data.set("phone", phone);
     data.set("handicap", handicap);
@@ -557,7 +536,7 @@ Notes: ${notes}`.trim();
       });
 
       if (res.ok) {
-        // Record dedupe key after successful send
+        // store dedupe key after successful send
         prior.push({ name: normalize(rawName), email: normalize(contact), ts: Date.now() });
         saveSignups(prior);
 
@@ -567,24 +546,9 @@ Notes: ${notes}`.trim();
         }
         signupForm.reset();
 
-        // Restore team options (some browsers clear them after reset)
+        // Re-populate team options (in case browser clears them)
         const teamSelect = signupForm.querySelector('[name="team"]');
-        if (teamSelect) {
-          const current = teamSelect.value; // likely ""
-          teamSelect.innerHTML = "";
-          const ph = document.createElement("option");
-          ph.value = ""; ph.textContent = "Select a team…";
-          ph.disabled = true; ph.selected = true;
-          teamSelect.appendChild(ph);
-          if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
-            Object.entries(TEAM_LABELS).forEach(([val, label]) => {
-              const opt = document.createElement("option");
-              opt.value = val; opt.textContent = label;
-              teamSelect.appendChild(opt);
-            });
-          }
-          teamSelect.value = current || "";
-        }
+        if (teamSelect) populateTeamDropdown(teamSelect);
       } else {
         let msg = "Something went wrong. Please try again.";
         try {
@@ -603,4 +567,4 @@ Notes: ${notes}`.trim();
       }
     }
   });
-});
+}
