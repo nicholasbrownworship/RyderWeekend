@@ -679,3 +679,26 @@ a {
   border: 1px solid rgba(0,0,0,0.04);
 }
 
+/* ===================
+   FORM FIELDS UNIFORM STYLING
+=================== */
+.signup-card input,
+.signup-card select,
+.signup-card textarea {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.signup-card input:focus,
+.signup-card select:focus,
+.signup-card textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(36, 79, 60, 0.2);
+}
+
