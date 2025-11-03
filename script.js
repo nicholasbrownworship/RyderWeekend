@@ -335,26 +335,6 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 8. SPONSORS
-// =======================
-const sponsors = [
-  { name: "Sponsor 1", tier: "Hole Sponsor" },
-  { name: "Sponsor 2", tier: "Lunch Sponsor" },
-  { name: "Sponsor 3", tier: "Prize Sponsor" },
-];
-
-const sponsorGrid = document.getElementById("sponsorGrid");
-if (sponsorGrid) {
-  sponsorGrid.innerHTML = "";
-  sponsors.forEach((s) => {
-    const div = document.createElement("div");
-    div.className = "sponsor-card";
-    div.innerHTML = `<div>${s.name}</div><small>${s.tier}</small>`;
-    sponsorGrid.appendChild(div);
-  });
-}
-
-// =======================
 // 9. SIGNUP FORM (nickname + team dropdown)
 // =======================
 const signupForm = document.getElementById("signupForm");
@@ -369,19 +349,29 @@ const formMsg = document.getElementById("formMsg");
   let nicknameInput = signupForm.querySelector('[name="nickname"]');
   let teamSelect = signupForm.querySelector('[name="team"]');
 
-  // If a nickname input doesn't exist, create it after the name input (or at top)
+  // If a nickname input doesn't exist, create it (with a label) after the name input
   if (!nicknameInput) {
+    const nnLabel = document.createElement("label");
+    nnLabel.setAttribute("for", "nickname");
+    nnLabel.textContent = "Nickname (optional)";
+
     nicknameInput = document.createElement("input");
     nicknameInput.type = "text";
     nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
-    nicknameInput.placeholder = "Nickname (optional)";
+    nicknameInput.placeholder = "e.g., Long Ball";
     nicknameInput.autocomplete = "off";
-    // Insert after name input if possible
+
     if (nameInput && nameInput.parentElement) {
-      nameInput.parentElement.insertAdjacentElement("afterend", nicknameInput);
+      nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
+      nnLabel.insertAdjacentElement("afterend", nicknameInput);
+    } else if (nameInput) {
+      nameInput.insertAdjacentElement("afterend", nnLabel);
+      nnLabel.insertAdjacentElement("afterend", nicknameInput);
     } else {
+      // Fallback: add to top of form
       signupForm.prepend(nicknameInput);
+      signupForm.prepend(nnLabel);
     }
   }
 
@@ -390,6 +380,7 @@ const formMsg = document.getElementById("formMsg");
     const label = document.createElement("label");
     label.setAttribute("for", "signupTeam");
     label.textContent = "Team";
+
     teamSelect = document.createElement("select");
     teamSelect.name = "team";
     teamSelect.id = "signupTeam";
@@ -397,8 +388,11 @@ const formMsg = document.getElementById("formMsg");
     // Populate with TEAM_LABELS
     populateTeamDropdown(teamSelect);
 
-    // Put team picker near nickname (after it) if possible
+    // Place near nickname if possible
     if (nicknameInput && nicknameInput.parentElement) {
+      nicknameInput.insertAdjacentElement("afterend", label);
+      label.insertAdjacentElement("afterend", teamSelect);
+    } else if (nicknameInput) {
       nicknameInput.insertAdjacentElement("afterend", label);
       label.insertAdjacentElement("afterend", teamSelect);
     } else {
@@ -414,10 +408,13 @@ const formMsg = document.getElementById("formMsg");
 function populateTeamDropdown(selectEl) {
   if (!selectEl) return;
   selectEl.innerHTML = "";
-  // Optional: placeholder option
+
+  // Optional placeholder to force a choice:
   // const placeholder = document.createElement("option");
   // placeholder.value = "";
   // placeholder.textContent = "Select a team…";
+  // placeholder.disabled = true;
+  // placeholder.selected = true;
   // selectEl.appendChild(placeholder);
 
   Object.entries(TEAM_LABELS).forEach(([value, label]) => {
@@ -440,12 +437,21 @@ if (signupForm) {
     const handicap = (data.get("handicap") || "").trim();
     const notes = (data.get("notes") || "").trim();
 
+    // clear message styling
+    if (formMsg) formMsg.classList.remove("error");
+
     if (!rawName) {
-      if (formMsg) formMsg.textContent = "Please enter a name.";
+      if (formMsg) {
+        formMsg.textContent = "Please enter a name.";
+        formMsg.classList.add("error");
+      }
       return;
     }
     if (!selectedTeam) {
-      if (formMsg) formMsg.textContent = "Please choose a team.";
+      if (formMsg) {
+        formMsg.textContent = "Please choose a team.";
+        formMsg.classList.add("error");
+      }
       return;
     }
 
@@ -465,7 +471,10 @@ if (signupForm) {
       notes: notes || (contact ? `Contact: ${contact}` : ""),
     };
 
-    if (formMsg) formMsg.textContent = "Thanks! We'll be in touch.";
+    if (formMsg) {
+      formMsg.textContent = "Thanks! We'll be in touch.";
+      formMsg.classList.remove("error");
+    }
 
     const subject = encodeURIComponent("New Ozark Invitational signup");
     const formatted =
@@ -480,8 +489,10 @@ Notes: ${playerObj.notes || "—"}`;
     window.location.href = `mailto:nick@example.com?subject=${subject}&body=${body}`;
 
     signupForm.reset();
+
     // Repopulate team to reflect current TEAM_LABELS after reset (some browsers keep last value)
     const teamSelect = signupForm.querySelector('[name="team"]');
     if (teamSelect) populateTeamDropdown(teamSelect);
   });
 }
+
