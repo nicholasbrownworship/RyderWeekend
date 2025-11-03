@@ -369,149 +369,131 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (optional nickname + required team dropdown + dupes + Formspree)
+// 9. SIGNUP FORM (force-inject nickname + team, Formspree, dupes) — SAFE
 // =======================
-const signupForm = document.getElementById("signupForm");
-const formMsg = document.getElementById("formMsg");
-const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
-
-// ---- Duplicate tracking (localStorage) ----
-const SIGNUPS_KEY = "ozarkSignups_v1";
-function loadSignups() {
-  try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
-}
-function saveSignups(arr) { localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || [])); }
-const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
-
-// --- Ensure Nickname (optional) + Team dropdown (required) exist ---
-(function ensureSignupFields() {
+(function () {
+  const signupForm = document.getElementById("signupForm");
+  const formMsg = document.getElementById("formMsg");
+  const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
   if (!signupForm) return;
 
-  const nameInput = signupForm.querySelector('[name="name"]');
+  // --- helpers (dupe tracking) ---
+  const SIGNUPS_KEY = "ozarkSignups_v1";
+  const loadSignups = () => {
+    try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
+  };
+  const saveSignups = (arr) => localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
+  const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-  // Nickname (optional): add if missing
-  let nicknameInput = signupForm.querySelector('[name="nickname"]');
+  // --- small DOM helpers that match your CSS structure (.form-row > .full) ---
+  const makeRow = (labelEl, inputEl) => {
+    const row = document.createElement("div");
+    row.className = "form-row";
+    const full = document.createElement("div");
+    full.className = "full";
+    if (labelEl) full.appendChild(labelEl);
+    if (inputEl) full.appendChild(inputEl);
+    row.appendChild(full);
+    return row;
+  };
+  const insertAfter = (newNode, refNode) => refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
+
+  // --- anchors for placement ---
+  const nameInput = signupForm.querySelector('#name,[name="name"]');
+  const nameRow = nameInput ? nameInput.closest(".form-row") : null;
+  const actionsRow = signupForm.querySelector(".actions");
+
+  // --- ensure Nickname (optional) ---
+  let nicknameInput = signupForm.querySelector('#nickname,[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
     nnLabel.setAttribute("for", "nickname");
     nnLabel.textContent = "Nickname (optional)";
-
     nicknameInput = document.createElement("input");
     nicknameInput.type = "text";
-    nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
-    nicknameInput.placeholder = "e.g., Long Ball";
-    // no 'required' (optional)
-
-    if (nameInput && nameInput.parentElement) {
-      nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
-      nnLabel.insertAdjacentElement("afterend", nicknameInput);
-    } else if (nameInput) {
-      nameInput.insertAdjacentElement("afterend", nnLabel);
-      nnLabel.insertAdjacentElement("afterend", nicknameInput);
-    } else {
-      signupForm.prepend(nicknameInput);
-      signupForm.prepend(nnLabel);
-    }
+    nicknameInput.name = "nickname";
+    nicknameInput.placeholder = "e.g., Long Ball"; // optional
+    const nnRow = makeRow(nnLabel, nicknameInput);
+    if (nameRow) insertAfter(nnRow, nameRow);
+    else if (actionsRow) signupForm.insertBefore(nnRow, actionsRow);
+    else signupForm.appendChild(nnRow);
   }
 
-  // Team dropdown (required): add if missing
-  let teamSelect = signupForm.querySelector('[name="team"]');
+  // --- ensure Team (required dropdown) ---
+  let teamSelect = signupForm.querySelector('#signupTeam,[name="team"]');
   if (!teamSelect) {
-    const label = document.createElement("label");
-    label.setAttribute("for", "signupTeam");
-    label.textContent = "Team";
-
+    const tLabel = document.createElement("label");
+    tLabel.setAttribute("for", "signupTeam");
+    tLabel.textContent = "Team";
     teamSelect = document.createElement("select");
-    teamSelect.name = "team";
     teamSelect.id = "signupTeam";
+    teamSelect.name = "team";
     teamSelect.required = true;
 
-    populateTeamDropdown(teamSelect);
+    // placeholder
+    const ph = document.createElement("option");
+    ph.value = ""; ph.textContent = "Select a team…"; ph.disabled = true; ph.selected = true;
+    teamSelect.appendChild(ph);
 
-    // place near nickname if present, else near name
-    const anchor = signupForm.querySelector('#nickname') || nameInput;
-    if (anchor) {
-      anchor.insertAdjacentElement("afterend", label);
-      label.insertAdjacentElement("afterend", teamSelect);
-    } else {
-      signupForm.prepend(teamSelect);
-      signupForm.prepend(label);
+    // populate from TEAM_LABELS (safe if undefined)
+    if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
+      Object.entries(TEAM_LABELS).forEach(([val, label]) => {
+        const opt = document.createElement("option");
+        opt.value = val; opt.textContent = label;
+        teamSelect.appendChild(opt);
+      });
     }
-  } else {
-    // If present, (re)populate from TEAM_LABELS but preserve current value if possible
-    const current = teamSelect.value;
-    populateTeamDropdown(teamSelect);
-    if (current && TEAM_LABELS[current]) teamSelect.value = current;
+    const tRow = makeRow(tLabel, teamSelect);
+    const nnRow = signupForm.querySelector("#nickname")?.closest(".form-row");
+    if (nnRow) insertAfter(tRow, nnRow);
+    else if (nameRow) insertAfter(tRow, nameRow);
+    else if (actionsRow) signupForm.insertBefore(tRow, actionsRow);
+    else signupForm.appendChild(tRow);
   }
-})();
 
-function populateTeamDropdown(selectEl) {
-  if (!selectEl) return;
-  const current = selectEl.value;
-  selectEl.innerHTML = "";
-  Object.entries(TEAM_LABELS).forEach(([value, label]) => {
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = label;
-    selectEl.appendChild(opt);
-  });
-  // try to restore previous selection
-  if (current && TEAM_LABELS[current]) selectEl.value = current;
-}
-
-if (signupForm) {
+  // --- submit handler (Formspree + dupes) ---
   signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); // stop native submit/refresh
-
-    // Read values from your existing fields (+ the ones we ensured)
-    const rawName     = (signupForm.querySelector('[name="name"]')?.value || "").trim();
-    const nickname    = (signupForm.querySelector('[name="nickname"]')?.value || "").trim(); // optional
-    const selectedTeam= (signupForm.querySelector('[name="team"]')?.value || "").trim();     // required
-    const contact     = (signupForm.querySelector('[name="email"]')?.value || "").trim();    // required
-    const phone       = (signupForm.querySelector('[name="phone"]')?.value || "").trim();    // required
-    const handicap    = (signupForm.querySelector('[name="handicap"]')?.value || "").trim(); // required
-    const notes       = (signupForm.querySelector('[name="notes"]')?.value || "").trim();    // required
-
+    e.preventDefault();
     if (formMsg) formMsg.classList.remove("error");
 
-    // Validate required (nickname excluded)
+    const get = (sel) => (signupForm.querySelector(sel)?.value || "").trim();
+
+    const rawName     = get('[name="name"]');
+    const nickname    = get('[name="nickname"]'); // optional
+    const selectedTeam= get('[name="team"]');     // required
+    const contact     = get('[name="email"]');    // required
+    const phone       = get('[name="phone"]');    // required
+    const handicap    = get('[name="handicap"]'); // required
+    const notes       = get('[name="notes"]');    // required
+
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
-      if (formMsg) {
-        formMsg.textContent = "Please complete all required fields.";
-        formMsg.classList.add("error");
-      }
+      if (formMsg) { formMsg.textContent = "Please complete all required fields."; formMsg.classList.add("error"); }
       return;
     }
 
-    // Duplicate check by normalized Full Name + Email
+    // dupe by normalized Full Name + Email
     const prior = loadSignups();
     const isDupe = prior.some(p => p.name === normalize(rawName) && p.email === normalize(contact));
     if (isDupe) {
-      if (formMsg) {
-        formMsg.textContent = "It looks like you've already signed up with this email.";
-        formMsg.classList.add("error");
-      }
+      if (formMsg) { formMsg.textContent = "It looks like you've already signed up with this email."; formMsg.classList.add("error"); }
       return;
     }
 
-    // Split name for nicer formatting
     const parts = rawName.split(" ").filter(Boolean);
     const firstName = parts[0];
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
-    // Human-readable team label (if available)
     let teamLabel = selectedTeam;
     if (typeof TEAM_LABELS === "object" && TEAM_LABELS && TEAM_LABELS[selectedTeam]) {
       teamLabel = TEAM_LABELS[selectedTeam];
     }
 
-    // Build FormData for Formspree (don’t rely on native submission)
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
-    data.set("nickname", nickname || "—"); // optional
-    data.set("team", selectedTeam);        // key
-    data.set("team_label", teamLabel);     // human label
+    data.set("nickname", nickname || "—");
+    data.set("team", selectedTeam);
+    data.set("team_label", teamLabel);
     data.set("email", contact);
     data.set("phone", phone);
     data.set("handicap", handicap);
@@ -529,42 +511,51 @@ Notes: ${notes}`.trim();
     data.set("summary", summary);
 
     try {
-      const res = await fetch(FORMSPREE_URL, {
+      const res = await fetch("https://formspree.io/f/xnnokdqb", {
         method: "POST",
         headers: { "Accept": "application/json" },
         body: data
       });
 
       if (res.ok) {
-        // store dedupe key after successful send
+        // store dedupe key
         prior.push({ name: normalize(rawName), email: normalize(contact), ts: Date.now() });
         saveSignups(prior);
 
-        if (formMsg) {
-          formMsg.textContent = "Thanks! Your signup has been submitted.";
-          formMsg.classList.remove("error");
-        }
+        if (formMsg) { formMsg.textContent = "Thanks! Your signup has been submitted."; formMsg.classList.remove("error"); }
         signupForm.reset();
 
-        // Re-populate team options (in case browser clears them)
-        const teamSelect = signupForm.querySelector('[name="team"]');
-        if (teamSelect) populateTeamDropdown(teamSelect);
+        // restore team options after reset
+        const select = signupForm.querySelector('[name="team"]');
+        if (select) {
+          select.innerHTML = "";
+          const ph2 = document.createElement("option");
+          ph2.value = ""; ph2.textContent = "Select a team…"; ph2.disabled = true; ph2.selected = true;
+          select.appendChild(ph2);
+          if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
+            Object.entries(TEAM_LABELS).forEach(([val, label]) => {
+              const opt = document.createElement("option");
+              opt.value = val; opt.textContent = label;
+              select.appendChild(opt);
+            });
+          }
+        }
       } else {
         let msg = "Something went wrong. Please try again.";
         try {
           const err = await res.json();
           if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", ");
         } catch (_) {}
-        if (formMsg) {
-          formMsg.textContent = msg;
-          formMsg.classList.add("error");
-        }
+        if (formMsg) { formMsg.textContent = msg; formMsg.classList.add("error"); }
       }
     } catch (err) {
-      if (formMsg) {
-        formMsg.textContent = "Network error. Please try again.";
-        formMsg.classList.add("error");
-      }
+      if (formMsg) { formMsg.textContent = "Network error. Please try again."; formMsg.classList.add("error"); }
     }
   });
-}
+
+  // 🔁 Safety: if your roster didn't render yet for any reason, try to render it
+  if (typeof renderPlayers === "function") {
+    const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
+    try { renderPlayers(activeTeam); } catch {}
+  }
+})();
