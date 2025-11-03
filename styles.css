@@ -102,7 +102,7 @@ a {
 }
 
 /* ===================
-   HERO
+   HERO SECTION
 =================== */
 .hero.pro-hero {
   position: relative;
@@ -110,8 +110,18 @@ a {
   padding: 5.5rem 1.5rem 4.5rem;
 }
 
-/* Gradient background (base layer) */
+/* Hero background layers */
 .hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: saturate(1.1);
+}
+
+/* Gradient layer (bottom) */
+.hero-bg::before {
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -119,25 +129,24 @@ a {
     radial-gradient(circle at top, rgba(14, 50, 28, 0.45), rgba(3, 0, 0, 0)),
     linear-gradient(130deg, #173627 0%, #244f3c 42%, rgba(245, 240, 230, 0) 65%);
   background-size: cover;
-  filter: saturate(1.1);
-  pointer-events: none;
 }
 
-/* Watermark logo baked into hero background */
+/* Watermark layer (top of gradient) */
 .hero-bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 1;              /* above gradients, below content */
+  z-index: 1;
   pointer-events: none;
 
-  background-image: url("images/ozark-logo.png"); /* <-- update path if needed */
+  background-image: url("images/ozark-logo.png");
   background-repeat: no-repeat;
-  background-position: 50% 50%;
-  background-size: clamp(200px, 34vw, 540px);
+  background-position: 50% 52%;
+  background-size: clamp(220px, 36vw, 560px);
 
-  opacity: 0.20;           /* 0.10–0.28 is a good range */
-  filter: brightness(1.02) contrast(0.92);
+  opacity: 0.32; /* adjust 0.18–0.32 */
+  filter: brightness(1.05) contrast(0.95);
+  mix-blend-mode: normal;
 }
 
 /* Keep hero content above everything */
@@ -432,187 +441,6 @@ a {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.02);
 }
 
-.player-top {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
-}
-
-.player-photo {
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  object-fit: cover;
-  border: 2px solid rgba(36, 79, 60, 0.25);
-  background: #f0f0f0;
-  flex: 0 0 56px;
-}
-
-.player-photo.placeholder {
-  display: grid;
-  place-items: center;
-  font-weight: 600;
-  color: #244f3c;
-  background: rgba(36, 79, 60, 0.12);
-}
-
-.player-head h3 {
-  margin: 0 0 0.15rem 0;
-  font-size: 1rem;
-}
-
-.player-head .muted {
-  font-size: 0.75rem;
-  opacity: 0.6;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.12rem 0.5rem 0.2rem;
-  border-radius: 999px;
-  background: rgba(209, 161, 75, 0.12);
-  color: #7d5420;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.15rem;
-}
-
-.player-notes {
-  margin-top: 0.55rem;
-  font-size: 0.77rem;
-  opacity: 0.85;
-}
-
-/* ===================
-   ROUNDS / CARTS / PAIRINGS
-=================== */
-.round-content {
-  margin-top: 1.5rem;
-}
-
-.round-layout {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 1.4rem;
-}
-
-.subhead {
-  font-size: 1rem;
-  margin-bottom: 0.4rem;
-  color: var(--green);
-}
-
-.event-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.event-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 0.8rem 0.9rem 0.7rem;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.round-photo {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  object-fit: cover;
-}
-
-.pairings-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.pairings-list li {
-  background: rgba(36, 79, 60, 0.045);
-  border-radius: 999px;
-  padding: 0.3rem 0.7rem 0.35rem;
-  font-size: 0.82rem;
-  margin-bottom: 0.4rem;
-}
-
-/* ===================
-   SPONSORS
-=================== */
-.sponsor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.sponsor-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1rem 0.8rem 0.85rem;
-  text-align: center;
-  border: 1px dashed rgba(209, 161, 75, 0.4);
-  font-weight: 600;
-  color: var(--green);
-}
-
-.sponsor-card small {
-  display: block;
-  font-weight: 400;
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
-
-.sponsor-cta {
-  text-align: center;
-  margin-top: 1.4rem;
-  font-size: 0.85rem;
-}
-
-/* ===================
-   SIGNUP
-=================== */
-.signup-form {
-  max-width: 580px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 1.4rem 1.2rem 1.2rem;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-}
-
-label {
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-}
-
-input,
-textarea {
-  padding: 0.6rem 0.7rem;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  font-size: 0.9rem;
-  background: #fff;
-}
-
-input:focus,
-textarea:focus {
-  outline: 2px solid rgba(36, 79, 60, 0.3);
-}
-
-.form-msg {
-  margin-top: 0.55rem;
-  font-size: 0.82rem;
-  min-height: 1rem;
-}
-
 /* ===================
    FOOTER
 =================== */
@@ -624,7 +452,7 @@ textarea:focus {
 }
 
 /* ===================
-   MOBILE
+   RESPONSIVE
 =================== */
 @media (max-width: 900px) {
   .hero-grid {
@@ -654,28 +482,12 @@ textarea:focus {
   .nav-toggle {
     display: block;
   }
-  .round-layout {
-    grid-template-columns: 1fr;
-  }
-  .players-grid {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
-@media (max-width: 540px) {
-  .players-grid {
-    grid-template-columns: 1fr;
-  }
-  .hero-actions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .tabs {
-    justify-content: center;
-  }
+@media (max-width: 600px) {
   .hero-bg::after {
-    background-position: 50% 56%;
-    background-size: clamp(160px, 60vw, 420px);
-    opacity: 0.18;
+    background-position: 50% 58%;
+    background-size: clamp(180px, 60vw, 420px);
+    opacity: 0.26;
   }
 }
