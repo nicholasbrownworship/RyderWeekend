@@ -650,3 +650,30 @@ textarea:focus {
   mix-blend-mode: overlay; /* smooths into gradient */
 }
 
+/* Ensure layering order */
+.hero.pro-hero { position: relative; }
+.hero-bg { z-index: 0; }
+
+/* ✅ Watermark baked into the hero via a pseudo-element */
+.hero.pro-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+
+  /* Centered logo, responsive size */
+  background-image: url("images/ozark-logo.png");
+  background-repeat: no-repeat;
+  background-position: 50% 45%;
+  background-size: clamp(180px, 35vw, 520px);
+
+  /* Watermark look */
+  opacity: 0.16;                 /* adjust: 0.10–0.25 */
+  mix-blend-mode: overlay;       /* melts into the gradient */
+  filter: brightness(1.05) contrast(0.9) saturate(0.9);
+}
+
+/* Keep hero content above the watermark */
+.hero-grid { position: relative; z-index: 2; }
+
