@@ -335,67 +335,53 @@ if (rounds.length > 0) {
 }
 
 // =======================
-// 9. SIGNUP FORM (nickname + team dropdown) — Formspree POST
+// 9. SIGNUP FORM (nickname + team dropdown + phone)
 // =======================
 const signupForm = document.getElementById("signupForm");
 const formMsg = document.getElementById("formMsg");
-
-// Use your Formspree endpoint directly (works even if the form tag is missing action)
 const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
 
 // --- Build/ensure fields: nickname + team dropdown ---
 (function ensureSignupFields() {
   if (!signupForm) return;
 
-  // Try to find existing fields
   let nameInput = signupForm.querySelector('[name="name"]');
   let nicknameInput = signupForm.querySelector('[name="nickname"]');
   let teamSelect = signupForm.querySelector('[name="team"]');
 
-  // If a nickname input doesn't exist, create it (with a label) after the name input
+  // Create nickname input if missing
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
     nnLabel.setAttribute("for", "nickname");
     nnLabel.textContent = "Nickname (optional)";
-
     nicknameInput = document.createElement("input");
     nicknameInput.type = "text";
     nicknameInput.name = "nickname";
     nicknameInput.id = "nickname";
     nicknameInput.placeholder = "e.g., Long Ball";
-    nicknameInput.autocomplete = "off";
+    nicknameInput.required = true; // make required now
 
     if (nameInput && nameInput.parentElement) {
       nameInput.parentElement.insertAdjacentElement("afterend", nnLabel);
       nnLabel.insertAdjacentElement("afterend", nicknameInput);
-    } else if (nameInput) {
-      nameInput.insertAdjacentElement("afterend", nnLabel);
-      nnLabel.insertAdjacentElement("afterend", nicknameInput);
     } else {
-      // Fallback: add to top of form
       signupForm.prepend(nicknameInput);
       signupForm.prepend(nnLabel);
     }
   }
 
-  // If a team select doesn't exist, create it (with a label)
+  // Create team dropdown if missing
   if (!teamSelect) {
     const label = document.createElement("label");
     label.setAttribute("for", "signupTeam");
     label.textContent = "Team";
-
     teamSelect = document.createElement("select");
     teamSelect.name = "team";
     teamSelect.id = "signupTeam";
-
-    // Populate with TEAM_LABELS
+    teamSelect.required = true;
     populateTeamDropdown(teamSelect);
 
-    // Place near nickname if possible
     if (nicknameInput && nicknameInput.parentElement) {
-      nicknameInput.insertAdjacentElement("afterend", label);
-      label.insertAdjacentElement("afterend", teamSelect);
-    } else if (nicknameInput) {
       nicknameInput.insertAdjacentElement("afterend", label);
       label.insertAdjacentElement("afterend", teamSelect);
     } else {
@@ -403,7 +389,6 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
       signupForm.prepend(label);
     }
   } else {
-    // If it exists, (re)populate to reflect current TEAM_LABELS
     populateTeamDropdown(teamSelect);
   }
 })();
@@ -411,15 +396,6 @@ const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
 function populateTeamDropdown(selectEl) {
   if (!selectEl) return;
   selectEl.innerHTML = "";
-
-  // Optional placeholder to force a choice:
-  // const placeholder = document.createElement("option");
-  // placeholder.value = "";
-  // placeholder.textContent = "Select a team…";
-  // placeholder.disabled = true;
-  // placeholder.selected = true;
-  // selectEl.appendChild(placeholder);
-
   Object.entries(TEAM_LABELS).forEach(([value, label]) => {
     const opt = document.createElement("option");
     opt.value = value;
@@ -437,22 +413,16 @@ if (signupForm) {
     const nickname = (data.get("nickname") || "").trim();
     const selectedTeam = (data.get("team") || "").trim();
     const contact = (data.get("email") || "").trim();
+    const phone = (data.get("phone") || "").trim();
     const handicap = (data.get("handicap") || "").trim();
     const notes = (data.get("notes") || "").trim();
 
-    // clear message styling
     if (formMsg) formMsg.classList.remove("error");
 
-    if (!rawName) {
+    // Validate all required fields manually (extra safety)
+    if (!rawName || !nickname || !selectedTeam || !contact || !phone || !handicap || !notes) {
       if (formMsg) {
-        formMsg.textContent = "Please enter a name.";
-        formMsg.classList.add("error");
-      }
-      return;
-    }
-    if (!selectedTeam) {
-      if (formMsg) {
-        formMsg.textContent = "Please choose a team.";
+        formMsg.textContent = "Please complete all required fields.";
         formMsg.classList.add("error");
       }
       return;
@@ -463,24 +433,24 @@ if (signupForm) {
     const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "—";
     const teamLabel = TEAM_LABELS[selectedTeam] ?? selectedTeam;
 
-    // Normalize fields Formspree will receive
     data.set("name", `${firstName} ${lastName}`);
-    data.set("nickname", nickname || "—");
-    data.set("team", selectedTeam);     // machine key
-    data.set("team_label", teamLabel);  // human label
-    data.set("handicap", handicap || "—");
-    data.set("email", contact || "—");
-    data.set("notes", notes || "—");
+    data.set("nickname", nickname);
+    data.set("team_label", teamLabel);
+    data.set("handicap", handicap);
+    data.set("email", contact);
+    data.set("phone", phone);
+    data.set("notes", notes);
     data.set("_subject", "New Ozark Invitational signup");
 
-    // Add a pretty summary for your inbox
-    const formatted =
-      `Name: ${firstName} ${lastName}\n` +
-      `Nickname: ${nickname || "—"}\n` +
-      `Team: ${teamLabel}\n` +
-      `Handicap: ${handicap || "—"}\n` +
-      `Notes: ${notes || "—"}\n` +
-      (contact ? `Contact: ${contact}\n` : "");
+    const formatted = `
+Name: ${firstName} ${lastName}
+Nickname: ${nickname}
+Team: ${teamLabel}
+Handicap: ${handicap}
+Email: ${contact}
+Phone: ${phone}
+Notes: ${notes}`;
+
     data.set("summary", formatted.trim());
 
     try {
@@ -496,20 +466,16 @@ if (signupForm) {
           formMsg.classList.remove("error");
         }
         signupForm.reset();
-
-        // Re-populate team options after reset (browser autofill quirks)
         const teamSelect = signupForm.querySelector('[name="team"]');
         if (teamSelect) populateTeamDropdown(teamSelect);
       } else {
-        let message = "Something went wrong. Please try again.";
+        let msg = "Something went wrong. Please try again.";
         try {
           const err = await res.json();
-          if (err && err.errors && err.errors.length) {
-            message = err.errors.map(e => e.message).join(", ");
-          }
+          if (err.errors?.length) msg = err.errors.map(e => e.message).join(", ");
         } catch (_) {}
         if (formMsg) {
-          formMsg.textContent = message;
+          formMsg.textContent = msg;
           formMsg.classList.add("error");
         }
       }
@@ -521,5 +487,6 @@ if (signupForm) {
     }
   });
 }
+
 
 
