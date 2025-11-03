@@ -221,34 +221,57 @@
       </p>
     </section>
 
-    <!-- SIGNUP -->
-    <section id="signup" class="section">
-      <div class="section-head center">
-        <h2>Register to Play</h2>
-        <p>Fill this out and we’ll confirm your spot.</p>
+    <!-- ===================
+     SIGN UP SECTION
+=================== -->
+<section class="section section-tight section-alt" id="signup">
+  <div class="signup-wrap">
+    <div class="signup-card">
+      <div class="card-head">
+        <h3>Sign Up</h3>
+        <span class="muted">Join the Ozark Invitational</span>
       </div>
-      <form class="signup-form" id="signupForm">
-        <div class="form-group">
-          <label for="name">Player name</label>
-          <input type="text" id="name" name="name" required placeholder="Your name" />
+
+      <form id="signupForm">
+        <!-- Top row: name + nickname (nickname will be auto-injected by JS) -->
+        <div class="form-row">
+          <div class="full">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Full Name" required />
+          </div>
         </div>
-        <div class="form-group">
-          <label for="email">Email / Phone</label>
-          <input type="text" id="email" name="email" required placeholder="you@email.com" />
+
+        <!-- Second row: team + handicap -->
+        <div class="form-row">
+          <!-- JS will inject the Team dropdown automatically -->
+          <div class="full">
+            <label for="handicap">Handicap</label>
+            <input type="number" id="handicap" name="handicap" placeholder="Handicap" />
+          </div>
         </div>
-        <div class="form-group">
-          <label for="handicap">Handicap (approx)</label>
-          <input type="number" id="handicap" name="handicap" min="0" max="40" placeholder="12" />
+
+        <!-- Contact -->
+        <div class="full">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Email" />
         </div>
-        <div class="form-group">
+
+        <!-- Notes -->
+        <div class="full">
           <label for="notes">Notes</label>
-          <textarea id="notes" name="notes" rows="3" placeholder="Riding? Pair me with Dad?"></textarea>
+          <textarea id="notes" name="notes" placeholder="Notes or comments"></textarea>
         </div>
-        <button type="submit" class="btn primary">Submit</button>
-        <p class="form-msg" id="formMsg" aria-live="polite"></p>
+
+        <!-- Submit -->
+        <div class="actions">
+          <button class="btn" type="submit">Submit</button>
+          <span id="formMsg" aria-live="polite"></span>
+        </div>
       </form>
-    </section>
-  </main>
+    </div>
+  </div>
+</section>
+
 
   <!-- FOOTER -->
   <footer class="footer">
