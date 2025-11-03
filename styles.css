@@ -491,3 +491,191 @@ a {
     opacity: 0.26;
   }
 }
+
+/* ===================
+   SIGN-UP (FORM) BEAUTIFY
+=================== */
+.signup-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.signup-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.4rem 1.3rem 1.2rem;
+}
+
+#signupForm {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Two-column where it makes sense (name + nickname; team + handicap) */
+#signupForm .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+#signupForm .full {
+  grid-column: 1 / -1;
+}
+
+/* Labels */
+#signupForm label {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0 0 0.35rem 0;
+  opacity: 0.9;
+}
+
+/* Inputs / Select / Textarea base */
+#signupForm input[type="text"],
+#signupForm input[type="email"],
+#signupForm input[type="number"],
+#signupForm select,
+#signupForm textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(36,79,60,0.22);
+  background: #fff;
+  font: inherit;
+  line-height: 1.4;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out, background 0.15s ease-out;
+}
+
+/* Focus states with brand ring */
+#signupForm input:focus,
+#signupForm select:focus,
+#signupForm textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(36,79,60,0.12);
+  background: #fff;
+}
+
+/* Placeholder style */
+#signupForm ::placeholder {
+  color: rgba(0,0,0,0.45);
+}
+
+/* Number input tidy (remove spin on Chrome) */
+#signupForm input[type="number"]::-webkit-outer-spin-button,
+#signupForm input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#signupForm input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Pretty select arrow */
+#signupForm select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--green) 50%),
+    linear-gradient(135deg, var(--green) 50%, transparent 50%),
+    linear-gradient(to right, rgba(36,79,60,0.18), rgba(36,79,60,0.18));
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px),
+    calc(100% - 2.2rem) 50%;
+  background-size:
+    6px 6px,
+    6px 6px,
+    1px 62%;
+  background-repeat: no-repeat;
+  padding-right: 2.6rem;
+}
+
+/* Notes box height */
+#signupForm textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Submit row */
+#signupForm .actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+#signupForm .actions .btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.3rem;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 20px rgba(36,79,60,0.12);
+  transition: transform 0.08s ease, box-shadow 0.15s ease;
+}
+
+#signupForm .actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(36,79,60,0.16);
+}
+
+#signupForm .actions .btn:active {
+  transform: translateY(0);
+}
+
+/* Message (success / error) */
+#formMsg {
+  font-size: 0.9rem;
+  color: var(--green);
+  background: rgba(36,79,60,0.08);
+  border: 1px solid rgba(36,79,60,0.18);
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+}
+
+#formMsg.error {
+  color: #7b1a1a;
+  background: rgba(185, 62, 62, 0.08);
+  border-color: rgba(185, 62, 62, 0.25);
+}
+
+/* A subtle gold accent divider for the card header if you add one */
+.signup-card .card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed rgba(209,161,75,0.6);
+}
+.signup-card .card-head h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--green);
+}
+.signup-card .card-head .muted {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+  #signupForm .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Optional: gentle section background if you wrap the form in .section-alt */
+.section-alt .signup-card {
+  background: linear-gradient(180deg, #fff, #fff) padding-box,
+              radial-gradient(circle at 20% -20%, rgba(209,161,75,0.22), transparent 42%) border-box;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
