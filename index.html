@@ -188,6 +188,11 @@
         <button class="team-btn active" data-team="all">All Players</button>
         <button class="team-btn" data-team="ozark">Team Ozark</button>
         <button class="team-btn" data-team="valley">Team Valley</button>
+        <!-- Add this inside the Players section, under the team buttons -->
+<div class="admin-bar">
+  <button id="viewPoolBtn" class="btn btn-admin" type="button">Admin: View Player Pool</button>
+</div>
+
       </div>
       <div id="playerList" class="players-grid">
         <!-- JS injects player cards here -->
@@ -289,5 +294,32 @@
   <footer class="footer">
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
+
+  <!-- Admin Pool Modal -->
+<dialog id="poolDialog">
+  <form method="dialog" class="pool-header">
+    <h3>Player Pool</h3>
+    <div class="pool-actions">
+      <button type="button" id="exportCSV" class="btn">Export Active as CSV</button>
+      <button value="close" class="btn ghost">Close</button>
+    </div>
+  </form>
+
+  <div class="pool-section">
+    <h4>Active Roster (<span id="activeCount">0</span>)</h4>
+    <div id="activeRosterTable" class="pool-table"></div>
+  </div>
+
+  <div class="pool-section">
+    <h4>Hidden Seeded Players (<span id="hiddenCount">0</span>)</h4>
+    <div id="hiddenSeededTable" class="pool-table"></div>
+  </div>
+
+  <div class="pool-section">
+    <h4>Saved Signups (<span id="signupCount">0</span>)</h4>
+    <div id="signupTable" class="pool-table"></div>
+  </div>
+</dialog>
+
 </body>
 </html>
