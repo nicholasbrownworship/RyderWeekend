@@ -730,13 +730,13 @@ a {
   transition: all 0.15s ease-in-out;
 }
 
-.player-remove:hover {
-  background: rgba(185, 62, 62, 0.18);
-  transform: scale(1.05);
+.player-remove {
+  background: rgba(212,175,55,0.15); /* subtle gold wash */
+  border: 1px solid rgba(23,92,42,0.35); /* green edge */
+  color: var(--green);
 }
-
-.player-remove:active {
-  transform: scale(0.97);
+.player-remove:hover {
+  background: rgba(212,175,55,0.25);
 }
 
 
