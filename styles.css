@@ -702,3 +702,41 @@ a {
   box-shadow: 0 0 0 2px rgba(36, 79, 60, 0.2);
 }
 
+/* ============================
+   PLAYER REMOVE BUTTON (✕)
+   Masters style accent
+============================ */
+.player-card {
+  position: relative;
+}
+
+.player-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(185, 62, 62, 0.35);
+  background: rgba(185, 62, 62, 0.1);
+  color: #7b1a1a;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.player-remove:hover {
+  background: rgba(185, 62, 62, 0.18);
+  transform: scale(1.05);
+}
+
+.player-remove:active {
+  transform: scale(0.97);
+}
+
+
