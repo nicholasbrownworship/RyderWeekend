@@ -81,6 +81,9 @@ const players = [
   // add more players here
 ];
 
+// Keep an immutable snapshot of seeded players for admin modal (to show hidden seeded by name)
+const SEEDED_PLAYERS = players.slice();
+
 // Hydrate from saved signups
 const _savedSignups = loadSignupPlayers();
 _savedSignups.forEach(upsertPlayerToMasterList);
@@ -587,4 +590,129 @@ Notes: ${notes}`.trim();
     const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
     renderPlayers(activeTeam);
   } catch {}
+})();
+
+// =======================
+// 10. ADMIN: VIEW PLAYER POOL MODAL (+ CSV export)
+// =======================
+(function () {
+  const poolBtn = document.getElementById("viewPoolBtn");
+  const dlg = document.getElementById("poolDialog");
+  if (!poolBtn || !dlg) return; // no-op if HTML not present
+
+  const activeTableHost  = document.getElementById("activeRosterTable");
+  const hiddenTableHost  = document.getElementById("hiddenSeededTable");
+  const signupTableHost  = document.getElementById("signupTable");
+  const activeCountEl    = document.getElementById("activeCount");
+  const hiddenCountEl    = document.getElementById("hiddenCount");
+  const signupCountEl    = document.getElementById("signupCount");
+  const exportBtn        = document.getElementById("exportCSV");
+
+  const n = (s) => String(s || "").trim();
+  const teamLabel = (t) => (TEAM_LABELS && TEAM_LABELS[t]) ? TEAM_LABELS[t] : t || "";
+  const fullName = (p) => p ? (p.nickname ? `${p.firstName} "${p.nickname}" ${p.lastName}` : `${p.firstName} ${p.lastName}`) : "";
+
+  function readHiddenIds() {
+    try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_PLAYERS_KEY) || "[]")); }
+    catch { return new Set(); }
+  }
+  function readSignups() {
+    try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); }
+    catch { return []; }
+  }
+
+  function tableHTML(rows) {
+    if (!rows.length) return `<div class="empty muted" style="padding:0.6rem 0.4rem;">No entries</div>`;
+    const heads = Object.keys(rows[0]);
+    return `
+      <table>
+        <thead><tr>${heads.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr>${heads.map(h => `<td>${n(r[h])}</td>`).join("")}</tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function buildActiveRows() {
+    return players.map(p => ({
+      id: p.id,
+      name: fullName(p),
+      team: teamLabel(p.team),
+      handicap: p.handicap ?? "",
+      email: p.email ?? "",
+      phone: p.phone ?? ""
+    }));
+  }
+
+  function buildHiddenRows() {
+    const ids = readHiddenIds();
+    const byId = new Map((SEEDED_PLAYERS || []).map(p => [p.id, p]));
+    const rows = [];
+    ids.forEach(id => {
+      const p = byId.get(id);
+      rows.push({
+        id,
+        name: p ? fullName(p) : "(seeded player)",
+        team: p ? teamLabel(p.team) : ""
+      });
+    });
+    return rows;
+  }
+
+  function buildSignupRows() {
+    const arr = readSignups();
+    return arr.map(p => ({
+      id: p.id,
+      name: fullName(p),
+      team: teamLabel(p.team),
+      handicap: p.handicap ?? "",
+      email: p.email ?? "",
+      phone: p.phone ?? ""
+    }));
+  }
+
+  function renderPool() {
+    const act = buildActiveRows();
+    const hid = buildHiddenRows();
+    const sig = buildSignupRows();
+
+    if (activeTableHost) activeTableHost.innerHTML = tableHTML(act);
+    if (hiddenTableHost) hiddenTableHost.innerHTML = tableHTML(hid);
+    if (signupTableHost) signupTableHost.innerHTML = tableHTML(sig);
+
+    if (activeCountEl) activeCountEl.textContent = String(act.length);
+    if (hiddenCountEl) hiddenCountEl.textContent = String(hid.length);
+    if (signupCountEl) signupCountEl.textContent = String(sig.length);
+  }
+
+  function exportActiveCSV() {
+    const rows = buildActiveRows();
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(",")]
+      .concat(rows.map(r => headers.map(h => {
+        const v = String(r[h] ?? "");
+        return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+      }).join(",")))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ozark_active_roster.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  poolBtn.addEventListener("click", () => {
+    try { renderPool(); } catch {}
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else alert("Active roster count: " + players.length);
+  });
+
+  if (exportBtn) exportBtn.addEventListener("click", exportActiveCSV);
 })();
