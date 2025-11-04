@@ -4,45 +4,50 @@
 const TEAM_LABELS = {
   ozark: "Team Ozark",
   valley: "Team Valley",
-  // add/rename teams here; the sign-up dropdown + UI will update automatically
 };
 const PLAYER_PHOTO_BASE_PATH = "images/";
-const PAIRING_STORAGE_PREFIX = "ozarkPairings_"; // we'll add round+event to this
+const PAIRING_STORAGE_PREFIX = "ozarkPairings_";
+
+// Storage keys
+const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1"; // full player objects
+const SIGNUPS_DUPE_KEY   = "ozarkSignupsDupes_v1";  // {name,email,ts}
+const HIDDEN_PLAYERS_KEY = "ozarkHiddenPlayers_v1"; // [id, id, ...]
+
+// Helpers for hidden seeded players
+const loadHiddenIds = () => {
+  try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_PLAYERS_KEY) || "[]")); }
+  catch { return new Set(); }
+};
+const saveHiddenIds = (set) => {
+  localStorage.setItem(HIDDEN_PLAYERS_KEY, JSON.stringify(Array.from(set)));
+};
 
 // =======================
-// SIGNUP PERSISTENCE
+// SIGNUP PERSISTENCE (ROSTER)
 // =======================
-const SIGNUPS_KEY = "ozarkSignups_v1";
-
 function loadSignupPlayers() {
-  try {
-    const raw = localStorage.getItem(SIGNUPS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); } catch { return []; }
 }
 function saveSignupPlayers(arr) {
-  localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
+  localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(arr || []));
 }
+
 function upsertPlayerToMasterList(p) {
-  // avoid duplicates by id or by (name+email)
+  const n = (s) => String(s || "").toLowerCase().trim();
   const exists = players.some(x =>
-    x.id === p.id ||
-    (x.firstName.toLowerCase() === p.firstName.toLowerCase() &&
-     x.lastName.toLowerCase() === p.lastName.toLowerCase() &&
-     (p.email ? (x.notes||"").toLowerCase().includes(p.email.toLowerCase()) : false))
+    (p.id && x.id === p.id) ||
+    (n(x.firstName) === n(p.firstName) &&
+     n(x.lastName)  === n(p.lastName)  &&
+     (!!x.email && !!p.email ? n(x.email) === n(p.email) : true))
   );
   if (!exists) players.push(p);
 }
-
 
 // =======================
 // 1. NAV TOGGLE (mobile)
 // =======================
 const navToggle = document.getElementById("navToggle");
 const nav = document.querySelector(".nav");
-
 if (navToggle && nav) {
   navToggle.addEventListener("click", () => {
     nav.classList.toggle("open");
@@ -54,7 +59,6 @@ if (navToggle && nav) {
 // =======================
 const scheduleTabButtons = document.querySelectorAll(".tab-btn[data-day]");
 const scheduleDays = document.querySelectorAll(".schedule-day");
-
 scheduleTabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     scheduleTabButtons.forEach((b) => b.classList.remove("active"));
@@ -67,57 +71,27 @@ scheduleTabButtons.forEach((btn) => {
 });
 
 // =======================
-// 3. MASTER PLAYER LIST
+// 3. MASTER PLAYER LIST (seeded + signups)
 // =======================
 const players = [
-  {
-    id: "1",
-    firstName: "Nick",
-    nickname: "Frenzy",
-    lastName: "Brown",
-    team: "ozark",
-    photo: "nick.jpg",
-    handicap: 10,
-    notes: "Organizer / TD"
-  },
-  {
-    id: "2",
-    firstName: "Barry",
-    nickname: "Aim Right",
-    lastName: "Brown",
-    team: "ozark",
-    photo: "dad.jpg",
-    handicap: 14,
-    notes: "OG"
-  },
-  {
-    id: "3",
-    firstName: "Joshua",
-    nickname: "Long Ball",
-    lastName: "Brown",
-    team: "valley",
-    photo: "brother1.jpg",
-    handicap: 6,
-    notes: "Long hitter"
-  },
-  {
-    id: "4",
-    firstName: "Matthew",
-    nickname: "Hands",
-    lastName: "Brown",
-    team: "valley",
-    photo: "brother2.jpg",
-    handicap: 12,
-    notes: "Short game guy"
-  },
+  { id: "1", firstName: "Nick",    nickname: "Frenzy",    lastName: "Brown", team: "ozark",  photo: "nick.jpg",      handicap: 10, notes: "Organizer / TD" },
+  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown", team: "ozark",  photo: "dad.jpg",       handicap: 14, notes: "OG" },
+  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown", team: "valley", photo: "brother1.jpg",  handicap: 6,  notes: "Long hitter" },
+  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown", team: "valley", photo: "brother2.jpg",  handicap: 12, notes: "Short game guy" },
   // add more players here
-  
 ];
 
-// Pull prior signups from localStorage into players[]
+// Hydrate from saved signups
 const _savedSignups = loadSignupPlayers();
 _savedSignups.forEach(upsertPlayerToMasterList);
 
+// Filter out any hidden seeded players by id
+(() => {
+  const hidden = loadHiddenIds();
+  for (let i = players.length - 1; i >= 0; i--) {
+    if (hidden.has(players[i].id)) players.splice(i, 1);
+  }
+})();
 
 function formatPlayerName(p) {
   if (p.nickname && p.nickname.trim() !== "") {
@@ -136,7 +110,6 @@ function getPlayerPhotoUrl(p) {
 
 // =======================
 // 4. ROUNDS
-// (2 events per round -> 2 pairings per round)
 // =======================
 const rounds = [
   {
@@ -168,9 +141,7 @@ function renderPlayers(filter = "all") {
   playerList.innerHTML = "";
 
   let filtered = players;
-  if (filter !== "all") {
-    filtered = players.filter((p) => p.team === filter);
-  }
+  if (filter !== "all") filtered = players.filter((p) => p.team === filter);
 
   filtered.forEach((p) => {
     const card = document.createElement("div");
@@ -197,6 +168,7 @@ function renderPlayers(filter = "all") {
           <h3>${formatPlayerName(p)}</h3>
           <p class="muted">${statText}</p>
         </div>
+        <button class="player-remove" type="button" data-id="${p.id}" aria-label="Remove ${formatPlayerName(p)}">✕</button>
       </div>
       ${p.notes ? `<p class="player-notes">${p.notes}</p>` : ""}
     `;
@@ -213,6 +185,20 @@ teamButtons.forEach((btn) => {
     renderPlayers(btn.dataset.team);
   });
 });
+
+// Delegated handler for remove buttons
+if (playerList) {
+  playerList.addEventListener("click", (e) => {
+    const btn = e.target.closest(".player-remove");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    const p = players.find(x => x.id === id);
+    const name = p ? formatPlayerName(p) : "this player";
+    if (confirm(`Remove ${name} from the roster?`)) {
+      removePlayerEverywhere(id);
+    }
+  });
+}
 
 // =======================
 // 6. RANDOM PAIRING (LOCKED PER ROUND + PER EVENT)
@@ -238,7 +224,6 @@ function createRandomPairingsFromPlayers(playerList) {
   return { matches, leftoverId };
 }
 
-// key looks like: ozarkPairings_round-1_0  (0 = front 9, 1 = back 9)
 function storageKeyFor(roundId, eventIndex) {
   return `${PAIRING_STORAGE_PREFIX}${roundId}_${eventIndex}`;
 }
@@ -250,20 +235,8 @@ function savePairings(roundId, eventIndex, data) {
 function loadPairings(roundId, eventIndex) {
   const raw = localStorage.getItem(storageKeyFor(roundId, eventIndex));
   if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
-    return null;
-  }
+  try { return JSON.parse(raw); } catch { return null; }
 }
-
-// for you only (re-roll)
-/*
-window._ozarkClearPairings = function (roundId, eventIndex) {
-  localStorage.removeItem(storageKeyFor(roundId, eventIndex));
-  console.log("Cleared pairings for", roundId, "event", eventIndex);
-};
-*/
 
 // =======================
 // 7. RENDER ROUNDS + BOTH EVENTS' PAIRINGS
@@ -296,10 +269,8 @@ function renderRoundContent(roundId) {
     return;
   }
 
-  // we'll build 2 blocks: one for each event (front 9, back 9)
   const eventBlocksHtml = round.events
     .map((ev, evIndex) => {
-      // load or create pairings for THIS event
       let pairingData = loadPairings(roundId, evIndex);
       if (!pairingData) {
         pairingData = createRandomPairingsFromPlayers(players);
@@ -310,12 +281,15 @@ function renderRoundContent(roundId) {
         .map((pair, idx) => {
           const p1 = players.find((p) => p.id === pair[0]);
           const p2 = players.find((p) => p.id === pair[1]);
+          const p1img = p1 && getPlayerPhotoUrl(p1) ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : "";
+          const p2img = p2 && getPlayerPhotoUrl(p2) ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />` : "";
+
           return `
             <li class="pairing-item">
               <div class="pairing-title">Match ${idx + 1}</div>
               <div class="pairing-players">
                 <div class="pairing-player">
-                  ${p1 && getPlayerPhotoUrl(p1) ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : ""}
+                  ${p1img}
                   <div>
                     <div class="name">${p1 ? formatPlayerName(p1) : "Unknown"}</div>
                     <div class="team">${p1 ? (TEAM_LABELS[p1.team] ?? p1.team) : ""}</div>
@@ -323,7 +297,7 @@ function renderRoundContent(roundId) {
                 </div>
                 <div class="vs">vs</div>
                 <div class="pairing-player">
-                  ${p2 && getPlayerPhotoUrl(p2) ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />` : ""}
+                  ${p2img}
                   <div>
                     <div class="name">${p2 ? formatPlayerName(p2) : "Unknown"}</div>
                     <div class="team">${p2 ? (TEAM_LABELS[p2.team] ?? p2.team) : ""}</div>
@@ -335,8 +309,7 @@ function renderRoundContent(roundId) {
         })
         .join("");
 
-      const leftover =
-        pairingData.leftoverId ? players.find((p) => p.id === pairingData.leftoverId) : null;
+      const leftover = pairingData.leftoverId ? players.find((p) => p.id === pairingData.leftoverId) : null;
       const leftoverHtml = leftover
         ? `<div class="leftover-box"><strong>Unpaired this 9:</strong> ${formatPlayerName(leftover)} (${TEAM_LABELS[leftover.team] ?? leftover.team})</div>`
         : "";
@@ -364,28 +337,63 @@ function renderRoundContent(roundId) {
 }
 
 renderRoundTabs();
-if (rounds.length > 0) {
-  renderRoundContent(rounds[0].id);
+if (rounds.length > 0) renderRoundContent(rounds[0].id);
+
+// =======================
+// 8. REMOVE PLAYER (seeded hide or roster delete)
+// =======================
+function removePlayerEverywhere(playerId) {
+  // 1) Remove from in-memory list
+  const idx = players.findIndex(p => p.id === playerId);
+  const removed = idx >= 0 ? players.splice(idx, 1)[0] : null;
+
+  // 2) Remove from saved signups roster (if they were a signup)
+  try {
+    const roster = JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]");
+    const roster2 = roster.filter(p => p.id !== playerId);
+    if (roster2.length !== roster.length) {
+      localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(roster2));
+    } else {
+      // Not in roster → likely seeded: persistently hide id
+      const hidden = loadHiddenIds();
+      hidden.add(playerId);
+      saveHiddenIds(hidden);
+    }
+  } catch {}
+
+  // 3) Clear cached pairings (roster changed)
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
+  });
+
+  // 4) Re-render players (keep current team filter)
+  const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
+  renderPlayers(activeTeam);
+
+  // 5) Re-render current round
+  const activeRoundBtn = document.querySelector("#roundTabs .tab-btn.active");
+  const activeRoundId = activeRoundBtn?.dataset.round || rounds[0]?.id;
+  if (activeRoundId) renderRoundContent(activeRoundId);
+
+  return removed;
 }
 
 // =======================
-// 9. SIGNUP FORM (force-inject nickname + team, Formspree, dupes) — SAFE
+// 9. SIGNUP FORM (force-inject nickname + team, Formspree, dupes + roster)
 // =======================
 (function () {
   const signupForm = document.getElementById("signupForm");
   const formMsg = document.getElementById("formMsg");
-  const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
   if (!signupForm) return;
 
   // --- helpers (dupe tracking) ---
-  const SIGNUPS_KEY = "ozarkSignups_v1";
-  const loadSignups = () => {
-    try { return JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "[]"); } catch { return []; }
+  const loadDupes = () => {
+    try { return JSON.parse(localStorage.getItem(SIGNUPS_DUPE_KEY) || "[]"); } catch { return []; }
   };
-  const saveSignups = (arr) => localStorage.setItem(SIGNUPS_KEY, JSON.stringify(arr || []));
+  const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-  // --- small DOM helpers that match your CSS structure (.form-row > .full) ---
+  // --- DOM helpers
   const makeRow = (labelEl, inputEl) => {
     const row = document.createElement("div");
     row.className = "form-row";
@@ -398,12 +406,12 @@ if (rounds.length > 0) {
   };
   const insertAfter = (newNode, refNode) => refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
 
-  // --- anchors for placement ---
+  // anchors
   const nameInput = signupForm.querySelector('#name,[name="name"]');
   const nameRow = nameInput ? nameInput.closest(".form-row") : null;
   const actionsRow = signupForm.querySelector(".actions");
 
-  // --- ensure Nickname (optional) ---
+  // ensure Nickname (optional)
   let nicknameInput = signupForm.querySelector('#nickname,[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
@@ -413,14 +421,14 @@ if (rounds.length > 0) {
     nicknameInput.type = "text";
     nicknameInput.id = "nickname";
     nicknameInput.name = "nickname";
-    nicknameInput.placeholder = "e.g., Long Ball"; // optional
+    nicknameInput.placeholder = "e.g., Long Ball";
     const nnRow = makeRow(nnLabel, nicknameInput);
     if (nameRow) insertAfter(nnRow, nameRow);
     else if (actionsRow) signupForm.insertBefore(nnRow, actionsRow);
     else signupForm.appendChild(nnRow);
   }
 
-  // --- ensure Team (required dropdown) ---
+  // ensure Team (required)
   let teamSelect = signupForm.querySelector('#signupTeam,[name="team"]');
   if (!teamSelect) {
     const tLabel = document.createElement("label");
@@ -431,12 +439,10 @@ if (rounds.length > 0) {
     teamSelect.name = "team";
     teamSelect.required = true;
 
-    // placeholder
     const ph = document.createElement("option");
     ph.value = ""; ph.textContent = "Select a team…"; ph.disabled = true; ph.selected = true;
     teamSelect.appendChild(ph);
 
-    // populate from TEAM_LABELS (safe if undefined)
     if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
       Object.entries(TEAM_LABELS).forEach(([val, label]) => {
         const opt = document.createElement("option");
@@ -452,28 +458,26 @@ if (rounds.length > 0) {
     else signupForm.appendChild(tRow);
   }
 
-  // --- submit handler (Formspree + dupes) ---
+  // submit handler
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (formMsg) formMsg.classList.remove("error");
 
     const get = (sel) => (signupForm.querySelector(sel)?.value || "").trim();
-
     const rawName     = get('[name="name"]');
-    const nickname    = get('[name="nickname"]'); // optional
-    const selectedTeam= get('[name="team"]');     // required
-    const contact     = get('[name="email"]');    // required
-    const phone       = get('[name="phone"]');    // required
-    const handicap    = get('[name="handicap"]'); // required
-    const notes       = get('[name="notes"]');    // required
+    const nickname    = get('[name="nickname"]');
+    const selectedTeam= get('[name="team"]');
+    const contact     = get('[name="email"]');
+    const phone       = get('[name="phone"]');
+    const handicap    = get('[name="handicap"]');
+    const notes       = get('[name="notes"]');
 
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
       if (formMsg) { formMsg.textContent = "Please complete all required fields."; formMsg.classList.add("error"); }
       return;
     }
 
-    // dupe by normalized Full Name + Email
-    const prior = loadSignups();
+    const prior = loadDupes();
     const isDupe = prior.some(p => p.name === normalize(rawName) && p.email === normalize(contact));
     if (isDupe) {
       if (formMsg) { formMsg.textContent = "It looks like you've already signed up with this email."; formMsg.classList.add("error"); }
@@ -485,10 +489,9 @@ if (rounds.length > 0) {
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
     let teamLabel = selectedTeam;
-    if (typeof TEAM_LABELS === "object" && TEAM_LABELS && TEAM_LABELS[selectedTeam]) {
-      teamLabel = TEAM_LABELS[selectedTeam];
-    }
+    if (TEAM_LABELS[selectedTeam]) teamLabel = TEAM_LABELS[selectedTeam];
 
+    // Prepare email payload (Formspree)
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
     data.set("nickname", nickname || "—");
@@ -499,7 +502,6 @@ if (rounds.length > 0) {
     data.set("handicap", handicap);
     data.set("notes", notes);
     data.set("_subject", "New Ozark Invitational signup");
-
     const summary = `
 Name: ${firstName} ${lastName}
 Nickname: ${nickname || "—"}
@@ -518,27 +520,54 @@ Notes: ${notes}`.trim();
       });
 
       if (res.ok) {
-        // store dedupe key
+        // 1) record dupe key
         prior.push({ name: normalize(rawName), email: normalize(contact), ts: Date.now() });
-        saveSignups(prior);
+        saveDupes(prior);
 
+        // 2) build full player for roster
+        const playerObj = {
+          id: (crypto?.randomUUID?.() || String(Date.now())),
+          firstName,
+          nickname: nickname || "",
+          lastName,
+          team: selectedTeam,
+          photo: "",
+          handicap: Number(handicap),
+          notes,
+          email: contact,
+          phone
+        };
+
+        // 3) persist roster
+        const roster = loadSignupPlayers();
+        roster.push(playerObj);
+        saveSignupPlayers(roster);
+
+        // 4) reflect live & re-render
+        upsertPlayerToMasterList(playerObj);
+        const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
+        renderPlayers(activeTeam);
+
+        // 5) Optional: clear cached pairings after roster change
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
+        });
+
+        // 6) reset UI & repopulate team options
         if (formMsg) { formMsg.textContent = "Thanks! Your signup has been submitted."; formMsg.classList.remove("error"); }
         signupForm.reset();
 
-        // restore team options after reset
         const select = signupForm.querySelector('[name="team"]');
         if (select) {
           select.innerHTML = "";
           const ph2 = document.createElement("option");
           ph2.value = ""; ph2.textContent = "Select a team…"; ph2.disabled = true; ph2.selected = true;
           select.appendChild(ph2);
-          if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
-            Object.entries(TEAM_LABELS).forEach(([val, label]) => {
-              const opt = document.createElement("option");
-              opt.value = val; opt.textContent = label;
-              select.appendChild(opt);
-            });
-          }
+          Object.entries(TEAM_LABELS).forEach(([val, label]) => {
+            const opt = document.createElement("option");
+            opt.value = val; opt.textContent = label;
+            select.appendChild(opt);
+          });
         }
       } else {
         let msg = "Something went wrong. Please try again.";
@@ -553,9 +582,9 @@ Notes: ${notes}`.trim();
     }
   });
 
-  // 🔁 Safety: if your roster didn't render yet for any reason, try to render it
-  if (typeof renderPlayers === "function") {
+  // Safety: ensure roster renders at least once
+  try {
     const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-    try { renderPlayers(activeTeam); } catch {}
-  }
+    renderPlayers(activeTeam);
+  } catch {}
 })();
