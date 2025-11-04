@@ -739,4 +739,63 @@ a {
   background: rgba(212,175,55,0.25);
 }
 
+/* ===== Admin: View Player Pool ===== */
+.admin-bar {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 1rem 0;
+}
+.btn-admin {
+  background: #fff;
+  border: 1px solid var(--green);
+  color: var(--green);
+  border-radius: 0.3rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-admin:hover { background: rgba(23,92,42,0.08); }
+
+#poolDialog {
+  width: min(950px, 92vw);
+  border: 2px solid var(--green);
+  border-radius: 10px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+#poolDialog::backdrop { background: rgba(0,0,0,0.45); }
+
+.pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--green);
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 8px 8px 0 0;
+}
+.pool-header h3 { margin: 0; }
+.pool-actions { display: flex; gap: 0.5rem; }
+
+.pool-section { padding: 1rem; }
+.pool-section h4 { margin: 0 0 0.5rem 0; color: var(--green); }
+
+.pool-table {
+  overflow: auto;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+.pool-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background: #fff;
+}
+.pool-table th, .pool-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  text-align: left;
+}
+.pool-table th { background: #f7f6f1; color: #2b2b2b; }
+.pool-table tr:last-child td { border-bottom: none; }
 
