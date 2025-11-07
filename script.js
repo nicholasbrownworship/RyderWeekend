@@ -1,10 +1,7 @@
 // =======================
 // 0. CONFIG
 // =======================
-const TEAM_LABELS = {
-  ozark: "Team Ozark",
-  valley: "Team Valley",
-};
+const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
 const PLAYER_PHOTO_BASE_PATH = "images/";
 const PAIRING_STORAGE_PREFIX = "ozarkPairings_";
 
@@ -23,34 +20,14 @@ const saveHiddenIds = (set) => {
 };
 
 // =======================
-// SIGNUP PERSISTENCE (ROSTER)
-// =======================
-function loadSignupPlayers() {
-  try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); } catch { return []; }
-}
-function saveSignupPlayers(arr) {
-  localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(arr || []));
-}
-
-function upsertPlayerToMasterList(p) {
-  const n = (s) => String(s || "").toLowerCase().trim();
-  const exists = players.some(x =>
-    (p.id && x.id === p.id) ||
-    (n(x.firstName) === n(p.firstName) &&
-     n(x.lastName)  === n(p.lastName)  &&
-     (!!x.email && !!p.email ? n(x.email) === n(p.email) : true))
-  );
-  if (!exists) players.push(p);
-}
-
-// =======================
-// 1. NAV TOGGLE (mobile)
+// 1. NAV TOGGLE (mobile + a11y)
 // =======================
 const navToggle = document.getElementById("navToggle");
 const nav = document.querySelector(".nav");
 if (navToggle && nav) {
   navToggle.addEventListener("click", () => {
-    nav.classList.toggle("open");
+    const open = nav.classList.toggle("open");
+    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
   });
 }
 
@@ -81,14 +58,13 @@ const players = [
   // add more players here
 ];
 
-// Keep an immutable snapshot of seeded players for admin modal (to show hidden seeded by name)
 const SEEDED_PLAYERS = players.slice();
 
 // Hydrate from saved signups
 const _savedSignups = loadSignupPlayers();
 _savedSignups.forEach(upsertPlayerToMasterList);
 
-// Filter out any hidden seeded players by id
+// Filter out hidden seeded players by id
 (() => {
   const hidden = loadHiddenIds();
   for (let i = players.length - 1; i >= 0; i--) {
@@ -98,21 +74,39 @@ _savedSignups.forEach(upsertPlayerToMasterList);
 
 function formatPlayerName(p) {
   if (p.nickname && p.nickname.trim() !== "") {
-    return `${p.firstName} "${p.nickname}" ${p.lastName}`;
+    return `${p.firstName} “${p.nickname}” ${p.lastName}`;
   }
   return `${p.firstName} ${p.lastName}`;
 }
 
 function getPlayerPhotoUrl(p) {
-  if (!p.photo) return "";
+  if (!p.photo) return "images/default-player.jpg";
   if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) {
     return p.photo;
   }
   return PLAYER_PHOTO_BASE_PATH + p.photo;
 }
 
+function loadSignupPlayers() {
+  try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); } catch { return []; }
+}
+function saveSignupPlayers(arr) {
+  localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(arr || []));
+}
+
+function upsertPlayerToMasterList(p) {
+  const n = (s) => String(s || "").toLowerCase().trim();
+  const exists = players.some(x =>
+    (p.id && x.id === p.id) ||
+    (n(x.firstName) === n(p.firstName) &&
+     n(x.lastName)  === n(p.lastName)  &&
+     (!!x.email && !!p.email ? n(x.email) === n(p.email) : true))
+  );
+  if (!exists) players.push(p);
+}
+
 // =======================
-// 4. ROUNDS
+// 4. ROUNDS (kept for this page, even if main pairing page is separate)
 // =======================
 const rounds = [
   {
@@ -134,77 +128,122 @@ const rounds = [
 ];
 
 // =======================
-// 5. RENDER PLAYERS
+// 5. PLAYERS WHEEL (render + controls + subtle glow)
 // =======================
-const playerList = document.getElementById("playerList");
+const wheelTrack = document.getElementById("playerWheel");
 const teamButtons = document.querySelectorAll(".team-btn");
 
-function renderPlayers(filter = "all") {
-  if (!playerList) return;
-  playerList.innerHTML = "";
-
-  let filtered = players;
-  if (filter !== "all") filtered = players.filter((p) => p.team === filter);
-
-  filtered.forEach((p) => {
-    const card = document.createElement("div");
-    card.className = "player-card";
-
-    const photoUrl = getPlayerPhotoUrl(p);
-    const teamLabel = TEAM_LABELS[p.team] ?? p.team;
-    const statText =
-      p.handicap != null
-        ? `Handicap: ${p.handicap}`
-        : p.averageScore != null
-        ? `Avg score: ${p.averageScore}`
-        : "—";
-
-    card.innerHTML = `
-      <div class="player-top">
-        ${
-          photoUrl
-            ? `<img src="${photoUrl}" alt="${formatPlayerName(p)}" class="player-photo" />`
-            : `<div class="player-photo placeholder">${p.firstName[0]}${p.lastName[0]}</div>`
-        }
-        <div class="player-head">
-          <span class="badge">${teamLabel}</span>
-          <h3>${formatPlayerName(p)}</h3>
-          <p class="muted">${statText}</p>
-        </div>
-        <button class="player-remove" type="button" data-id="${p.id}" aria-label="Remove ${formatPlayerName(p)}">✕</button>
-      </div>
-      ${p.notes ? `<p class="player-notes">${p.notes}</p>` : ""}
-    `;
-    playerList.appendChild(card);
-  });
+function toWheelModel(p) {
+  return {
+    name: formatPlayerName(p),
+    team: (p.team || "").toLowerCase(),
+    photo: getPlayerPhotoUrl(p)
+  };
 }
 
-renderPlayers();
+function renderWheel(filter = "all") {
+  if (!wheelTrack) return;
+  const list = (filter === "all") ? players : players.filter(p => p.team === filter);
+  const items = list.map(toWheelModel);
+  wheelTrack.innerHTML = items.map(p => `
+    <a class="wheel-item" data-team="${p.team}" href="#teams" aria-label="${p.name}">
+      <div class="wheel-thumb">
+        <img src="${p.photo}" alt="${p.name}" loading="lazy" decoding="async">
+      </div>
+      <span class="wheel-name">${p.name}</span>
+      <span class="wheel-chip ${p.team}">${p.team === 'ozark' ? 'Ozark' : 'Valley'}</span>
+    </a>
+  `).join('');
+  updateCenterGlow(); // ensure initial highlight
+}
 
 teamButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     teamButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    renderPlayers(btn.dataset.team);
+    renderWheel(btn.dataset.team);
   });
 });
 
-// Delegated handler for remove buttons
-if (playerList) {
-  playerList.addEventListener("click", (e) => {
-    const btn = e.target.closest(".player-remove");
-    if (!btn) return;
-    const id = btn.getAttribute("data-id");
-    const p = players.find(x => x.id === id);
-    const name = p ? formatPlayerName(p) : "this player";
-    if (confirm(`Remove ${name} from the roster?`)) {
-      removePlayerEverywhere(id);
-    }
+// Prev/Next controls
+(function(){
+  const btnPrev = document.querySelector('.player-wheel .prev');
+  const btnNext = document.querySelector('.player-wheel .next');
+  const ITEM_STEP = 3; // items per click
+
+  const getStepWidth = () => {
+    const item = wheelTrack?.querySelector('.wheel-item');
+    if (!item) return 200;
+    const style = getComputedStyle(item);
+    const width = item.offsetWidth;
+    const gap = parseFloat(getComputedStyle(wheelTrack).columnGap || getComputedStyle(wheelTrack).gap || 14);
+    return width + gap;
+  };
+
+  const scrollByItems = (n) => {
+    const dx = getStepWidth() * n;
+    wheelTrack?.scrollBy({ left: dx, behavior: 'smooth' });
+  };
+
+  btnPrev?.addEventListener('click', ()=> scrollByItems(-ITEM_STEP));
+  btnNext?.addEventListener('click', ()=> scrollByItems(+ITEM_STEP));
+})();
+
+// Drag-to-scroll
+(function(){
+  if (!wheelTrack) return;
+  let isDown=false, startX=0, startLeft=0;
+  wheelTrack.addEventListener('pointerdown', e=>{ isDown=true; startX=e.clientX; startLeft=wheelTrack.scrollLeft; wheelTrack.setPointerCapture(e.pointerId); });
+  wheelTrack.addEventListener('pointermove', e=>{ if(!isDown) return; wheelTrack.scrollLeft = startLeft - (e.clientX - startX); });
+  wheelTrack.addEventListener('pointerup',   ()=>{ isDown=false; });
+  wheelTrack.addEventListener('pointerleave',()=>{ isDown=false; });
+})();
+
+// Auto-play (respects reduced motion)
+(function(){
+  if (!wheelTrack) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce.matches) return;
+
+  let timer = setInterval(()=> wheelTrack.scrollBy({left: 1, behavior: 'auto'}), 16); // gentle nudge for continuous motion
+  const pause = () => { clearInterval(timer); timer=null; };
+  const resume = () => { if (!timer) timer = setInterval(()=> wheelTrack.scrollBy({left: 1, behavior: 'auto'}), 16); };
+  wheelTrack.addEventListener('mouseenter', pause);
+  wheelTrack.addEventListener('mouseleave', resume);
+  wheelTrack.addEventListener('focusin', pause);
+  wheelTrack.addEventListener('focusout', resume);
+})();
+
+// Subtle center glow: highlight the item closest to the wheel center
+function updateCenterGlow(){
+  if (!wheelTrack) return;
+  const rect = wheelTrack.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const items = wheelTrack.querySelectorAll('.wheel-item');
+  let best = null, bestDist = Infinity;
+  items.forEach(el=>{
+    const r = el.getBoundingClientRect();
+    const mid = r.left + r.width/2;
+    const d = Math.abs(centerX - mid);
+    if (d < bestDist){ bestDist = d; best = el; }
+    el.classList.remove('is-center');
   });
+  if (best) best.classList.add('is-center');
 }
 
+let glowRAF = null;
+function onWheelScroll(){
+  if (glowRAF) cancelAnimationFrame(glowRAF);
+  glowRAF = requestAnimationFrame(updateCenterGlow);
+}
+wheelTrack?.addEventListener('scroll', onWheelScroll);
+window.addEventListener('resize', updateCenterGlow);
+
+// Initial render
+renderWheel("all");
+
 // =======================
-// 6. RANDOM PAIRING (LOCKED PER ROUND + PER EVENT)
+// 6. RANDOM PAIRING (kept for this page)
 // =======================
 function shuffleArray(arr) {
   const a = arr.slice();
@@ -284,8 +323,8 @@ function renderRoundContent(roundId) {
         .map((pair, idx) => {
           const p1 = players.find((p) => p.id === pair[0]);
           const p2 = players.find((p) => p.id === pair[1]);
-          const p1img = p1 && getPlayerPhotoUrl(p1) ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : "";
-          const p2img = p2 && getPlayerPhotoUrl(p2) ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />` : "";
+          const p1img = p1 ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : "";
+          const p2img = p2 ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />" : "";
 
           return `
             <li class="pairing-item">
@@ -330,50 +369,38 @@ function renderRoundContent(roundId) {
     })
     .join("");
 
-  roundContent.innerHTML = `
-    <div class="round-layout">
-      <div>
-        ${eventBlocksHtml}
-      </div>
-    </div>
-  `;
+  roundContent.innerHTML = `<div class="round-layout"><div>${eventBlocksHtml}</div></div>`;
 }
 
 renderRoundTabs();
 if (rounds.length > 0) renderRoundContent(rounds[0].id);
 
 // =======================
-// 8. REMOVE PLAYER (seeded hide or roster delete)
+// 8. REMOVE PLAYER (still available for admin use)
 // =======================
 function removePlayerEverywhere(playerId) {
-  // 1) Remove from in-memory list
   const idx = players.findIndex(p => p.id === playerId);
   const removed = idx >= 0 ? players.splice(idx, 1)[0] : null;
 
-  // 2) Remove from saved signups roster (if they were a signup)
   try {
     const roster = JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]");
     const roster2 = roster.filter(p => p.id !== playerId);
     if (roster2.length !== roster.length) {
       localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(roster2));
     } else {
-      // Not in roster → likely seeded: persistently hide id
       const hidden = loadHiddenIds();
       hidden.add(playerId);
       saveHiddenIds(hidden);
     }
   } catch {}
 
-  // 3) Clear cached pairings (roster changed)
   Object.keys(localStorage).forEach(k => {
     if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
   });
 
-  // 4) Re-render players (keep current team filter)
   const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-  renderPlayers(activeTeam);
+  renderWheel(activeTeam);
 
-  // 5) Re-render current round
   const activeRoundBtn = document.querySelector("#roundTabs .tab-btn.active");
   const activeRoundId = activeRoundBtn?.dataset.round || rounds[0]?.id;
   if (activeRoundId) renderRoundContent(activeRoundId);
@@ -382,7 +409,7 @@ function removePlayerEverywhere(playerId) {
 }
 
 // =======================
-// 9. SIGNUP FORM (force-inject nickname + team, Formspree, dupes + roster)
+// 9. SIGNUP FORM (inject nickname + team; then update wheel)
 // =======================
 (function () {
   const signupForm = document.getElementById("signupForm");
@@ -396,7 +423,7 @@ function removePlayerEverywhere(playerId) {
   const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-  // --- DOM helpers
+  // DOM helpers
   const makeRow = (labelEl, inputEl) => {
     const row = document.createElement("div");
     row.className = "form-row";
@@ -409,12 +436,11 @@ function removePlayerEverywhere(playerId) {
   };
   const insertAfter = (newNode, refNode) => refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
 
-  // anchors
   const nameInput = signupForm.querySelector('#name,[name="name"]');
   const nameRow = nameInput ? nameInput.closest(".form-row") : null;
   const actionsRow = signupForm.querySelector(".actions");
 
-  // ensure Nickname (optional)
+  // Nickname (optional)
   let nicknameInput = signupForm.querySelector('#nickname,[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
@@ -431,7 +457,7 @@ function removePlayerEverywhere(playerId) {
     else signupForm.appendChild(nnRow);
   }
 
-  // ensure Team (required)
+  // Team (required)
   let teamSelect = signupForm.querySelector('#signupTeam,[name="team"]');
   if (!teamSelect) {
     const tLabel = document.createElement("label");
@@ -446,13 +472,12 @@ function removePlayerEverywhere(playerId) {
     ph.value = ""; ph.textContent = "Select a team…"; ph.disabled = true; ph.selected = true;
     teamSelect.appendChild(ph);
 
-    if (typeof TEAM_LABELS === "object" && TEAM_LABELS) {
-      Object.entries(TEAM_LABELS).forEach(([val, label]) => {
-        const opt = document.createElement("option");
-        opt.value = val; opt.textContent = label;
-        teamSelect.appendChild(opt);
-      });
-    }
+    Object.entries(TEAM_LABELS).forEach(([val, label]) => {
+      const opt = document.createElement("option");
+      opt.value = val; opt.textContent = label;
+      teamSelect.appendChild(opt);
+    });
+
     const tRow = makeRow(tLabel, teamSelect);
     const nnRow = signupForm.querySelector("#nickname")?.closest(".form-row");
     if (nnRow) insertAfter(tRow, nnRow);
@@ -461,7 +486,7 @@ function removePlayerEverywhere(playerId) {
     else signupForm.appendChild(tRow);
   }
 
-  // submit handler
+  // Submit handler
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (formMsg) formMsg.classList.remove("error");
@@ -481,7 +506,8 @@ function removePlayerEverywhere(playerId) {
     }
 
     const prior = loadDupes();
-    const isDupe = prior.some(p => p.name === normalize(rawName) && p.email === normalize(contact));
+    const normalizeName = normalize(rawName);
+    const isDupe = prior.some(p => p.name === normalizeName && p.email === normalize(contact));
     if (isDupe) {
       if (formMsg) { formMsg.textContent = "It looks like you've already signed up with this email."; formMsg.classList.add("error"); }
       return;
@@ -491,29 +517,24 @@ function removePlayerEverywhere(playerId) {
     const firstName = parts[0];
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
-    let teamLabel = selectedTeam;
-    if (TEAM_LABELS[selectedTeam]) teamLabel = TEAM_LABELS[selectedTeam];
-
-    // Prepare email payload (Formspree)
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
     data.set("nickname", nickname || "—");
     data.set("team", selectedTeam);
-    data.set("team_label", teamLabel);
+    data.set("team_label", TEAM_LABELS[selectedTeam] || selectedTeam);
     data.set("email", contact);
     data.set("phone", phone);
     data.set("handicap", handicap);
     data.set("notes", notes);
     data.set("_subject", "New Ozark Invitational signup");
-    const summary = `
+    data.set("summary", `
 Name: ${firstName} ${lastName}
 Nickname: ${nickname || "—"}
-Team: ${teamLabel}
+Team: ${TEAM_LABELS[selectedTeam] || selectedTeam}
 Handicap: ${handicap}
 Email: ${contact}
 Phone: ${phone}
-Notes: ${notes}`.trim();
-    data.set("summary", summary);
+Notes: ${notes}`.trim());
 
     try {
       const res = await fetch("https://formspree.io/f/xnnokdqb", {
@@ -523,40 +544,30 @@ Notes: ${notes}`.trim();
       });
 
       if (res.ok) {
-        // 1) record dupe key
-        prior.push({ name: normalize(rawName), email: normalize(contact), ts: Date.now() });
+        prior.push({ name: normalizeName, email: normalize(contact), ts: Date.now() });
         saveDupes(prior);
 
-        // 2) build full player for roster
         const playerObj = {
           id: (crypto?.randomUUID?.() || String(Date.now())),
-          firstName,
-          nickname: nickname || "",
-          lastName,
+          firstName, nickname: nickname || "", lastName,
           team: selectedTeam,
           photo: "",
           handicap: Number(handicap),
-          notes,
-          email: contact,
-          phone
+          notes, email: contact, phone
         };
 
-        // 3) persist roster
         const roster = loadSignupPlayers();
         roster.push(playerObj);
         saveSignupPlayers(roster);
 
-        // 4) reflect live & re-render
         upsertPlayerToMasterList(playerObj);
         const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-        renderPlayers(activeTeam);
+        renderWheel(activeTeam);
 
-        // 5) Optional: clear cached pairings after roster change
         Object.keys(localStorage).forEach(k => {
           if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
         });
 
-        // 6) reset UI & repopulate team options
         if (formMsg) { formMsg.textContent = "Thanks! Your signup has been submitted."; formMsg.classList.remove("error"); }
         signupForm.reset();
 
@@ -584,12 +595,6 @@ Notes: ${notes}`.trim();
       if (formMsg) { formMsg.textContent = "Network error. Please try again."; formMsg.classList.add("error"); }
     }
   });
-
-  // Safety: ensure roster renders at least once
-  try {
-    const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-    renderPlayers(activeTeam);
-  } catch {}
 })();
 
 // =======================
@@ -598,7 +603,7 @@ Notes: ${notes}`.trim();
 (function () {
   const poolBtn = document.getElementById("viewPoolBtn");
   const dlg = document.getElementById("poolDialog");
-  if (!poolBtn || !dlg) return; // no-op if HTML not present
+  if (!poolBtn || !dlg) return;
 
   const activeTableHost  = document.getElementById("activeRosterTable");
   const hiddenTableHost  = document.getElementById("hiddenSeededTable");
@@ -610,7 +615,7 @@ Notes: ${notes}`.trim();
 
   const n = (s) => String(s || "").trim();
   const teamLabel = (t) => (TEAM_LABELS && TEAM_LABELS[t]) ? TEAM_LABELS[t] : t || "";
-  const fullName = (p) => p ? (p.nickname ? `${p.firstName} "${p.nickname}" ${p.lastName}` : `${p.firstName} ${p.lastName}`) : "";
+  const fullName = (p) => p ? (p.nickname ? `${p.firstName} “${p.nickname}” ${p.lastName}` : `${p.firstName} ${p.lastName}`) : "";
 
   function readHiddenIds() {
     try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_PLAYERS_KEY) || "[]")); }
