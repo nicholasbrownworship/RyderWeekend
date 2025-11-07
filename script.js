@@ -53,8 +53,8 @@ scheduleTabButtons.forEach((btn) => {
 const players = [
   { id: "1", firstName: "Nick",    nickname: "Frenzy",    lastName: "Brown", team: "ozark",  photo: "nick.jpg",      handicap: 10, notes: "Organizer / TD" },
   { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown", team: "ozark",  photo: "dad.jpg",       handicap: 14, notes: "OG" },
-  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown", team: "valley", photo: "brother1.jpg",  handicap: 6,  notes: "Long hitter" },
-  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown", team: "valley", photo: "brother2.jpg",  handicap: 12, notes: "Short game guy" },
+  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown", team: "valley", photo: "josh.jpg",  handicap: 6,  notes: "Long hitter" },
+  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown", team: "valley", photo: "matt.jpg",  handicap: 12, notes: "Short game guy" },
   // add more players here
 ];
 
