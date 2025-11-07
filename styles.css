@@ -799,3 +799,77 @@ a {
 .pool-table th { background: #f7f6f1; color: #2b2b2b; }
 .pool-table tr:last-child td { border-bottom: none; }
 
+/* ===================
+   MICRO POLISH (safe to append)
+   - Soft hover elevation for cards
+   - Consistent focus-visible rings
+   - Reduced motion support
+   - Safari backdrop blur prefix
+=================== */
+
+/* 1) Soft elevation on hover (keeps brand colors) */
+.info-card,
+.player-card,
+.sched-card {
+  transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+  will-change: transform, box-shadow;
+}
+.info-card:hover,
+.player-card:hover,
+.sched-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.06);
+}
+
+/* 2) Consistent focus-visible ring for interactive elements */
+.btn,
+.tab-btn,
+.team-btn,
+.nav a,
+#signupForm input,
+#signupForm select,
+#signupForm textarea,
+.player-remove {
+  outline: none;
+}
+.btn:focus-visible,
+.tab-btn:focus-visible,
+.team-btn:focus-visible,
+.nav a:focus-visible,
+#signupForm input:focus-visible,
+#signupForm select:focus-visible,
+#signupForm textarea:focus-visible,
+.player-remove:focus-visible {
+  box-shadow: 0 0 0 3px rgba(36,79,60,0.22);
+  border-color: var(--green);
+  border-radius: 10px; /* keeps it subtle on links */
+}
+
+/* 3) Reduced motion support (users who prefer less animation) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 4) Safari/WebKit backdrop blur reliability (top bar) */
+.topbar {
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* 5) Tiny nav link hover refinement (match your green tint) */
+.nav a:hover {
+  background: rgba(36,79,60,0.12);
+}
+
+/* 6) Optional: slightly clearer button hover (keeps your gold/green) */
+.btn.primary:hover {
+  filter: brightness(1.04);
+}
+
+
