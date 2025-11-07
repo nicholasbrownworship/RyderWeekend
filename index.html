@@ -5,9 +5,18 @@
   <title>Ozark Invitational – Family Golf Weekend</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, and bragging rights." />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Icons / PWA-ish -->
   <link rel="icon" href="favicon.ico" />
-  <!-- Load your external JS (the big script you pasted before) -->
+  <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#244f3c">
+  <link rel="preload" as="image" href="images/ozark-logo.png" />
+
+  <!-- App script -->
   <script src="script.js" defer></script>
 </head>
 <body id="top">
@@ -29,7 +38,7 @@
       <a href="#sponsors">Sponsors</a>
       <a href="#signup" class="btn-nav">Sign Up</a>
     </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
   </header>
 
   <!-- HERO -->
@@ -178,24 +187,29 @@
       </div>
     </section>
 
-    <!-- PLAYERS -->
+    <!-- PLAYERS (Wheel) -->
     <section id="teams" class="section">
       <div class="section-head center">
         <h2>Players</h2>
-        <p>Tap a team to filter.</p>
+        <p>Swipe/scroll to browse. Tap a team to filter.</p>
       </div>
+
       <div class="team-toggle">
         <button class="team-btn active" data-team="all">All Players</button>
         <button class="team-btn" data-team="ozark">Team Ozark</button>
         <button class="team-btn" data-team="valley">Team Valley</button>
-        <!-- Add this inside the Players section, under the team buttons -->
-<div class="admin-bar">
-  <button id="viewPoolBtn" class="btn btn-admin" type="button">Admin: View Player Pool</button>
-</div>
 
+        <div class="admin-bar">
+          <button id="viewPoolBtn" class="btn btn-admin" type="button">Admin: View Player Pool</button>
+        </div>
       </div>
-      <div id="playerList" class="players-grid">
-        <!-- JS injects player cards here -->
+
+      <div class="player-wheel" aria-label="Player carousel">
+        <button class="wheel-btn prev" aria-label="Previous">&#10094;</button>
+        <div class="wheel-track" id="playerWheel">
+          <!-- JS injects player tiles -->
+        </div>
+        <button class="wheel-btn next" aria-label="Next">&#10095;</button>
       </div>
     </section>
 
@@ -205,12 +219,8 @@
         <h2>Rounds, Carts & Pairings</h2>
         <p>Edit round assignments in <code>script.js</code>. Each round can have two events.</p>
       </div>
-      <div class="tabs tabs-centered" id="roundTabs">
-        <!-- JS will inject round buttons -->
-      </div>
-      <div id="roundContent" class="round-content">
-        <!-- JS will inject selected round here -->
-      </div>
+      <div class="tabs tabs-centered" id="roundTabs"></div>
+      <div id="roundContent" class="round-content"></div>
     </section>
 
     <!-- SPONSORS -->
@@ -237,15 +247,12 @@
             <span class="muted">Join the Ozark Invitational</span>
           </div>
 
-          <!-- Connected to Formspree for automated email submissions -->
           <form id="signupForm" action="https://formspree.io/f/xnnokdqb" method="POST">
-            <!-- Hidden fields for spam + subject line -->
             <div style="position: absolute; left: -5000px;" aria-hidden="true">
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
             </div>
             <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
 
-            <!-- Full Name -->
             <div class="form-row">
               <div class="full">
                 <label for="name">Full Name</label>
@@ -253,7 +260,6 @@
               </div>
             </div>
 
-            <!-- Team (JS will inject Nickname + Team fields after this row) -->
             <div class="form-row">
               <div class="full">
                 <label for="handicap">Handicap (or average score)</label>
@@ -261,25 +267,21 @@
               </div>
             </div>
 
-            <!-- Email -->
             <div class="full">
               <label for="email">Email</label>
               <input type="email" id="email" name="email" placeholder="Email" required />
             </div>
 
-            <!-- Phone -->
             <div class="full">
               <label for="phone">Phone Number</label>
               <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required />
             </div>
 
-            <!-- Notes -->
             <div class="full">
               <label for="notes">Notes</label>
               <textarea id="notes" name="notes" placeholder="Notes or comments" required></textarea>
             </div>
 
-            <!-- Submit -->
             <div class="actions">
               <button class="btn" type="submit">Submit</button>
               <span id="formMsg" aria-live="polite"></span>
@@ -296,30 +298,29 @@
   </footer>
 
   <!-- Admin Pool Modal -->
-<dialog id="poolDialog">
-  <form method="dialog" class="pool-header">
-    <h3>Player Pool</h3>
-    <div class="pool-actions">
-      <button type="button" id="exportCSV" class="btn">Export Active as CSV</button>
-      <button value="close" class="btn ghost">Close</button>
+  <dialog id="poolDialog">
+    <form method="dialog" class="pool-header">
+      <h3>Player Pool</h3>
+      <div class="pool-actions">
+        <button type="button" id="exportCSV" class="btn">Export Active as CSV</button>
+        <button value="close" class="btn ghost">Close</button>
+      </div>
+    </form>
+
+    <div class="pool-section">
+      <h4>Active Roster (<span id="activeCount">0</span>)</h4>
+      <div id="activeRosterTable" class="pool-table"></div>
     </div>
-  </form>
 
-  <div class="pool-section">
-    <h4>Active Roster (<span id="activeCount">0</span>)</h4>
-    <div id="activeRosterTable" class="pool-table"></div>
-  </div>
+    <div class="pool-section">
+      <h4>Hidden Seeded Players (<span id="hiddenCount">0</span>)</h4>
+      <div id="hiddenSeededTable" class="pool-table"></div>
+    </div>
 
-  <div class="pool-section">
-    <h4>Hidden Seeded Players (<span id="hiddenCount">0</span>)</h4>
-    <div id="hiddenSeededTable" class="pool-table"></div>
-  </div>
-
-  <div class="pool-section">
-    <h4>Saved Signups (<span id="signupCount">0</span>)</h4>
-    <div id="signupTable" class="pool-table"></div>
-  </div>
-</dialog>
-
+    <div class="pool-section">
+      <h4>Saved Signups (<span id="signupCount">0</span>)</h4>
+      <div id="signupTable" class="pool-table"></div>
+    </div>
+  </dialog>
 </body>
 </html>
