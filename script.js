@@ -51,10 +51,15 @@ scheduleTabButtons.forEach((btn) => {
 // 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
 const players = [
-  { id: "1", firstName: "Nick",    nickname: "Frenzy",    lastName: "Brown", team: "ozark",  photo: "nick.jpg",      handicap: 10, notes: "Organizer / TD" },
-  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown", team: "ozark",  photo: "dad.jpg",       handicap: 14, notes: "OG" },
-  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown", team: "valley", photo: "josh.jpg",  handicap: 6,  notes: "Long hitter" },
-  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown", team: "valley", photo: "matt.jpg",  handicap: 12, notes: "Short game guy" },
+  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick.jpg",     handicap: 15, notes: "Tech guy" },
+  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "dad.jpg",      handicap: 18, notes: "OG" },
+  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh.jpg",     handicap: 11, notes: "Long hitter" },
+  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt.jpg",     handicap: 10, notes: "Short game guy" },
+  { id: "5", firstName: "Brian",   nickname: "Bri-Ri",    lastName: "Ramirez", team: "ozark",  photo: "brian.jpg.",   handicap: 25, notes: "Summerscam" },
+  { id: "6", firstName: "Ryan",    nickname: "Pastor",    lastName: "Puls",    team: "valley", photo: "ryan.jpg",     handicap: 16, notes: "Glue guy" },
+  { id: "7", firstName: "Kenny",   nickname: "Sherriff",  lastName: "Deyoung", team: "valley", photo: "kenny.jpg",    handicap: 7,  notes: "Cat scratch fever" },
+  { id: "8", firstName: "Riley",   nickname: "Caveman",   lastName: "Shelton", team: "ozark",  photo: "riley.jpg",    handicap: 13, notes: "Insane game" },
+
   // add more players here
 ];
 
