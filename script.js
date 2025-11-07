@@ -1,14 +1,14 @@
 // =======================
-// 0. CONFIG
+// 0) CONFIG
 // =======================
 const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
 const PLAYER_PHOTO_BASE_PATH = "images/";
-const PAIRING_STORAGE_PREFIX = "ozarkPairings_";
+const RESPECT_SAVED_HIDDEN_SEEDED = false; // <— OFF so hard-coded players always render
 
 // Storage keys
-const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1"; // full player objects
-const SIGNUPS_DUPE_KEY   = "ozarkSignupsDupes_v1";  // {name,email,ts}
-const HIDDEN_PLAYERS_KEY = "ozarkHiddenPlayers_v1"; // [id, id, ...]
+const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
+const SIGNUPS_DUPE_KEY   = "ozarkSignupsDupes_v1";
+const HIDDEN_PLAYERS_KEY = "ozarkHiddenPlayers_v1";
 
 // Helpers for hidden seeded players
 const loadHiddenIds = () => {
@@ -20,7 +20,7 @@ const saveHiddenIds = (set) => {
 };
 
 // =======================
-// 1. NAV TOGGLE (mobile + a11y)
+// 1) NAV TOGGLE (mobile + a11y)
 // =======================
 const navToggle = document.getElementById("navToggle");
 const nav = document.querySelector(".nav");
@@ -32,7 +32,7 @@ if (navToggle && nav) {
 }
 
 // =======================
-// 2. SCHEDULE TABS (Day 1 / Day 2)
+// 2) SCHEDULE TABS
 // =======================
 const scheduleTabButtons = document.querySelectorAll(".tab-btn[data-day]");
 const scheduleDays = document.querySelectorAll(".schedule-day");
@@ -48,7 +48,7 @@ scheduleTabButtons.forEach((btn) => {
 });
 
 // =======================
-// 3. MASTER PLAYER LIST (seeded + signups)
+// 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
 const players = [
   { id: "1", firstName: "Nick",    nickname: "Frenzy",    lastName: "Brown", team: "ozark",  photo: "nick.jpg",      handicap: 10, notes: "Organizer / TD" },
@@ -60,33 +60,7 @@ const players = [
 
 const SEEDED_PLAYERS = players.slice();
 
-// Hydrate from saved signups
-const _savedSignups = loadSignupPlayers();
-_savedSignups.forEach(upsertPlayerToMasterList);
-
-// Filter out hidden seeded players by id
-(() => {
-  const hidden = loadHiddenIds();
-  for (let i = players.length - 1; i >= 0; i--) {
-    if (hidden.has(players[i].id)) players.splice(i, 1);
-  }
-})();
-
-function formatPlayerName(p) {
-  if (p.nickname && p.nickname.trim() !== "") {
-    return `${p.firstName} “${p.nickname}” ${p.lastName}`;
-  }
-  return `${p.firstName} ${p.lastName}`;
-}
-
-function getPlayerPhotoUrl(p) {
-  if (!p.photo) return "images/default-player.jpg";
-  if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) {
-    return p.photo;
-  }
-  return PLAYER_PHOTO_BASE_PATH + p.photo;
-}
-
+// Load saved signups
 function loadSignupPlayers() {
   try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); } catch { return []; }
 }
@@ -105,47 +79,45 @@ function upsertPlayerToMasterList(p) {
   if (!exists) players.push(p);
 }
 
-// =======================
-// 4. ROUNDS (kept for this page, even if main pairing page is separate)
-// =======================
-const rounds = [
-  {
-    id: "round-1",
-    title: "Round 1 – Saturday AM",
-    events: [
-      { name: "Best Ball (Front 9)", format: "Best Ball" },
-      { name: "2-Man Scramble (Back 9)", format: "Scramble" },
-    ],
-  },
-  {
-    id: "round-2",
-    title: "Round 2 – Saturday PM",
-    events: [
-      { name: "Alternate Shot (Front 9)", format: "Alt Shot" },
-      { name: "Singles (Back 9)", format: "Singles" },
-    ],
-  },
-];
+loadSignupPlayers().forEach(upsertPlayerToMasterList);
+
+// Only hide seeded if explicitly enabled
+if (RESPECT_SAVED_HIDDEN_SEEDED) {
+  const hidden = loadHiddenIds();
+  for (let i = players.length - 1; i >= 0; i--) {
+    if (hidden.has(players[i].id)) players.splice(i, 1);
+  }
+}
 
 // =======================
-// 5. PLAYERS WHEEL (render + controls + subtle glow)
+// 4) UTIL
+// =======================
+function formatPlayerName(p) {
+  if (p.nickname && p.nickname.trim() !== "") {
+    return `${p.firstName} “${p.nickname}” ${p.lastName}`;
+  }
+  return `${p.firstName} ${p.lastName}`;
+}
+function getPlayerPhotoUrl(p) {
+  if (!p.photo) return "images/default-player.jpg";
+  if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) return p.photo;
+  return PLAYER_PHOTO_BASE_PATH + p.photo;
+}
+
+// =======================
+// 5) PLAYERS WHEEL
 // =======================
 const wheelTrack = document.getElementById("playerWheel");
 const teamButtons = document.querySelectorAll(".team-btn");
 
 function toWheelModel(p) {
-  return {
-    name: formatPlayerName(p),
-    team: (p.team || "").toLowerCase(),
-    photo: getPlayerPhotoUrl(p)
-  };
+  return { name: formatPlayerName(p), team: (p.team || "").toLowerCase(), photo: getPlayerPhotoUrl(p) };
 }
 
 function renderWheel(filter = "all") {
   if (!wheelTrack) return;
   const list = (filter === "all") ? players : players.filter(p => p.team === filter);
-  const items = list.map(toWheelModel);
-  wheelTrack.innerHTML = items.map(p => `
+  wheelTrack.innerHTML = list.map(toWheelModel).map(p => `
     <a class="wheel-item" data-team="${p.team}" href="#teams" aria-label="${p.name}">
       <div class="wheel-thumb">
         <img src="${p.photo}" alt="${p.name}" loading="lazy" decoding="async">
@@ -154,7 +126,7 @@ function renderWheel(filter = "all") {
       <span class="wheel-chip ${p.team}">${p.team === 'ozark' ? 'Ozark' : 'Valley'}</span>
     </a>
   `).join('');
-  updateCenterGlow(); // ensure initial highlight
+  updateCenterGlow();
 }
 
 teamButtons.forEach((btn) => {
@@ -169,21 +141,15 @@ teamButtons.forEach((btn) => {
 (function(){
   const btnPrev = document.querySelector('.player-wheel .prev');
   const btnNext = document.querySelector('.player-wheel .next');
-  const ITEM_STEP = 3; // items per click
+  const ITEM_STEP = 3;
 
   const getStepWidth = () => {
     const item = wheelTrack?.querySelector('.wheel-item');
     if (!item) return 200;
-    const style = getComputedStyle(item);
-    const width = item.offsetWidth;
     const gap = parseFloat(getComputedStyle(wheelTrack).columnGap || getComputedStyle(wheelTrack).gap || 14);
-    return width + gap;
+    return item.offsetWidth + gap;
   };
-
-  const scrollByItems = (n) => {
-    const dx = getStepWidth() * n;
-    wheelTrack?.scrollBy({ left: dx, behavior: 'smooth' });
-  };
+  const scrollByItems = (n) => wheelTrack?.scrollBy({ left: getStepWidth() * n, behavior: 'smooth' });
 
   btnPrev?.addEventListener('click', ()=> scrollByItems(-ITEM_STEP));
   btnNext?.addEventListener('click', ()=> scrollByItems(+ITEM_STEP));
@@ -199,22 +165,7 @@ teamButtons.forEach((btn) => {
   wheelTrack.addEventListener('pointerleave',()=>{ isDown=false; });
 })();
 
-// Auto-play (respects reduced motion)
-(function(){
-  if (!wheelTrack) return;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (reduce.matches) return;
-
-  let timer = setInterval(()=> wheelTrack.scrollBy({left: 1, behavior: 'auto'}), 16); // gentle nudge for continuous motion
-  const pause = () => { clearInterval(timer); timer=null; };
-  const resume = () => { if (!timer) timer = setInterval(()=> wheelTrack.scrollBy({left: 1, behavior: 'auto'}), 16); };
-  wheelTrack.addEventListener('mouseenter', pause);
-  wheelTrack.addEventListener('mouseleave', resume);
-  wheelTrack.addEventListener('focusin', pause);
-  wheelTrack.addEventListener('focusout', resume);
-})();
-
-// Subtle center glow: highlight the item closest to the wheel center
+// Subtle center glow
 function updateCenterGlow(){
   if (!wheelTrack) return;
   const rect = wheelTrack.getBoundingClientRect();
@@ -230,12 +181,8 @@ function updateCenterGlow(){
   });
   if (best) best.classList.add('is-center');
 }
-
-let glowRAF = null;
-function onWheelScroll(){
-  if (glowRAF) cancelAnimationFrame(glowRAF);
-  glowRAF = requestAnimationFrame(updateCenterGlow);
-}
+let glowRAF=null;
+function onWheelScroll(){ if (glowRAF) cancelAnimationFrame(glowRAF); glowRAF = requestAnimationFrame(updateCenterGlow); }
 wheelTrack?.addEventListener('scroll', onWheelScroll);
 window.addEventListener('resize', updateCenterGlow);
 
@@ -243,187 +190,17 @@ window.addEventListener('resize', updateCenterGlow);
 renderWheel("all");
 
 // =======================
-// 6. RANDOM PAIRING (kept for this page)
-// =======================
-function shuffleArray(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function createRandomPairingsFromPlayers(playerList) {
-  const shuffled = shuffleArray(playerList);
-  const matches = [];
-  let i = 0;
-  while (i < shuffled.length - 1) {
-    matches.push([shuffled[i].id, shuffled[i + 1].id]);
-    i += 2;
-  }
-  const leftoverId = shuffled.length % 2 === 1 ? shuffled[shuffled.length - 1].id : null;
-  return { matches, leftoverId };
-}
-
-function storageKeyFor(roundId, eventIndex) {
-  return `${PAIRING_STORAGE_PREFIX}${roundId}_${eventIndex}`;
-}
-
-function savePairings(roundId, eventIndex, data) {
-  localStorage.setItem(storageKeyFor(roundId, eventIndex), JSON.stringify(data));
-}
-
-function loadPairings(roundId, eventIndex) {
-  const raw = localStorage.getItem(storageKeyFor(roundId, eventIndex));
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-// =======================
-// 7. RENDER ROUNDS + BOTH EVENTS' PAIRINGS
-// =======================
-const roundTabs = document.getElementById("roundTabs");
-const roundContent = document.getElementById("roundContent");
-
-function renderRoundTabs() {
-  if (!roundTabs) return;
-  roundTabs.innerHTML = "";
-  rounds.forEach((r, idx) => {
-    const btn = document.createElement("button");
-    btn.className = `tab-btn ${idx === 0 ? "active" : ""}`;
-    btn.dataset.round = r.id;
-    btn.textContent = r.title;
-    btn.addEventListener("click", () => {
-      roundTabs.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderRoundContent(r.id);
-    });
-    roundTabs.appendChild(btn);
-  });
-}
-
-function renderRoundContent(roundId) {
-  if (!roundContent) return;
-  const round = rounds.find((r) => r.id === roundId);
-  if (!round) {
-    roundContent.innerHTML = "<p>No round found.</p>";
-    return;
-  }
-
-  const eventBlocksHtml = round.events
-    .map((ev, evIndex) => {
-      let pairingData = loadPairings(roundId, evIndex);
-      if (!pairingData) {
-        pairingData = createRandomPairingsFromPlayers(players);
-        savePairings(roundId, evIndex, pairingData);
-      }
-
-      const pairingsHtml = pairingData.matches
-        .map((pair, idx) => {
-          const p1 = players.find((p) => p.id === pair[0]);
-          const p2 = players.find((p) => p.id === pair[1]);
-          const p1img = p1 ? `<img src="${getPlayerPhotoUrl(p1)}" alt="${formatPlayerName(p1)}" class="round-photo" />` : "";
-          const p2img = p2 ? `<img src="${getPlayerPhotoUrl(p2)}" alt="${formatPlayerName(p2)}" class="round-photo" />" : "";
-
-          return `
-            <li class="pairing-item">
-              <div class="pairing-title">Match ${idx + 1}</div>
-              <div class="pairing-players">
-                <div class="pairing-player">
-                  ${p1img}
-                  <div>
-                    <div class="name">${p1 ? formatPlayerName(p1) : "Unknown"}</div>
-                    <div class="team">${p1 ? (TEAM_LABELS[p1.team] ?? p1.team) : ""}</div>
-                  </div>
-                </div>
-                <div class="vs">vs</div>
-                <div class="pairing-player">
-                  ${p2img}
-                  <div>
-                    <div class="name">${p2 ? formatPlayerName(p2) : "Unknown"}</div>
-                    <div class="team">${p2 ? (TEAM_LABELS[p2.team] ?? p2.team) : ""}</div>
-                  </div>
-                </div>
-              </div>
-            </li>
-          `;
-        })
-        .join("");
-
-      const leftover = pairingData.leftoverId ? players.find((p) => p.id === pairingData.leftoverId) : null;
-      const leftoverHtml = leftover
-        ? `<div class="leftover-box"><strong>Unpaired this 9:</strong> ${formatPlayerName(leftover)} (${TEAM_LABELS[leftover.team] ?? leftover.team})</div>`
-        : "";
-
-      return `
-        <section class="event-block">
-          <h3 class="subhead">${ev.name}</h3>
-          <p class="muted">${ev.format}</p>
-          <ul class="pairings-list">
-            ${pairingsHtml || "<li>No pairings created.</li>"}
-          </ul>
-          ${leftoverHtml}
-        </section>
-      `;
-    })
-    .join("");
-
-  roundContent.innerHTML = `<div class="round-layout"><div>${eventBlocksHtml}</div></div>`;
-}
-
-renderRoundTabs();
-if (rounds.length > 0) renderRoundContent(rounds[0].id);
-
-// =======================
-// 8. REMOVE PLAYER (still available for admin use)
-// =======================
-function removePlayerEverywhere(playerId) {
-  const idx = players.findIndex(p => p.id === playerId);
-  const removed = idx >= 0 ? players.splice(idx, 1)[0] : null;
-
-  try {
-    const roster = JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]");
-    const roster2 = roster.filter(p => p.id !== playerId);
-    if (roster2.length !== roster.length) {
-      localStorage.setItem(SIGNUPS_ROSTER_KEY, JSON.stringify(roster2));
-    } else {
-      const hidden = loadHiddenIds();
-      hidden.add(playerId);
-      saveHiddenIds(hidden);
-    }
-  } catch {}
-
-  Object.keys(localStorage).forEach(k => {
-    if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
-  });
-
-  const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-  renderWheel(activeTeam);
-
-  const activeRoundBtn = document.querySelector("#roundTabs .tab-btn.active");
-  const activeRoundId = activeRoundBtn?.dataset.round || rounds[0]?.id;
-  if (activeRoundId) renderRoundContent(activeRoundId);
-
-  return removed;
-}
-
-// =======================
-// 9. SIGNUP FORM (inject nickname + team; then update wheel)
+// 6) SIGNUP FORM (inject nickname + team; add to roster; refresh wheel)
 // =======================
 (function () {
   const signupForm = document.getElementById("signupForm");
   const formMsg = document.getElementById("formMsg");
   if (!signupForm) return;
 
-  // --- helpers (dupe tracking) ---
-  const loadDupes = () => {
-    try { return JSON.parse(localStorage.getItem(SIGNUPS_DUPE_KEY) || "[]"); } catch { return []; }
-  };
+  const loadDupes = () => { try { return JSON.parse(localStorage.getItem(SIGNUPS_DUPE_KEY) || "[]"); } catch { return []; } };
   const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-  // DOM helpers
   const makeRow = (labelEl, inputEl) => {
     const row = document.createElement("div");
     row.className = "form-row";
@@ -452,9 +229,7 @@ function removePlayerEverywhere(playerId) {
     nicknameInput.name = "nickname";
     nicknameInput.placeholder = "e.g., Long Ball";
     const nnRow = makeRow(nnLabel, nicknameInput);
-    if (nameRow) insertAfter(nnRow, nameRow);
-    else if (actionsRow) signupForm.insertBefore(nnRow, actionsRow);
-    else signupForm.appendChild(nnRow);
+    if (nameRow) insertAfter(nnRow, nameRow); else if (actionsRow) signupForm.insertBefore(nnRow, actionsRow); else signupForm.appendChild(nnRow);
   }
 
   // Team (required)
@@ -480,10 +255,7 @@ function removePlayerEverywhere(playerId) {
 
     const tRow = makeRow(tLabel, teamSelect);
     const nnRow = signupForm.querySelector("#nickname")?.closest(".form-row");
-    if (nnRow) insertAfter(tRow, nnRow);
-    else if (nameRow) insertAfter(tRow, nameRow);
-    else if (actionsRow) signupForm.insertBefore(tRow, actionsRow);
-    else signupForm.appendChild(tRow);
+    if (nnRow) insertAfter(tRow, nnRow); else if (nameRow) insertAfter(tRow, nameRow); else if (actionsRow) signupForm.insertBefore(tRow, actionsRow); else signupForm.appendChild(tRow);
   }
 
   // Submit handler
@@ -561,16 +333,14 @@ Notes: ${notes}`.trim());
         saveSignupPlayers(roster);
 
         upsertPlayerToMasterList(playerObj);
+
         const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
         renderWheel(activeTeam);
-
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith(PAIRING_STORAGE_PREFIX)) localStorage.removeItem(k);
-        });
 
         if (formMsg) { formMsg.textContent = "Thanks! Your signup has been submitted."; formMsg.classList.remove("error"); }
         signupForm.reset();
 
+        // repopulate team options (keeps placeholder selected)
         const select = signupForm.querySelector('[name="team"]');
         if (select) {
           select.innerHTML = "";
@@ -585,20 +355,17 @@ Notes: ${notes}`.trim());
         }
       } else {
         let msg = "Something went wrong. Please try again.";
-        try {
-          const err = await res.json();
-          if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", ");
-        } catch (_) {}
+        try { const err = await res.json(); if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", "); } catch {}
         if (formMsg) { formMsg.textContent = msg; formMsg.classList.add("error"); }
       }
-    } catch (err) {
+    } catch {
       if (formMsg) { formMsg.textContent = "Network error. Please try again."; formMsg.classList.add("error"); }
     }
   });
 })();
 
 // =======================
-// 10. ADMIN: VIEW PLAYER POOL MODAL (+ CSV export)
+// 7) ADMIN: VIEW PLAYER POOL MODAL (+ CSV export)
 // =======================
 (function () {
   const poolBtn = document.getElementById("viewPoolBtn");
