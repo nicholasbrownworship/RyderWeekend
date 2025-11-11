@@ -14,7 +14,6 @@
   <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#244f3c">
-  <!-- Preload the logo used by header.html -->
   <link rel="preload" as="image" href="images/logo.png" />
 
   <!-- App script -->
@@ -41,18 +40,9 @@
           Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
         </p>
         <div class="hero-pills">
-          <div class="pill">
-            <span class="pill-label">Dates</span>
-            <span class="pill-value">May 23–24, 2026</span>
-          </div>
-          <div class="pill">
-            <span class="pill-label">Venue</span>
-            <span class="pill-value">DHCC – Diamond City, AR</span>
-          </div>
-          <div class="pill">
-            <span class="pill-label">Entry</span>
-            <span class="pill-value">$150 (lunch incl.)</span>
-          </div>
+          <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
+          <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
+          <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
         </div>
         <div class="hero-actions">
           <a href="#signup" class="btn primary">Reserve my spot</a>
@@ -132,7 +122,6 @@
       </div>
 
       <div class="schedule-cols">
-        <!-- DAY 1 -->
         <div class="schedule-day active" id="day1">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
@@ -156,7 +145,6 @@
           </div>
         </div>
 
-        <!-- DAY 2 -->
         <div class="schedule-day" id="day2" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
@@ -179,28 +167,6 @@
             <p>Winning team name engraved, family photo, wrap-up.</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- PLAYERS -->
-    <section id="teams" class="section">
-      <div class="section-head center">
-        <h2>Players</h2>
-        <p>Swipe/scroll to browse. Tap a team to filter.</p>
-      </div>
-
-      <div class="team-toggle">
-        <button class="team-btn active" data-team="all" aria-pressed="true">All Players</button>
-        <button class="team-btn" data-team="ozark" aria-pressed="false">Team Ozark</button>
-        <button class="team-btn" data-team="valley" aria-pressed="false">Team Valley</button>
-      </div>
-
-      <div class="player-wheel" aria-label="Player carousel">
-        <button class="wheel-btn prev" aria-label="Previous">&#10094;</button>
-        <div class="wheel-track" id="playerWheel">
-          <!-- JS injects player tiles -->
-        </div>
-        <button class="wheel-btn next" aria-label="Next">&#10095;</button>
       </div>
     </section>
 
@@ -271,12 +237,10 @@
     </section>
   </main>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- Inline helpers -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -292,9 +256,7 @@
         buttons.forEach(b => b.classList.toggle('active', b.dataset.day === id));
       }
 
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => show(btn.dataset.day));
-      });
+      buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.day)));
     })();
   </script>
 </body>
