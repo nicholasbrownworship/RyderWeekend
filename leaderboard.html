@@ -198,18 +198,19 @@
       });
     })();
 
-    // ============== LEADERBOARD BRIDGE ==============
+    // ============== LEADERBOARD (reads saved 9-hole scores) ==============
     (function(){
       const SHARED_KEY = "ozarkShared_v1";
+      const SCORE_NS   = "ozarkScores9_v1"; // keys: ozarkScores9_v1:<day>:<side>:<group>
       const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
-      const TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
+      const TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // team = 2v2, singles otherwise
 
       // URL param helpers / defaults
       function qs(name, def){ const u=new URL(location.href); return u.searchParams.get(name) || def; }
       const fDay  = document.getElementById('fDay');
       const fSide = document.getElementById('fSide');
       fDay.value  = (qs('day','all').toLowerCase()==='day2') ? 'day2' : (qs('day','all').toLowerCase()==='day1' ? 'day1':'all');
-      fSide.value = (qs('side','all').toLowerCase()==='front' || qs('side','all').toLowerCase()==='back') ? qs('side','all').toLowerCase() : 'all';
+      fSide.value = (['front','back'].includes(qs('side','all').toLowerCase())) ? qs('side','all').toLowerCase() : 'all';
 
       const elOz   = document.getElementById('scoreOz');
       const elVa   = document.getElementById('scoreVa');
@@ -223,11 +224,150 @@
       fDay.addEventListener('change', renderAll);
       fSide.addEventListener('change', renderAll);
 
+      // --- helpers for reading saved card data
+      function storageKey(day, side, group){ return `${SCORE_NS}:${day}:${side}:${group}`; }
+      function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch{ return null; } }
+
+      function sumHoles9(arr){
+        if (!Array.isArray(arr)) return null;
+        let s=0, has=false;
+        for (let i=0;i<9;i++){
+          const v = parseInt(arr[i],10);
+          if (!isNaN(v)){ s+=v; has=true; }
+        }
+        return has ? s : null;
+      }
+
+      // Returns { p0, p1, p2, p3 } totals or nulls
+      function readGroupTotals(day, side, group){
+        const data = readJSON(storageKey(day, side, group));
+        if (!data || !Array.isArray(data.players)) return { p0:null,p1:null,p2:null,p3:null };
+        const get = i => {
+          const row = data.players[i];
+          return row ? sumHoles9(row.holes9) : null;
+        };
+        return { p0:get(0), p1:get(1), p2:get(2), p3:get(3) };
+      }
+
+      // Decide winners and points for a group
+      // For team formats: slots [0,1]=Ozark vs [2,3]=Valley (lower total wins 1 pt)
+      // For singles: (0 vs 1) and (2 vs 3), each worth 1 pt
+      function evaluateGroup(day, side, fmt, gIndex){
+        const teamEvent = TEAM_FORMATS.has(fmt);
+        const totals = readGroupTotals(day, side, gIndex+1); // group numbers are 1-based in keys
+        const out = { teamEvent, results: [], pointsOz:0, pointsVa:0 };
+
+        if (teamEvent){
+          const oz = (totals.p0 ?? null) + (totals.p1 ?? null);
+          const va = (totals.p2 ?? null) + (totals.p3 ?? null);
+
+          const validOz = Number.isFinite(totals.p0) || Number.isFinite(totals.p1);
+          const validVa = Number.isFinite(totals.p2) || Number.isFinite(totals.p3);
+
+          if (Number.isFinite(oz) && Number.isFinite(va)){
+            if (oz < va){ out.results = ['ozark', oz, va]; out.pointsOz += 1; }
+            else if (va < oz){ out.results = ['valley', oz, va]; out.pointsVa += 1; }
+            else { out.results = ['tie', oz, va]; out.pointsOz += .5; out.pointsVa += .5; }
+          } else {
+            out.results = [null, Number.isFinite(oz)?oz:null, Number.isFinite(va)?va:null];
+          }
+          return out;
+        } else {
+          // singles two matches
+          const m1 = { a: totals.p0, b: totals.p1 }; // match 1: slots 0 vs 1
+          const m2 = { a: totals.p2, b: totals.p3 }; // match 2: slots 2 vs 3
+          const evalMatch = ({a,b})=>{
+            if (Number.isFinite(a) && Number.isFinite(b)){
+              if (a<b){ out.pointsOz+=1; return 'ozark'; }
+              if (b<a){ out.pointsVa+=1; return 'valley'; }
+              out.pointsOz+=.5; out.pointsVa+=.5; return 'tie';
+            }
+            return null;
+          };
+          out.results = [evalMatch(m1), evalMatch(m2), m1, m2]; // include raw totals for display
+          return out;
+        }
+      }
+
       function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 
-      function tallyPoints(snap){
-        let oz=0, va=0, total=0;
+      function playerName(p){
+        if (!p) return '';
+        const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
+        return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
+      }
 
+      function buildRowHTML(day, side, fmt, gIndex, snap){
+        const teamEvent = TEAM_FORMATS.has(fmt);
+        const dayLabel  = (day==='day1')?'Day 1':'Day 2';
+        const sideLabel = (side==='front')?'Front 9':'Back 9';
+        const groupNum  = gIndex+1;
+
+        const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
+        const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
+        const names = g.map(id=>byId.get(String(id)));
+
+        const res = evaluateGroup(day, side, fmt, gIndex);
+
+        if (teamEvent){
+          const a = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ');
+          const b = [names[2],names[3]].filter(Boolean).map(playerName).join(' & ');
+
+          const [winner, ozTot, vaTot] = res.results;
+          let line = `<span class="muted">Awaiting scores</span>`;
+          if (winner){
+            const scoreTxt = Number.isFinite(ozTot) && Number.isFinite(vaTot) ? ` <span class="small muted">(${ozTot} vs ${vaTot})</span>` : '';
+            if (winner==='ozark') line = `<span class="winner oz">Team Ozark</span>${scoreTxt}`;
+            else if (winner==='valley') line = `<span class="winner va">Team Valley</span>${scoreTxt}`;
+            else line = `<span class="winner">Tie</span>${scoreTxt}`;
+          } else if (Number.isFinite(ozTot) || Number.isFinite(vaTot)){
+            const scoreTxt = ` <span class="small muted">(${Number.isFinite(ozTot)?ozTot:'—'} vs ${Number.isFinite(vaTot)?vaTot:'—'})</span>`;
+            line = `<span class="muted">Partial</span>${scoreTxt}`;
+          }
+
+          const pairs = (a||b) ? `<div class="small muted">${a||'—'} <strong>vs</strong> ${b||'—'}</div>` : '';
+          return `
+            <tr>
+              <td>${dayLabel}</td>
+              <td>${sideLabel}</td>
+              <td>${fmt}</td>
+              <td>${groupNum}</td>
+              <td>${line}${pairs}</td>
+            </tr>`;
+        } else {
+          // singles: two matches with totals if available
+          const m1Names = `<span class="small muted">${playerName(names[0])||'—'} <strong>vs</strong> ${playerName(names[1])||'—'}</span>`;
+          const m2Names = `<span class="small muted">${playerName(names[2])||'—'} <strong>vs</strong> ${playerName(names[3])||'—'}</span>`;
+          const [r1, r2, m1, m2] = res.results;
+
+          const mk = (lab, r, m) => {
+            let who = '<span class="muted small">Awaiting scores</span>';
+            if (r==='ozark') who = `<span class="winner oz small">${TEAM_LABELS.ozark}</span>`;
+            else if (r==='valley') who = `<span class="winner va small">${TEAM_LABELS.valley}</span>`;
+            else if (r==='tie') who = `<span class="winner small">Tie</span>`;
+            const score = (Number.isFinite(m?.a) || Number.isFinite(m?.b))
+              ? ` <span class="small muted">(${Number.isFinite(m?.a)?m.a:'—'} vs ${Number.isFinite(m?.b)?m.b:'—'})</span>`
+              : '';
+            return `<div>${lab}: ${who}${score}</div>`;
+          };
+
+          return `
+            <tr>
+              <td>${dayLabel}</td>
+              <td>${sideLabel}</td>
+              <td>${fmt}</td>
+              <td>${groupNum}</td>
+              <td>
+                ${mk('Match 1', r1, m1)}<br>${m1Names}
+                <br>
+                ${mk('Match 2', r2, m2)}<br>${m2Names}
+              </td>
+            </tr>`;
+        }
+      }
+
+      function computeTotals(snap){
+        let oz=0, va=0, total=0;
         const considerDay  = fDay.value;
         const considerSide = fSide.value;
 
@@ -238,91 +378,27 @@
 
             const fmt = snap.format?.[day]?.[side] || 'Best Ball';
             const teamEvent = TEAM_FORMATS.has(fmt);
-            const rs = snap.results?.[day]?.[side] || [];
+            const groups = snap.groups?.[day]?.[side] || [];
 
-            rs.forEach(r=>{
+            for (let i=0;i<groups.length;i++){
+              const ev = evaluateGroup(day, side, fmt, i);
               if (teamEvent){
-                total += 1;
-                if (r==='ozark') oz += 1;
-                else if (r==='valley') va += 1;
-                else if (r==='tie'){ oz += .5; va += .5; }
-              } else {
-                const arr = Array.isArray(r)? r : [null,null];
-                arr.forEach(x=>{
+                const decided = (ev.results[0] === 'ozark' || ev.results[0] === 'valley' || ev.results[0] === 'tie');
+                if (decided){
                   total += 1;
-                  if (x==='ozark') oz += 1;
-                  else if (x==='valley') va += 1;
-                  else if (x==='tie'){ oz += .5; va += .5; }
-                });
+                  oz += ev.pointsOz;
+                  va += ev.pointsVa;
+                }
+              } else {
+                // two singles; count only matches that have a decision
+                const [r1, r2] = ev.results;
+                if (r1){ total += 1; oz += (r1==='ozark'?1:(r1==='tie'?.5:0)); va += (r1==='valley'?1:(r1==='tie'?.5:0)); }
+                if (r2){ total += 1; oz += (r2==='ozark'?1:(r2==='tie'?.5:0)); va += (r2==='valley'?1:(r2==='tie'?.5:0)); }
               }
-            });
+            }
           });
         });
-
-        return {oz, va, total};
-      }
-
-      function playerName(p){
-        if (!p) return '';
-        const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
-        return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
-      }
-
-      function buildRowHTML(day, side, fmt, gIndex, r, snap){
-        const teamEvent = TEAM_FORMATS.has(fmt);
-        const dayLabel  = (day==='day1')?'Day 1':'Day 2';
-        const sideLabel = (side==='front')?'Front 9':'Back 9';
-        const groupNum  = gIndex+1;
-
-        if (teamEvent){
-          let resultText = '<span class="muted">No result</span>';
-          if (r==='ozark') resultText = `<span class="winner oz">Team Ozark</span>`;
-          else if (r==='valley') resultText = `<span class="winner va">Team Valley</span>`;
-          else if (r==='tie') resultText = `<span class="winner">Tie</span>`;
-
-          // show players (2v2) compact
-          const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
-          const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
-          const a = [g[0],g[1]].map(id=>byId.get(String(id))).filter(Boolean).map(playerName).join(' & ');
-          const b = [g[2],g[3]].map(id=>byId.get(String(id))).filter(Boolean).map(playerName).join(' & ');
-          const pairs = (a||b) ? `<div class="small muted">${a||'—'} <strong>vs</strong> ${b||'—'}</div>` : '';
-
-          return `
-            <tr>
-              <td>${dayLabel}</td>
-              <td>${sideLabel}</td>
-              <td>${fmt}</td>
-              <td>${groupNum}</td>
-              <td>${resultText}${pairs}</td>
-            </tr>`;
-        } else {
-          // Singles: two matches per group
-          const arr = Array.isArray(r)? r : [null,null];
-          const labels = ['Match 1','Match 2'];
-          const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
-          const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
-
-          const mk = (matchIdx) => {
-            const A = byId.get(String(g[matchIdx*2]||''));   // 0 or 2
-            const B = byId.get(String(g[matchIdx*2+1]||'')); // 1 or 3
-            const vs = `<span class="small muted">${playerName(A)||'—'} <strong>vs</strong> ${playerName(B)||'—'}</span>`;
-            const res = arr[matchIdx];
-            let who = '<span class="muted small">No result</span>';
-            if (res==='ozark') who = `<span class="winner oz small">${TEAM_LABELS.ozark}</span>`;
-            else if (res==='valley') who = `<span class="winner va small">${TEAM_LABELS.valley}</span>`;
-            else if (res==='tie') who = `<span class="winner small">Tie</span>`;
-            return `<div>${labels[matchIdx]}: ${who}<br>${vs}</div>`;
-          };
-
-          return `
-            <tr>
-              <td>${dayLabel}</td>
-              <td>${sideLabel}</td>
-              <td>${fmt}</td>
-              <td>${groupNum}</td>
-              <td>${mk(0)}${mk(1)}</td>
-            </tr>`;
-        }
+        return { oz, va, total };
       }
 
       function rebuildTable(snap){
@@ -336,14 +412,14 @@
             if (considerSide!=='all' && considerSide!==side) return;
 
             const fmt = snap.format?.[day]?.[side] || 'Best Ball';
-            const rs  = snap.results?.[day]?.[side] || [];
-            for (let i=0;i<rs.length;i++){
-              rows += buildRowHTML(day, side, fmt, i, rs[i], snap);
+            const groups = snap.groups?.[day]?.[side] || [];
+            for (let i=0;i<groups.length;i++){
+              rows += buildRowHTML(day, side, fmt, i, snap);
             }
           });
         });
 
-        tbody.innerHTML = rows || `<tr><td colspan="5" class="muted">No pairings/results yet.</td></tr>`;
+        tbody.innerHTML = rows || `<tr><td colspan="5" class="muted">No pairings/scores yet.</td></tr>`;
 
         const parts = [];
         if (considerDay!=='all') parts.push(considerDay==='day1'?'Day 1':'Day 2');
@@ -352,13 +428,13 @@
       }
 
       function renderTotals(snap){
-        const {oz, va, total} = tallyPoints(snap);
+        const {oz, va, total} = computeTotals(snap);
         const ozR = Math.round(oz*10)/10, vaR = Math.round(va*10)/10;
         elOz.textContent = ozR.toString();
         elVa.textContent = vaR.toString();
 
         const denom = total>0 ? total : 1;
-        const pctOz = clamp((oz/denom)*100, 0, 100);
+        const pctOz = Math.max(0, Math.min(100, (oz/denom)*100));
         bar.style.width = pctOz + '%';
 
         // Event name badge
@@ -390,13 +466,24 @@
       // Boot
       refreshFromStorage();
 
-      // React to scoreboard writes
+      // React to scoreboard writes (pairings/format/metadata)
       window.addEventListener('storage', (e)=>{
-        if (e.key !== SHARED_KEY || !e.newValue) return;
-        let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
-        if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
-        adoptShared(inc);
+        // Pairings/format changes
+        if (e.key === SHARED_KEY && e.newValue){
+          let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
+          if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
+          adoptShared(inc);
+          return;
+        }
+        // Score changes: any key that starts with ozarkScores9_v1:
+        if (e.key && e.key.startsWith(`${SCORE_NS}:`)){
+          // Re-render using current shared snapshot
+          renderAll();
+        }
       });
+
+      // Also poll once in case scores already exist (simple micro-tick)
+      setTimeout(renderAll, 0);
     })();
   </script>
 </body>
