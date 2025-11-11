@@ -1,18 +1,18 @@
-/* autopair.js — Combined-site version (publishes to ozarkShared_v1)
- * Works with your new all-in-one site and the scorecard/leaderboard bridges.
+/* autopair.js — Ozark Invitational (scoreboard-compatible)
+ * Works with the new scoreboard.html + script.js
  * Requires: window.state, save(), renderAll() defined by script.js
- * Optional: TEAM_FORMATS (Set), desiredGroupSize(fmt)
+ * Optional (but used if present): TEAM_FORMATS (Set), desiredGroupSize(fmt)
  *
- * UI hooks (if present on scoreboard.html):
+ * UI hooks on scoreboard.html:
  *   - #btnAutoPairRound   (auto-pair current day/side)
  *   - #btnAutoPairDay     (auto-pair both rounds for current day)
  *   - #btnAutoPairAll     (auto-pair all day/side)
  *   - #chkFillUnassigned  (if checked: only fill empty slots; else overwrite)
- *   - #btnClearSide       (we inject a sibling "Reset all groups" next to it)
+ *   - #btnClearSide       (we inject a sibling "Reset all groups")
  *
  * Data bridge:
- *   - Publishes a snapshot to localStorage key "ozarkShared_v1"
- *   - Scorecard & Leaderboard read it and live-update via 'storage' events
+ *   - Publishes snapshot to localStorage key "ozarkShared_v1"
+ *   - Other pages (scorecard/leaderboard) can live-update via 'storage' events
  */
 
 (function () {
@@ -20,89 +20,102 @@
 
   // ---------- Hard guard ----------
   if (!window.state) {
-    console.warn("[autopair] 'state' not found; load this AFTER script.js on scoreboard.html");
+    console.warn("[autopair] 'state' not found; load this AFTER script.js and after the inline scoreboard script.");
     return;
   }
 
   // ---------- LocalStorage bridge ----------
   const SHARED_KEY = 'ozarkShared_v1';
 
+  function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+
   function publishSharedSnapshot(reason = 'manual') {
     try {
-      // Minimal, stable shape for readers (scorecard/leaderboard)
+      const s = window.state || {};
       const snap = {
         ts: Date.now(),
         reason,
-        // players: only essentials used by card/leaderboard pages
-        players: (state.players || []).map(p => ({
+        players: (s.players || []).map(p => ({
           id: String(p.id),
           firstName: p.firstName || '',
           lastName:  p.lastName  || '',
           nickname:  p.nickname  || '',
           team:      p.team      || 'ozark',
-          handicap:  Number.isFinite(p.handicap) ? p.handicap : 0,
+          handicap:  Number.isFinite(p.handicap) ? p.handicap : null,
+          // include photoPath if present so other pages can render avatars
+          photoPath: p.photoPath || null
         })),
-        // pairings & meta used by the bridge
-        groups:  deepClone(state.groups || { day1:{front:[],back:[]}, day2:{front:[],back:[]} }),
-        format:  deepClone(state.format || { day1:{front:'Best Ball', back:'Best Ball'}, day2:{front:'Best Ball', back:'Best Ball'} }),
-        dates:   deepClone(state.dates  || { day1: (state.dateDay1 || ''), day2: (state.dateDay2 || '') }),
-        numGroups: Number(state.numGroups) || 1,
-        currentDay: state.currentDay || 'day1',
-        side: state.side || 'front',
+        groups:  deepClone(s.groups  || { day1:{front:[],back:[]}, day2:{front:[],back:[]} }),
+        format:  deepClone(s.format  || { day1:{front:'Best Ball', back:'Best Ball'}, day2:{front:'Best Ball', back:'Best Ball'} }),
+        dates:   deepClone(s.dates   || { day1: s.dateDay1 || '', day2: s.dateDay2 || '' }),
+        numGroups: Number(s.numGroups) || 1,
+        currentDay: s.currentDay || 'day1',
+        side: s.side || 'front',
+        eventName: s.eventName || 'Ozark Invitational'
       };
-      localStorage.setItem(SHARED_KEY, JSON.stringify(snap));
-      // Fire a manual 'storage' event for same-tab listeners (optional but handy)
+
+      const payload = JSON.stringify(snap);
+      localStorage.setItem(SHARED_KEY, payload);
+
+      // Fire a same-tab storage event (some UIs listen for it)
       try {
-        window.dispatchEvent(new StorageEvent('storage', { key: SHARED_KEY, newValue: JSON.stringify(snap) }));
+        window.dispatchEvent(new StorageEvent('storage', { key: SHARED_KEY, newValue: payload }));
       } catch {}
-      // console.log('[autopair] published snapshot', { reason, snap });
+      // console.log('[autopair] snapshot published', reason, snap);
     } catch (e) {
       console.warn('[autopair] publishSharedSnapshot failed', e);
     }
   }
 
-  function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+  // ---------- Format normalization ----------
+  // Canonical team formats (others treated as singles unless mapped below)
+  const TEAM_FORMATS_CANON = new Set(['best ball','scramble','alt shot','shamble']);
 
-  // ---------- TEAM formats & group size ----------
-  const TEAM_FORMATS =
-    (window.TEAM_FORMATS instanceof Set && window.TEAM_FORMATS.size)
-      ? window.TEAM_FORMATS
-      : new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
+  function normalizeFormat(fmtRaw='') {
+    const f = String(fmtRaw).trim().toLowerCase()
+      .replace(/[–—-]/g,'-')
+      .replace(/\s+/g,' ');
+    // aliases → canon
+    if (f.includes('best') && (f.includes('ball') || f.includes('4-ball') || f.includes('fourball'))) return 'best ball';
+    if (f.includes('scramble')) return 'scramble';
+    if ((f.includes('alt') && f.includes('shot')) || f.includes('alternate')) return 'alt shot';
+    if (f.includes('shamble')) return 'shamble';
+    if (f.includes('single')) return 'singles';
+    return f;
+  }
+  function isTeamFormat(fmt){ return TEAM_FORMATS_CANON.has(normalizeFormat(fmt)); }
+  function isSingles(fmt){ return normalizeFormat(fmt) === 'singles'; }
 
-  // We want singles to create TWO matches (1v1 x 2) per group → 4 slots total.
+  // ---------- Group sizing ----------
+  // If script.js already defines a desiredGroupSize, we'll respect it.
   const desiredGroupSize =
-    typeof window.desiredGroupSize === 'function'
+    (typeof window.desiredGroupSize === 'function')
       ? window.desiredGroupSize
-      : (fmt => {
-          const f = String(fmt || '').toLowerCase();
-          if (TEAM_FORMATS.has(fmt)) return 4;        // team formats → foursomes
-          if (f.includes('single')) return 4;         // singles → 2 matches → 4 slots
-          return 2;                                   // fallback
-        });
+      : (fmt => isTeamFormat(fmt) ? 4 : (isSingles(fmt) ? 4 : 2));
 
   // ---------- State sanitizer ----------
   function ensureShape() {
-    if (!state.players) state.players = [];
-    if (!state.format)  state.format  = { day1:{front:'Best Ball', back:'Best Ball'}, day2:{front:'Best Ball', back:'Best Ball'} };
-    if (!state.groups)  state.groups  = { day1:{front:[], back:[]}, day2:{front:[], back:[]} };
-    if (!state.dates)   state.dates   = { day1: (state.dateDay1 || ''), day2: (state.dateDay2 || '') };
-    if (!state.currentDay) state.currentDay = 'day1';
-    if (!state.side)       state.side = 'front';
-    if (!Number.isFinite(state.numGroups)) state.numGroups = Number(state.numGroups) || 1;
+    const s = window.state;
+    if (!s.players) s.players = [];
+    if (!s.format)  s.format  = { day1:{front:'Best Ball', back:'Best Ball'}, day2:{front:'Best Ball', back:'Best Ball'} };
+    if (!s.groups)  s.groups  = { day1:{front:[], back:[]}, day2:{front:[], back:[]} };
+    if (!s.dates)   s.dates   = { day1: s.dateDay1 || '', day2: s.dateDay2 || '' };
+    if (!s.currentDay) s.currentDay = 'day1';
+    if (!s.side)       s.side = 'front';
+    if (!Number.isFinite(s.numGroups)) s.numGroups = Number(s.numGroups) || 1;
 
-    // Keep nested arrays sane
     ['day1','day2'].forEach(d=>{
-      if (!state.groups[d]) state.groups[d] = { front:[], back:[] };
-      ['front','back'].forEach(s=>{
-        if (!Array.isArray(state.groups[d][s])) state.groups[d][s] = [];
+      if (!s.groups[d]) s.groups[d] = { front:[], back:[] };
+      ['front','back'].forEach(side=>{
+        if (!Array.isArray(s.groups[d][side])) s.groups[d][side] = [];
       });
-      if (!state.format[d]) state.format[d] = { front:'Best Ball', back:'Best Ball' };
-      if (!state.format[d].front) state.format[d].front = 'Best Ball';
-      if (!state.format[d].back)  state.format[d].back  = 'Best Ball';
+      if (!s.format[d]) s.format[d] = { front:'Best Ball', back:'Best Ball' };
+      if (!s.format[d].front) s.format[d].front = 'Best Ball';
+      if (!s.format[d].back)  s.format[d].back  = 'Best Ball';
     });
   }
 
-  // Always sanitize before rendering
+  // Wrap renderAll() to guarantee shape first
   if (typeof window.renderAll === 'function' && !window.__autopair_renderWrapped) {
     const _renderAll = window.renderAll;
     window.renderAll = function wrappedRenderAll() {
@@ -112,7 +125,7 @@
     window.__autopair_renderWrapped = true;
   }
 
-  // Also wrap save() to publish the snapshot automatically
+  // Wrap save() to also publish snapshots
   if (typeof window.save === 'function' && !window.__autopair_saveWrapped) {
     const _save = window.save;
     window.save = function wrappedSave() {
@@ -125,7 +138,9 @@
 
   // ---------- Utils ----------
   function findPlayer(id){ return (state.players||[]).find(p => String(p.id) === String(id)); }
-
+  function labelRound(day, side){
+    return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
+  }
   function mulberry32(a){
     return function(){
       let t=a+=0x6D2B79F5;
@@ -143,26 +158,25 @@
     }
     return a;
   }
-  function labelRound(day, side){
-    return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
-  }
 
-  // Ensure side grid shape (rows = numGroups, cols = desiredGroupSize(fmt))
-  function ensureSide(day, side, fmt){
+  // Ensure side grid shape (rows = numGroups, cols driven by format)
+  function ensureSide(day, side, fmtRaw){
     ensureShape();
-    const gs = desiredGroupSize(fmt);
+    const fmt = normalizeFormat(fmtRaw);
+    const gs  = desiredGroupSize(fmt);
     const count = Math.max(1, Number(state.numGroups)||1);
-    let arr = state.groups[day][side];
-    if (!Array.isArray(arr) || arr.length !== count) {
-      arr = Array.from({length: count}, ()=> Array(gs).fill(null));
+
+    let rows = state.groups[day][side];
+    if (!Array.isArray(rows) || rows.length !== count) {
+      rows = Array.from({length: count}, ()=> Array(gs).fill(null));
     } else {
-      arr = arr.map(g=>{
+      rows = rows.map(g=>{
         const x = Array.isArray(g) ? g.slice(0, gs) : [];
         while (x.length < gs) x.push(null);
         return x;
       });
     }
-    state.groups[day][side] = arr;
+    state.groups[day][side] = rows;
   }
 
   function availableByTeam(day, side){
@@ -176,7 +190,7 @@
   }
 
   // ---------- Assignment builders ----------
-  // Team formats: fill groups with two OZ + two VA (pairs per side)
+  // Team formats: fill groups with two OZ + two VA
   function buildAssignmentsTeam(ozIds, vaIds, groupsCount, options){
     const seed = options.seed ?? null;
     const A = shuffle(ozIds, seed);
@@ -252,24 +266,25 @@
   function autoPairRound(day, side, options={}){
     try {
       ensureShape();
-      const fmt = (state.format?.[day]?.[side]) || 'Best Ball';
+      const fmtRaw = (state.format?.[day]?.[side]) || 'Best Ball';
+      const fmt    = normalizeFormat(fmtRaw);
+      const isTeam = isTeamFormat(fmt);
+
       ensureSide(day, side, fmt);
 
-      const gs  = desiredGroupSize(fmt);
-      const isTeam = TEAM_FORMATS.has(fmt);
       const groupsCount = Math.max(1, Number(state.numGroups)||1);
+      const gs = desiredGroupSize(fmt);
 
       const fillMode =
         options.fillMode ||
         (document.getElementById('chkFillUnassigned')?.checked ? 'unassigned' : 'overwrite');
 
+      // If overwriting, start from empty rows of the correct width
       if (fillMode === 'overwrite') {
         state.groups[day][side] = Array.from({length: groupsCount}, ()=> Array(gs).fill(null));
       }
 
       const { oz, va } = availableByTeam(day, side);
-
-      // console.log('[autopair] run', { day, side, fmt, isTeam, gs, fillMode, groupsCount, availOz: oz.length, availVa: va.length });
 
       if (isTeam && gs===4){
         const res = buildAssignmentsTeam(oz, va, groupsCount, options);
@@ -288,9 +303,9 @@
         if (msgs.length) alert(msgs.join("\n"));
       }
 
-      if (typeof save === 'function') save();    // triggers snapshot publish via our wrapper
+      if (typeof save === 'function') save();    // our wrapped save publishes a snapshot
       if (typeof renderAll === 'function') renderAll();
-      publishSharedSnapshot('autopair');         // extra explicit publish (safe)
+      publishSharedSnapshot('autopair');
     } catch (err) {
       console.error('[autopair] ERROR in autoPairRound:', err);
       alert('Auto-pair hit an error. Check console for details.');
@@ -315,7 +330,7 @@
     const count = Math.max(1, Number(state.numGroups) || 1);
     days.forEach(day => {
       sides.forEach(side => {
-        const fmt = (state.format?.[day]?.[side]) || 'Best Ball';
+        const fmt = normalizeFormat(state.format?.[day]?.[side] || 'Best Ball');
         const gs  = desiredGroupSize(fmt);
         state.groups[day][side] = Array.from({ length: count }, () => Array(gs).fill(null));
       });
@@ -378,13 +393,15 @@
     autoPairRound, autoPairDay, autoPairAll,
     resetAllGroups,
     publishSharedSnapshot,
-    __ensure: ensureShape
+    __ensure: ensureShape,
+    __normalizeFormat: normalizeFormat,
+    __isTeamFormat: isTeamFormat
   };
 
-  // First-time sanitize + publish so other tabs/pages can see baseline
+  // First-time sanitize + publish
   try { ensureShape(); publishSharedSnapshot('init'); } catch {}
   console.log('[autopair] ready', {
     hasState: !!window.state,
-    TEAM_FORMATS: TEAM_FORMATS ? [...TEAM_FORMATS] : null
+    numPlayers: (window.state.players||[]).length
   });
 })();
