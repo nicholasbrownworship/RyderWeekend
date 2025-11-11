@@ -70,25 +70,13 @@
 <body>
 
   <!-- Shared site header / nav -->
-  <header class="topbar">
-    <div class="logo-wrap">
-      <div class="logo-circle">OI</div>
-      <div class="logo-text">
-        <span class="title">Ozark Invitational</span>
-        <span class="subtitle">Family Golf Tournament</span>
-      </div>
-    </div>
-    <nav class="nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a href="scorecard.html">Scorecard</a>
-      <a href="scoreboard.html">Scoreboard</a>
-      <a href="leaderboard.html">Leaderboard</a>
-      <a href="index.html#teams">Players</a>
-      <a href="index.html#sponsors">Sponsors</a>
-      <a href="index.html#signup" class="btn-nav">Sign Up</a>
-    </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
-  </header>
+  <div id="siteHeader"></div>
+<script>
+  fetch("header.html")
+    .then(res => res.text())
+    .then(html => { document.getElementById("siteHeader").innerHTML = html; });
+</script>
+
 
   <div class="wrap">
     <div class="hdr">
