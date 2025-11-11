@@ -4,9 +4,8 @@
 // =======================
 const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
 
-// If your images live in /images/players, set to "images/players/"
-// You currently said your test pics are in "images/", so we'll keep that:
-const PLAYER_PHOTO_BASE_PATH = "images/";
+// Your photos live under images/players/
+const PLAYER_PHOTO_BASE_PATH = "images/players/";
 
 const RESPECT_SAVED_HIDDEN_SEEDED = false; // <— OFF so hard-coded players always render
 
@@ -67,7 +66,6 @@ const players = [
 
 const SEEDED_PLAYERS = players.slice();
 
-// Load saved signups
 function loadSignupPlayers() {
   try { return JSON.parse(localStorage.getItem(SIGNUPS_ROSTER_KEY) || "[]"); } catch { return []; }
 }
@@ -85,7 +83,6 @@ function upsertPlayerToMasterList(p) {
   );
   if (!exists) players.push(p);
 }
-
 loadSignupPlayers().forEach(upsertPlayerToMasterList);
 
 // Only hide seeded if explicitly enabled
@@ -112,21 +109,27 @@ function slugifyName(p){
   return [f,l].filter(Boolean).join("-");
 }
 
-// Returns a best-guess URL for the player's photo or null if we should use initials
+// Build a safe URL for the player's photo. Returns null if we should use initials.
 function getPlayerPhotoURL(p){
-  // 1) explicit file path provided
-  if (p.photo && typeof p.photo === "string" && p.photo.trim()){
-    if (/^https?:\/\//i.test(p.photo)) return p.photo; // allow full URLs
-    if (p.photo.startsWith("./") || p.photo.startsWith("/") ) return p.photo;
-    return PLAYER_PHOTO_BASE_PATH + p.photo.replace(/^\/+/, "");
+  const raw = (p.photo || "").trim();
+
+  // Absolute or root-relative paths -> use as is
+  if (/^https?:\/\//i.test(raw) || raw.startsWith("/") || raw.startsWith("./")) {
+    return raw;
   }
-  // 2) try id.jpg
+
+  // If data contains "players/..." but base already is "images/players/", strip leading "players/"
+  const cleaned = raw.replace(/^\/+/, "").replace(/^players\//i, "");
+
+  // If we still have a filename, join with base
+  if (cleaned) return PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + cleaned;
+
+  // Try id.jpg, then slug.jpg
   if (p.id) return PLAYER_PHOTO_BASE_PATH + String(p.id) + ".jpg";
-  // 3) (optional) try name slug
   const slug = slugifyName(p);
   if (slug) return PLAYER_PHOTO_BASE_PATH + slug + ".jpg";
-  // let it fall back to initials avatar
-  return null;
+
+  return null; // use initials fallback
 }
 
 function playerInitials(p){
@@ -135,8 +138,7 @@ function playerInitials(p){
   return (f + l).toUpperCase();
 }
 
-// Creates a circular avatar element.
-// If image loads -> shows image; else shows initials in a circle.
+// Circular avatar: image if it loads, otherwise initials.
 function renderAvatar(p, size=56){
   const wrap = document.createElement("div");
   wrap.className = "avatar";
@@ -167,9 +169,7 @@ function renderAvatar(p, size=56){
     img.style.width = "100%";
     img.style.height = "100%";
     img.style.objectFit = "cover";
-    img.addEventListener("error", ()=> {
-      // keep initials fallback
-    });
+    img.addEventListener("error", ()=> {/* keep initials */});
     img.addEventListener("load", ()=> {
       wrap.innerHTML = "";
       wrap.appendChild(img);
@@ -178,25 +178,19 @@ function renderAvatar(p, size=56){
   return wrap;
 }
 
-// Ensures new signups without an explicit photo still get a sensible default filename
+// Ensure new signups without an explicit photo still get a sensible default filename guess
 function attachPhotoIfMissing(p){
   if (p.photo && String(p.photo).trim()) return p;
   if (p.id) { p.photo = `${p.id}.jpg`; return p; }
   const slug = slugifyName(p);
   if (slug) { p.photo = `${slug}.jpg`; return p; }
-  return p; // will fallback to initials avatar
+  return p; // initials fallback
 }
-
-// Normalize all current players once on load (non-destructive)
 for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]); }
 
 // =======================
 // 5) PLAYERS WHEEL
 // =======================
-const wheelTrack = document.getElementById("playerWheel");
-const teamButtons = document.querySelectorAll(".team-btn");
-
-// Create DOM tile to attach avatar + labels + handlers
 function makeWheelTile(p){
   const a = document.createElement("a");
   a.className = "wheel-item";
@@ -206,7 +200,6 @@ function makeWheelTile(p){
 
   const thumb = document.createElement("div");
   thumb.className = "wheel-thumb";
-  // avatar (56px)
   thumb.appendChild(renderAvatar(p, 56));
 
   const nm = document.createElement("span");
@@ -224,13 +217,19 @@ function makeWheelTile(p){
 }
 
 function renderWheel(filter = "all") {
-  if (!wheelTrack) return;
-  const list = (filter === "all") ? players : players.filter(p => (p.team||"").toLowerCase() === filter);
+  const wheelTrack = document.getElementById("playerWheel");
+  if (!wheelTrack) return; // page may not have the wheel
+
+  const list = (filter === "all")
+    ? players
+    : players.filter(p => (p.team||"").toLowerCase() === filter);
+
   wheelTrack.innerHTML = "";
   list.forEach(p => wheelTrack.appendChild(makeWheelTile(p)));
   updateCenterGlow();
 }
 
+const teamButtons = document.querySelectorAll(".team-btn");
 teamButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     teamButtons.forEach((b) => b.classList.remove("active"));
@@ -241,6 +240,8 @@ teamButtons.forEach((btn) => {
 
 // Prev/Next controls
 (function(){
+  const wheelTrack = document.getElementById('playerWheel');
+  if (!wheelTrack) return;
   const btnPrev = document.querySelector('.player-wheel .prev');
   const btnNext = document.querySelector('.player-wheel .next');
   const ITEM_STEP = 3;
@@ -260,6 +261,7 @@ teamButtons.forEach((btn) => {
 
 // Drag-to-scroll
 (function(){
+  const wheelTrack = document.getElementById("playerWheel");
   if (!wheelTrack) return;
   let isDown=false, startX=0, startLeft=0;
   wheelTrack.addEventListener('pointerdown', e=>{ isDown=true; startX=e.clientX; startLeft=wheelTrack.scrollLeft; wheelTrack.setPointerCapture(e.pointerId); });
@@ -270,6 +272,7 @@ teamButtons.forEach((btn) => {
 
 // Subtle center glow
 function updateCenterGlow(){
+  const wheelTrack = document.getElementById("playerWheel");
   if (!wheelTrack) return;
   const rect = wheelTrack.getBoundingClientRect();
   const centerX = rect.left + rect.width/2;
@@ -285,12 +288,30 @@ function updateCenterGlow(){
   if (best) best.classList.add('is-center');
 }
 let glowRAF=null;
-function onWheelScroll(){ if (glowRAF) cancelAnimationFrame(glowRAF); glowRAF = requestAnimationFrame(updateCenterGlow); }
-wheelTrack?.addEventListener('scroll', onWheelScroll);
-window.addEventListener('resize', updateCenterGlow);
+function onWheelScroll(){
+  if (glowRAF) cancelAnimationFrame(glowRAF);
+  glowRAF = requestAnimationFrame(updateCenterGlow);
+}
+(function(){
+  const wheelTrack = document.getElementById("playerWheel");
+  if (wheelTrack){
+    wheelTrack.addEventListener('scroll', onWheelScroll);
+    window.addEventListener('resize', updateCenterGlow);
+  }
+})();
 
-// Initial render
-renderWheel("all");
+// Safe initial render AFTER DOM is ready (prevents "nothing shows" issues)
+(function safeBootWheel(){
+  const boot = () => {
+    const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
+    renderWheel(activeTeam);
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
+  }
+})();
 
 // =======================
 // 6) SIGNUP FORM (inject nickname + team; add to roster; refresh wheel)
@@ -599,25 +620,19 @@ Notes: ${notes}`.trim());
 // =======================
 // 8) SHARED SNAPSHOT BRIDGE (Scoreboard/Scorecard/Leaderboard)
 // =======================
-// This adds tiny helpers every page can use. The Scoreboard page should call publishSharedSnapshot()
-// whenever pairings, results, dates, or formats change. Scorecard/Leaderboard already *read* this key.
 (function(){
   function safeParse(json){
     try { return JSON.parse(json); } catch { return null; }
   }
-
   function readSharedSnapshot(){
     const raw = localStorage.getItem(SHARED_KEY);
     return safeParse(raw);
   }
-
-  // Merge and write a partial snapshot. Auto-stamps ts.
   function writeSharedSnapshot(partial){
     const cur = readSharedSnapshot() || {};
     const merged = {
       ...cur,
       ...partial,
-      // shallow-merge nested objects you commonly update:
       format: { ...(cur.format||{}), ...(partial.format||{}) },
       groups: { ...(cur.groups||{}), ...(partial.groups||{}) },
       results:{ ...(cur.results||{}), ...(partial.results||{}) },
@@ -630,18 +645,8 @@ Notes: ${notes}`.trim());
     } catch {}
     return merged;
   }
-
-  // Expose a tiny API
-  window.OZARK = Object.freeze({
-    readSharedSnapshot,
-    writeSharedSnapshot,
-    SHARED_KEY
-  });
-
-  // Optional: initialize with event name if not set (harmless on pages that never use it)
+  window.OZARK = Object.freeze({ readSharedSnapshot, writeSharedSnapshot, SHARED_KEY });
   const snap = readSharedSnapshot();
-  if (!snap) {
-    writeSharedSnapshot({ eventName: "Ozark Invitational" });
-  }
+  if (!snap) writeSharedSnapshot({ eventName: "Ozark Invitational" });
 })();
 </script>
