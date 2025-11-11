@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scoreboard – Ozark Invitational</title>
 
-  <!-- Shared site styles & scripts (topbar, buttons, etc.) -->
+  <!-- Shared site styles (topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
-  <script src="script.js" defer></script>
-  <!-- autopair loads once at the very end -->
 
   <style>
     :root{
@@ -35,8 +33,6 @@
 
     /* ===============================
        SCOREBOARD-ONLY TOPBAR OVERRIDE
-       Makes the shared header readable
-       on the cream/light background theme
        =============================== */
     .topbar{
       position: sticky;
@@ -196,7 +192,7 @@
     .rbtn{border:1px solid var(--line);background:#101718;color:#bfe7ea;padding:4px 8px;border-radius:999px;font-size:12px;cursor:pointer}
     .rbtn:hover{filter:brightness(1.08)}
     .rbtn.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
-    .rlabel{font-size:12px;color:var(--hint);margin-right:4px}
+    .rlabel{font-size:12px;color:#a7b1b2;margin-right:4px}
     .sep{height:1px;background:#223033;opacity:.5;margin:6px 0}
     #winnerBadge{
       background: linear-gradient(180deg,#17393d,#102526);
@@ -410,17 +406,36 @@
     })();
   </script>
 
-  <!-- ===== SCOREBOARD APP + SHARED BRIDGE (FULL) ===== -->
+  <!-- ===== SCOREBOARD APP (FULL SCRIPT WITH AVATARS & CSV PHOTO) ===== -->
   <script>
+    /* The entire app script is the same one I just provided, verbatim.
+       Pasting it again here for a single self-contained file. */
+
     /*********************************
-     *  0) DATA & STORAGE LAYER
+     *  0) DATA / CONSTANTS / STORAGE
      *********************************/
     const SIGNUPS_KEY = "ozarkSignups_v1";
     const STORAGE_KEY = "ozarkPairings_v3_twoDays";
+    const SHARED_KEY  = "ozarkShared_v1";
+
     const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
     const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
-    const WIN_THRESHOLD = 15.5; // clinch threshold for 24-player format
-    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // expose for autopair.js
+
+    const WIN_THRESHOLD = 15.5;
+    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
+    const PLAYER_PHOTO_BASE_PATH = "images/players/";
+
+    const elPlayers      = document.getElementById('players');
+    const elTeamFilters  = document.getElementById('teamFilters');
+    const elSearch       = document.getElementById('search');
+    const elGrid         = document.getElementById('grid');
+    const elTabs         = document.getElementById('tabs');
+    const elDayTabs      = document.getElementById('dayTabs');
+    const elFormat       = document.getElementById('formatSelect');
+    const elAssignTable  = document.getElementById('assignmentTable');
+    const elAlerts       = document.getElementById('alerts');
+    const elPrintArea    = document.getElementById('printArea');
+    const elPrintContent = document.getElementById('printContent');
 
     let state = {
       players: [],
@@ -437,7 +452,6 @@
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
       },
-      // results: team -> "ozark"/"valley"/"tie"/null; singles -> [res1,res2]
       results: {
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
@@ -446,13 +460,31 @@
       winAnnounced: null
     };
 
-    function uid(){ return Math.random().toString(36).slice(2,9) }
-    function load(){ try{ const r = localStorage.getItem(STORAGE_KEY); if(r){ state = JSON.parse(r); } }catch{} }
+    let LAST_SHARED_TS = 0;
 
-    /* ===== Shared Bridge (broadcast to all pages) ===== */
-    const SHARED_KEY = "ozarkShared_v1";
-    let   LAST_SHARED_TS = 0;
+    function uid(){ return Math.random().toString(36).slice(2,9); }
+    function playerDisplayName(p){
+      const nick = p.nickname && p.nickname.trim()?.length ? ` “${p.nickname}”` : '';
+      return `${p.firstName}${nick} ${p.lastName}`.replace(/\s+/g,' ').trim();
+    }
+    function slugify(first, last){
+      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
+      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
+      return [f,l].filter(Boolean).join("-");
+    }
+    function photoURL(p){
+      const raw = String(p?.photo||"").trim();
+      if (!raw) return null;
+      if (/^https?:\/\//i.test(raw) || raw.startsWith("/") || raw.startsWith("./")) return raw;
+      return PLAYER_PHOTO_BASE_PATH + raw.replace(/^images\/players\//i,"");
+    }
 
+    function load(){
+      try{
+        const r = localStorage.getItem(STORAGE_KEY);
+        if (r) state = JSON.parse(r);
+      }catch{}
+    }
     function snapshotForShare(s){
       return {
         version: 3,
@@ -475,25 +507,17 @@
         players: (s.players||[]).map(p => ({ ...p }))
       };
     }
-
-    function pushShared(reason = ""){
+    function pushShared(){
       try{
-        const payload = snapshotForShare(state);
-        localStorage.setItem(SHARED_KEY, JSON.stringify(payload));
-      }catch(e){
-        console.warn("[shared] push failed:", e);
-      }
+        localStorage.setItem(SHARED_KEY, JSON.stringify(snapshotForShare(state)));
+      }catch(e){ console.warn("[shared] push failed:", e); }
     }
-
-    /* save now also broadcasts to SHARED_KEY */
     function save(){
       try{
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }catch(e){ console.warn("local save failed:", e); }
-      pushShared("save");
+      pushShared();
     }
-
-    /* Listen for updates from other tabs/pages (read + adopt) */
     window.addEventListener("storage", (e) => {
       if (e.key !== SHARED_KEY || !e.newValue) return;
       let incoming;
@@ -513,61 +537,37 @@
       renderAll();
     });
 
-    function sanitizeGroups() {
-      if (!state.groups || typeof state.groups !== 'object') {
-        state.groups = { day1: { front: [], back: [] }, day2: { front: [], back: [] } };
-      }
-      if (!state.groups.day1 || typeof state.groups.day1 !== 'object') state.groups.day1 = { front: [], back: [] };
-      if (!state.groups.day2 || typeof state.groups.day2 !== 'object') state.groups.day2 = { front: [], back: [] };
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          if (!Array.isArray(state.groups[day][side])) state.groups[day][side] = [];
-        });
-      });
-      if (!state.results || typeof state.results !== 'object') {
-        state.results = { day1:{front:[],back:[]}, day2:{front:[],back:[]} };
-      }
-    }
-
-    // Always 4 slots per group so Singles can show two 1v1 matches
-    function desiredGroupSize(fmt){ return 4; }
-    window.desiredGroupSize = desiredGroupSize;
-
     function loadPlayersFromPreviousSite(){
       try{
         const raw = localStorage.getItem(SIGNUPS_KEY);
         if(!raw) return [];
         const arr = JSON.parse(raw);
-        return (arr||[]).map((p)=>({
+        return (arr||[]).map((p)=> normalizePlayer({
           id: p.id || uid(),
           firstName: p.firstName || (p.name?.split(" ")[0]||""),
-          lastName: p.lastName || (p.name?.split(" ").slice(1).join(" ")||""),
-          nickname: p.nickname || "",
-          team: (p.team||"").toLowerCase().includes("valley")?"valley":"ozark",
-          email: p.email||"",
-          phone: p.phone||"",
-          handicap: Number.isFinite(Number(p.handicap)) ? Number(p.handicap) : null
+          lastName : p.lastName  || (p.name?.split(" ").slice(1).join(" ")||""),
+          nickname : p.nickname || "",
+          team     : (p.team||"").toLowerCase().includes("valley") ? "valley" : "ozark",
+          email    : p.email||"",
+          phone    : p.phone||"",
+          handicap : p.handicap,
+          photo    : p.photo || ""
         }));
       }catch{ return [] }
     }
-
     function ensurePlayers(){
       if(state.players && state.players.length) return;
       const prior = loadPlayersFromPreviousSite();
       if(prior.length){ state.players = prior; return; }
       state.players = [
-        {id:uid(), firstName:"Nick",   lastName:"Brown", nickname:"Frenzy",   team:"ozark",  handicap: 10.2},
-        {id:uid(), firstName:"Chris",  lastName:"B.",    nickname:"CB",       team:"ozark",  handicap: 15.0},
-        {id:uid(), firstName:"Alex",   lastName:"M.",    nickname:"",         team:"valley", handicap: 12.7},
-        {id:uid(), firstName:"Jordan", lastName:"S.",    nickname:"J-Smooth", team:"valley", handicap: 18.4}
+        {id:uid(), firstName:"Nick",   lastName:"Brown", nickname:"Frenzy",   team:"ozark",  handicap: 10.2, photo:"nick-brown.png"},
+        {id:uid(), firstName:"Chris",  lastName:"B.",    nickname:"CB",       team:"ozark",  handicap: 15.0, photo:""},
+        {id:uid(), firstName:"Alex",   lastName:"M.",    nickname:"",         team:"valley", handicap: 12.7, photo:""},
+        {id:uid(), firstName:"Jordan", lastName:"S.",    nickname:"J-Smooth", team:"valley", handicap: 18.4, photo:""}
       ];
     }
-
-    /* === normalizer used by merge/imports (includes handicap) === */
-    function normalizePlayer(p){
-      const obj = {...p};
-
-      // names
+    function normalizePlayer(objIn){
+      const obj = {...objIn};
       let first = obj.firstName || obj.First || obj.firstname || "";
       let last  = obj.lastName  || obj.Last  || obj.lastname  || "";
       if ((!first || !last) && obj.name) {
@@ -575,32 +575,26 @@
         first = first || parts[0] || "";
         last  = last  || parts.slice(1).join(" ") || "";
       }
-
-      // nickname
       const nickname = obj.nickname || obj.Nickname || obj.nick || "";
-
-      // team
       let teamRaw = obj.team || obj.Team || "";
       let team = "ozark";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("val")) team = "valley";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("oz")) team = "ozark";
-
-      // contact
       const email = obj.email || obj.Email || "";
       const phone = obj.phone || obj.Phone || "";
-
-      // handicap (accepts: handicap, hcp, hi, index)
-      const hRaw =
-        obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
+      const hRaw = obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
       let handicap = null;
       if (hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== "") {
         const cleaned = String(hRaw).replace(/[^\d.\-]/g, "");
         const num = Number(cleaned);
         handicap = Number.isFinite(num) ? num : null;
       }
-
+      let photo = obj.photo || obj.Photo || obj.image || obj.Image || "";
+      if (!photo) {
+        const slug = slugify(first, last);
+        if (slug) photo = `${slug}.png`;
+      }
       const id = obj.id || uid();
-
       return {
         id,
         firstName: String(first||"").trim(),
@@ -609,21 +603,30 @@
         team,
         email,
         phone,
-        handicap
+        handicap,
+        photo
       };
     }
 
-    /*********************************
-     *  1) RENDER: PLAYER POOL
-     *********************************/
-    const elPlayers = document.getElementById('players');
-    const elTeamFilters = document.getElementById('teamFilters');
-    const elSearch = document.getElementById('search');
+    function sanitizeGroups() {
+      if (!state.groups || typeof state.groups !== 'object') {
+        state.groups = { day1: { front: [], back: [] }, day2: { front: [], back: [] } };
+      }
+      for (const d of ['day1','day2']){
+        if (!state.groups[d] || typeof state.groups[d] !== 'object') state.groups[d] = { front: [], back: [] };
+        for (const s of ['front','back']){
+          if (!Array.isArray(state.groups[d][s])) state.groups[d][s] = [];
+        }
+      }
+      if (!state.results || typeof state.results !== 'object') {
+        state.results = { day1:{front:[],back:[]}, day2:{front:[],back:[]} };
+      }
+    }
+    function desiredGroupSize(fmt){ return 4; }
 
     function renderTeamFilters(){
       elTeamFilters.innerHTML = '';
-      const teams = ['all','ozark','valley'];
-      teams.forEach(t=>{
+      ['all','ozark','valley'].forEach(t=>{
         const b = document.createElement('div');
         b.className = 'pill' + (state.filters.team===t?' active':'');
         b.textContent = t==='all'? 'All' : TEAM_LABELS[t];
@@ -631,13 +634,6 @@
         elTeamFilters.appendChild(b);
       });
     }
-
-    function playerDisplayName(p){
-      const nick = p.nickname && p.nickname.trim()?.length ? `"${p.nickname}" `:'';
-      return `${p.firstName} ${nick}${p.lastName}`.replace(/\s+/g,' ').trim();
-    }
-
-    /* remove player helper (cleans from all groups + roster) */
     function removePlayerEverywhere(playerId){
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
@@ -653,7 +649,6 @@
       save();
       renderAll();
     }
-
     function mergePlayers(existing, incoming){
       const byKey = x=> (x.firstName+'|'+x.lastName+'|'+(x.email||'')).toLowerCase();
       const map = new Map((existing||[]).map(p=>[byKey(p), p]));
@@ -664,7 +659,6 @@
       });
       return Array.from(map.values());
     }
-
     function renderPlayers(){
       const q = (state.filters.q||'').toLowerCase();
       const team = state.filters.team;
@@ -683,9 +677,13 @@
           card.dataset.id = p.id;
 
           const hcpStr = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : ``;
+          const url = photoURL(p);
 
           card.innerHTML = `
-            <div class="dot ${p.team}" style="background:${TEAM_COLORS[p.team]}"></div>
+            <div class="avatar" style="width:28px;height:28px;border-radius:50%;overflow:hidden;border:1px solid var(--line);background:#223033;display:flex;align-items:center;justify-content:center">
+              ${url ? `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"/>`
+                    : `<div class="dot ${p.team}" style="width:10px;height:10px;border-radius:50%;background:${TEAM_COLORS[p.team]}"></div>`}
+            </div>
             <div>
               <div>${playerDisplayName(p)}</div>
               <div class="meta">${TEAM_LABELS[p.team]}${hcpStr}</div>
@@ -698,8 +696,7 @@
 
           card.addEventListener('dragstart', onDragPlayer);
 
-          const delBtn = card.querySelector('.btnDel');
-          delBtn.addEventListener('click', (e)=>{
+          card.querySelector('.btnDel').addEventListener('click', (e)=>{
             e.stopPropagation();
             e.preventDefault();
             const name = playerDisplayName(p);
@@ -711,15 +708,12 @@
           elPlayers.appendChild(card);
         });
     }
-
     elSearch.addEventListener('input', (e)=>{ state.filters.q = e.target.value; renderPlayers(); });
-
     document.getElementById('btnReloadPool').addEventListener('click', ()=>{
       const fromOld = loadPlayersFromPreviousSite();
       if(fromOld.length){ state.players = mergePlayers(state.players, fromOld); save(); renderAll(); alert('Loaded players from previous site signups.'); }
-      else alert('No signups found under key '+SIGNUPS_KEY+'. Add players manually or use an Import button.');
+      else alert('No signups found under key '+SIGNUPS_KEY+'. Add players manually or use Import CSV.');
     });
-
     document.getElementById('btnAddManual').addEventListener('click', ()=>{
       const firstName = prompt('First name?'); if(!firstName) return;
       const lastName = prompt('Last name?')||'';
@@ -729,17 +723,9 @@
       const hNum = Number(String(hStr).replace(/[^\d.\-]/g,''));
       const handicap = Number.isFinite(hNum) ? hNum : null;
 
-      state.players.push({id:uid(), firstName, lastName, nickname, team, handicap});
+      state.players.push(normalizePlayer({id:uid(), firstName, lastName, nickname, team, handicap}));
       save(); renderAll();
     });
-
-    /*********************************
-     *  2) BUILDER GRID (Per Day + Side)
-     *********************************/
-    const elGrid   = document.getElementById('grid');
-    const elTabs   = document.getElementById('tabs');
-    const elDayTabs= document.getElementById('dayTabs');
-    const elFormat = document.getElementById('formatSelect');
 
     function initGroupsIfNeeded(){
       ['day1','day2'].forEach(day=>{
@@ -756,19 +742,52 @@
             return arr;
           });
 
-          // keep results in sync with groups & format
           if(!state.results) state.results = {day1:{front:[],back:[]}, day2:{front:[],back:[]}};
           if(!Array.isArray(state.results[day][side])) state.results[day][side] = [];
           while(state.results[day][side].length < state.numGroups) state.results[day][side].push(null);
           state.results[day][side] = state.results[day][side].slice(0, state.numGroups);
-
+          const isTeam = window.TEAM_FORMATS.has(fmt);
           state.results[day][side] = state.results[day][side].map((r)=>{
-            const isTeam = window.TEAM_FORMATS.has(fmt);
             if (isTeam) return (typeof r === 'string' || r===null) ? r : null;
             return Array.isArray(r) ? [r[0] ?? null, r[1] ?? null] : [null, null];
           });
         });
       });
+    }
+
+    function buildSlot(day, side, groupIndex, pos, playerId){
+      const s = document.createElement('div');
+      s.className = 'slot'+(playerId? ' filled':'');
+      s.dataset.day = day;
+      s.dataset.side = side;
+      s.dataset.group = groupIndex;
+      s.dataset.pos = pos;
+
+      const p = playerId ? findPlayer(playerId) : null;
+      if (p) {
+        const hcp = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : '';
+        const url = photoURL(p);
+        s.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
+            <div class="avatar" style="width:22px;height:22px;border-radius:50%;overflow:hidden;border:1px solid #2a3a3d;background:#223033">
+              ${url ? `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"/>` : ''}
+            </div>
+            <span>${playerDisplayName(p)}${hcp}</span>
+          </div>`;
+      } else {
+        s.textContent = 'Drop player here';
+      }
+
+      s.addEventListener('dragover', e=>{ e.preventDefault(); s.classList.add('dragover'); });
+      s.addEventListener('dragleave', ()=> s.classList.remove('dragover'));
+      s.addEventListener('drop', e=> onDropToSlot(e, s));
+      s.addEventListener('click', ()=> {
+        if(state.groups[day][side][groupIndex][pos]){
+          state.groups[day][side][groupIndex][pos] = null;
+          save(); renderAll();
+        }
+      });
+      return s;
     }
 
     function renderGrid(){
@@ -805,7 +824,6 @@
           slotsWrap.appendChild(colA);
           slotsWrap.appendChild(colB);
         } else {
-          // Singles = two separate 1v1 matches per group
           slotsWrap.appendChild(buildSlot(day, side, idx, 0, group[0]));
           slotsWrap.appendChild(buildSlot(day, side, idx, 1, group[1]));
 
@@ -828,51 +846,23 @@
       elFormat.value = fmt;
     }
 
-    function buildSlot(day, side, groupIndex, pos, playerId){
-      const s = document.createElement('div');
-      s.className = 'slot'+(playerId? ' filled':'');
-      s.dataset.day = day;
-      s.dataset.side = side;
-      s.dataset.group = groupIndex;
-      s.dataset.pos = pos;
-
-      const p = playerId ? findPlayer(playerId) : null;
-      const hcp = p && (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : '';
-      s.textContent = playerId ? (playerDisplayName(p) + hcp) : 'Drop player here';
-
-      s.addEventListener('dragover', e=>{ e.preventDefault(); s.classList.add('dragover'); });
-      s.addEventListener('dragleave', ()=> s.classList.remove('dragover'));
-      s.addEventListener('drop', e=> onDropToSlot(e, s));
-      s.addEventListener('click', ()=> {
-        if(state.groups[day][side][groupIndex][pos]){
-          state.groups[day][side][groupIndex][pos] = null;
-          save(); renderAll();
-        }
-      });
-      return s;
-    }
-
     function onDragPlayer(e){
       e.dataTransfer.setData('text/player', e.currentTarget.dataset.id);
     }
-
     function onDropToSlot(e, slot){
       e.preventDefault(); slot.classList.remove('dragover');
       const playerId = e.dataTransfer.getData('text/player');
       if(!playerId) return;
       assignPlayerToSlot(slot.dataset.day, slot.dataset.side, Number(slot.dataset.group), Number(slot.dataset.pos), playerId);
     }
-
     function assignPlayerToSlot(day, side, groupIndex, pos, playerId){
       initGroupsIfNeeded();
       for(const g of state.groups[day][side]){ for(let i=0;i<g.length;i++){ if(g[i]===playerId){ g[i]=null; } } }
       state.groups[day][side][groupIndex][pos] = playerId;
       save(); renderAll();
     }
-
     function findPlayer(id){ return state.players.find(p=>p.id===id) }
 
-    // Controls
     document.getElementById('eventName').addEventListener('input', e=>{ state.eventName = e.target.value; save(); });
     document.getElementById('eventDate1').addEventListener('input', e=>{ state.dates.day1 = e.target.value; save(); });
     document.getElementById('eventDate2').addEventListener('input', e=>{ state.dates.day2 = e.target.value; save(); });
@@ -905,7 +895,6 @@
           while (a.length < gs) a.push(null);
           return a;
         });
-      // keep results in sync after format change
       initGroupsIfNeeded();
       save(); renderAll();
     });
@@ -915,115 +904,150 @@
       if(confirm(`Clear all groups on ${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}?`)){
         const gs = desiredGroupSize(state.format[day][side]);
         state.groups[day][side] = Array.from({length: state.numGroups}, ()=> Array(gs).fill(null));
-        // clear results on this side
         const isTeam = window.TEAM_FORMATS.has(state.format[day][side]);
         state.results[day][side] = Array.from({length: state.numGroups}, ()=> isTeam ? null : [null,null]);
         save(); renderAll();
       }
     });
 
-    /*********************************
-     *  3) SUMMARY & VALIDATION
-     *********************************/
-    const elAlerts = document.getElementById('alerts');
-    const elAssignTable = document.getElementById('assignmentTable');
+    const TEAM_TO_LABEL = { ozark: TEAM_LABELS.ozark, valley: TEAM_LABELS.valley };
+    const POINTS = { teamMatch: 1, singlesMatch: 1 };
 
-    function renderAssignmentsTable(){
-      sanitizeGroups();
+    function buildResultControls(day, side, groupIndex, isTeam){
+      const wrap = document.createElement('div');
+      wrap.className = 'resultbar';
 
-      const used = {
-        day1: { front:new Map(), back:new Map() },
-        day2: { front:new Map(), back:new Map() },
-      };
-      const gf = a => Array.isArray(a) ? a : [];
+      if (isTeam){
+        const label = document.createElement('span');
+        label.className = 'rlabel';
+        label.textContent = 'Result (Team):';
+        wrap.appendChild(label);
 
-      gf(state.groups.day1.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.front.set(pid, i+1) }));
-      gf(state.groups.day1.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.back .set(pid, i+1) }));
-      gf(state.groups.day2.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.front.set(pid, i+1) }));
-      gf(state.groups.day2.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.back .set(pid, i+1) }));
-
-      const rows = state.players.map(p=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          `<td>${playerDisplayName(p)}</td><td>${TEAM_LABELS[p.team]}</td>`+
-          `<td>${(p.handicap!==null && p.handicap!==undefined) ? p.handicap : ''}</td>`+
-          `<td>${used.day1.front.get(p.id)||''}</td>`+
-          `<td>${used.day1.back.get(p.id)||''}</td>`+
-          `<td>${used.day2.front.get(p.id)||''}</td>`+
-          `<td>${used.day2.back.get(p.id)||''}</td>`;
-        return tr;
-      });
-      elAssignTable.innerHTML = ''; rows.forEach(r=> elAssignTable.appendChild(r));
-
-      const problems = [];
-
-      ['day1','day2'].forEach(day=>{
-        const label = day==='day1'?'Day 1':'Day 2';
-        state.players.forEach(p=>{
-          if(!used[day].front.has(p.id)) problems.push(`${label} Front: ${playerDisplayName(p)} not placed`);
-          if(!used[day].back.has(p.id))  problems.push(`${label} Back: ${playerDisplayName(p)} not placed`);
+        ['ozark','tie','valley'].forEach(key=>{
+          const btn = document.createElement('button');
+          btn.className = 'rbtn';
+          btn.textContent = (key==='tie' ? 'Tie' : TEAM_TO_LABEL[key]);
+          if (state.results[day][side][groupIndex] === key) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            state.results[day][side][groupIndex] = (state.results[day][side][groupIndex]===key ? null : key);
+            save(); renderScoreboard(); renderGrid();
+          });
+          wrap.appendChild(btn);
         });
-      });
+
+      } else {
+        const mkRow = (matchIdx)=>{
+          const row = document.createElement('div');
+          row.className = 'resultbar';
+          const lab = document.createElement('span');
+          lab.className = 'rlabel';
+          lab.textContent = `Match ${matchIdx+1}:`;
+          row.appendChild(lab);
+
+          ['ozark','tie','valley'].forEach(key=>{
+            const btn = document.createElement('button');
+            btn.className = 'rbtn';
+            const cur = state.results[day][side][groupIndex] || [null,null];
+            if (cur[matchIdx] === key) btn.classList.add('active');
+            btn.textContent = (key==='tie' ? 'Tie' : TEAM_TO_LABEL[key]);
+            btn.addEventListener('click', ()=>{
+              const arr = state.results[day][side][groupIndex] || [null,null];
+              arr[matchIdx] = (arr[matchIdx]===key ? null : key);
+              state.results[day][side][groupIndex] = arr;
+              save(); renderScoreboard(); renderGrid();
+            });
+            row.appendChild(btn);
+          });
+
+          return row;
+        };
+
+        const topSep = document.createElement('div');
+        topSep.className = 'sep';
+        wrap.appendChild(topSep);
+
+        wrap.appendChild(mkRow(0));
+        wrap.appendChild(mkRow(1));
+      }
+
+      return wrap;
+    }
+
+    function tallyPoints(){
+      let oz = 0, va = 0;
 
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
           const fmt = state.format[day][side];
           const isTeam = window.TEAM_FORMATS.has(fmt);
-          gf(state.groups[day][side]).forEach((g,i)=>{
-            const players = gf(g).filter(Boolean).map(findPlayer);
-            if(isTeam){
-              if(players.length>0){
-                const oz = players.filter(p=>p.team==='ozark').length;
-                const va = players.filter(p=>p.team==='valley').length;
-                if(players.length !== 4) problems.push(`${printSide(day,side)} Group ${i+1}: incomplete (needs 4 players: 2v2)`);
-                else if(!(oz===2 && va===2)) problems.push(`${printSide(day,side)} Group ${i+1}: must be 2 OZ + 2 VA (now ${oz}/${va})`);
-              }
-            }else{
-              const pairIdx = [[0,1],[2,3]];
-              pairIdx.forEach((pair, pi)=>{
-                const ids = pair.map(pos => (Array.isArray(g)?g[pos]:null)).filter(Boolean);
-                if (ids.length === 0) return;
-                if (ids.length !== 2) {
-                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: needs exactly 2 players (1v1).`);
-                  return;
-                }
-                const pA = findPlayer(ids[0]), pB = findPlayer(ids[1]);
-                if (!pA || !pB || pA.team === pB.team) {
-                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: must be OZ vs VA.`);
-                }
+          const rs = state.results?.[day]?.[side] || [];
+          rs.forEach(r=>{
+            if (isTeam){
+              if (r === 'ozark') oz += POINTS.teamMatch;
+              else if (r === 'valley') va += POINTS.teamMatch;
+              else if (r === 'tie') { oz += POINTS.teamMatch/2; va += POINTS.teamMatch/2; }
+            } else {
+              const arr = Array.isArray(r) ? r : [null,null];
+              arr.forEach(x=>{
+                if (x === 'ozark') oz += POINTS.singlesMatch;
+                else if (x === 'valley') va += POINTS.singlesMatch;
+                else if (x === 'tie') { oz += POINTS.singlesMatch/2; va += POINTS.singlesMatch/2; }
               });
             }
           });
         });
       });
 
-      elAlerts.innerHTML = problems.length
-        ? `<div class="card" style="border-color:#4d2626;background:#171112"><strong style="color:#ffb3b3">Needs attention</strong><ul style="margin:.3rem 0 .2rem .9rem">${problems.map(p=>`<li>${p}</li>`).join('')}</ul></div>`
-        : `<div class="card" style="border-color:#244a3c;background:#0f1513"><strong style="color:#b9fbd2">Looks good</strong><div>Everyone is placed with correct pair sizes on both days.</div></div>`;
+      return { ozark: oz, valley: va };
     }
 
-    function printSide(day,side){
-      return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
+    function renderScoreboard(){
+      const s = tallyPoints();
+      const elOz = document.getElementById('scoreOzark');
+      const elVa = document.getElementById('scoreValley');
+      if (elOz) elOz.textContent = (Math.round(s.ozark*10)/10).toString();
+      if (elVa) elVa.textContent = (Math.round(s.valley*10)/10).toString();
+
+      const badge = document.getElementById('winnerBadge');
+      if (!badge) return;
+
+      const ozClinch = s.ozark >= WIN_THRESHOLD;
+      const vaClinch = s.valley >= WIN_THRESHOLD;
+
+      let winner = null;
+      if (ozClinch || vaClinch) {
+        if (s.ozark > s.valley) winner = 'ozark';
+        else if (s.valley > s.ozark) winner = 'valley';
+        else winner = 'tie';
+      }
+
+      if (winner && winner !== 'tie') {
+        badge.style.display = 'block';
+        badge.textContent = `${TEAM_LABELS[winner]} has clinched at ${Math.max(s.ozark, s.valley)} points!`;
+        if (state.winAnnounced !== winner) {
+          alert(`${TEAM_LABELS[winner]} clinches the match at ${Math.max(s.ozark, s.valley)} points!`);
+          state.winAnnounced = winner;
+          save();
+        }
+      } else if (winner === 'tie') {
+        badge.style.display = 'block';
+        badge.textContent = `Tie at ${s.ozark}–${s.valley}. Continue until someone leads.`;
+        if (state.winAnnounced !== null) { state.winAnnounced = null; save(); }
+      } else {
+        badge.style.display = 'none';
+        if (state.winAnnounced !== null) { state.winAnnounced = null; save(); }
+      }
     }
 
-    document.getElementById('pillOnce').addEventListener('click', ()=> alert('One placement per player per side per day is enforced when you drop a player again.'));
-    document.getElementById('pillBalance').addEventListener('click', ()=> alert('Team events require 2v2 (2 Ozark + 2 Valley). Singles requires 1v1.'));
-
-    /*********************************
-     *  4) PRINT / EXPORT
-     *********************************/
-    const elPrintArea = document.getElementById('printArea');
-    const elPrintContent = document.getElementById('printContent');
-
-    elPrintArea.style.pointerEvents = 'none';
-
+    const elPrintAreaRef = elPrintArea; // readability
+    elPrintAreaRef.style.pointerEvents = 'none';
     document.getElementById('btnPrint').addEventListener('click', () => {
       ensurePrintOverrides();
       buildPrintPages();
 
       document.documentElement.setAttribute('data-printing', '1');
-      elPrintArea.style.display = 'block';
-      elPrintArea.style.pointerEvents = 'auto';
+      elPrintAreaRef.style.display = 'block';
+      elPrintAreaRef.style.pointerEvents = 'auto';
 
       const endOnce = (() => {
         let done = false;
@@ -1031,8 +1055,8 @@
           if (done) return;
           done = true;
           document.documentElement.removeAttribute('data-printing');
-          elPrintArea.style.display = 'none';
-          elPrintArea.style.pointerEvents = 'none';
+          elPrintAreaRef.style.display = 'none';
+          elPrintAreaRef.style.pointerEvents = 'none';
           elPrintContent.innerHTML = '';
           window.removeEventListener('afterprint', endOnce);
           if (mm && mm.removeEventListener) mm.removeEventListener('change', onMM);
@@ -1073,7 +1097,6 @@
       `;
       document.head.appendChild(style);
     }
-
     function buildPrintPages(){
       const css = `
         <style>
@@ -1182,7 +1205,6 @@
       elPrintContent.innerHTML = css + dayPage('day1') + dayPage('day2');
     }
 
-    /* ---- JSON export ---- */
     document.getElementById('btnExport').addEventListener('click', ()=>{
       const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
       const a = document.createElement('a');
@@ -1191,9 +1213,6 @@
       a.click();
     });
 
-    /*********************************
-     *  8) IMPORTS (CSV) — supports handicap
-     *********************************/
     function pickFile(accept, multiple=false){
       return new Promise((resolve)=>{
         const inp = document.createElement('input');
@@ -1207,7 +1226,6 @@
         setTimeout(()=> document.body.removeChild(inp), 0);
       });
     }
-
     function parseCSV(text){
       const rows = [];
       let row = [], field = '', inQuotes = false;
@@ -1228,7 +1246,6 @@
       if (field.length || row.length) { row.push(field); rows.push(row); }
       return rows;
     }
-
     function csvToObjects(csvText){
       const rows = parseCSV(csvText);
       if (!rows.length) return [];
@@ -1242,7 +1259,6 @@
       }
       return out;
     }
-
     document.getElementById('btnImportCSV').addEventListener('click', async ()=>{
       const files = await pickFile('.csv');
       if (!files.length) return;
@@ -1264,7 +1280,8 @@
           email    : map.email     || '',
           phone    : map.phone     || '',
           name     : map.name      || '',
-          handicap : map.handicap || map.hcp || map.hi || map.index || ''
+          handicap : map.handicap || map.hcp || map.hi || map.index || '',
+          photo    : map.photo || '' // <-- read `photo` column
         };
         return normalizePlayer(candidate);
       });
@@ -1274,18 +1291,14 @@
       alert(`Imported ${mapped.length} rows from CSV and merged into the roster.`);
     });
 
-    /*********************************
-     *  Shuffle / Auto-balance / Reset
-     *********************************/
     function randShuffle(arr){
       const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
+      for(let i=a.length-1;i>0;i++){
         const j = Math.floor(Math.random()*(i+1));
         [a[i],a[j]] = [a[j],a[i]];
       }
       return a;
     }
-
     function shuffleAll(){
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
@@ -1311,7 +1324,6 @@
       save();
       renderAll();
     }
-
     function autoBalanceAll(){
       const swapBetween = (arrA, arrB, condA, condB) => {
         for (let i=0;i<arrA.length;i++){
@@ -1383,7 +1395,6 @@
       save(); renderAll();
     }
 
-    // Handicap-aware helpers + balancer
     const getHcp = (pid) => {
       const p = findPlayer(pid);
       return (p && Number.isFinite(p.handicap)) ? p.handicap : null;
@@ -1407,7 +1418,6 @@
       });
       return score;
     }
-
     function autoBalanceByHandicap(){
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
@@ -1431,7 +1441,7 @@
                     for (let j=0; j<B.length; j++){
                       if (!B[j]) continue;
 
-                      [A[i], B[j]] = [B[j], A[i]]; // simulate
+                      [A[i], B[j]] = [B[j], A[i]];
 
                       const okTeams = (() => {
                         const count = (g, t) => g.filter(Boolean).map(findPlayer).filter(p=>p && p.team===t).length;
@@ -1443,7 +1453,7 @@
                       const score = okTeams ? (groupTeamDiff(A)+groupTeamDiff(B)) : Infinity;
 
                       if (score < base){ improved = true; }
-                      else { [A[i], B[j]] = [B[j], A[i]]; } // undo
+                      else { [A[i], B[j]] = [B[j], A[i]]; }
                     }
                   }
                 } else {
@@ -1462,12 +1472,12 @@
                     for (let j=0; j<B.length; j++){
                       if (!B[j]) continue;
 
-                      [A[i], B[j]] = [B[j], A[i]]; // simulate
+                      [A[i], B[j]] = [B[j], A[i]];
                       const okPairs = pairSideOk(A, i) && pairSideOk(B, j);
                       const score = okPairs ? (groupSinglesScore(A)+groupSinglesScore(B)) : Infinity;
 
                       if (score < base){ improved = true; }
-                      else { [A[i], B[j]] = [B[j], A[i]]; } // undo
+                      else { [A[i], B[j]] = [B[j], A[i]]; }
                     }
                   }
                 }
@@ -1482,22 +1492,18 @@
       renderAll();
     }
 
-    // Buttons
     document.getElementById('btnShuffle').addEventListener('click', ()=>{
       if(!confirm('Shuffle all currently filled slots across Day 1 & Day 2? (Empty slots will stay empty.)')) return;
       shuffleAll();
     });
-
     document.getElementById('pillAutoBalance').addEventListener('click', ()=>{
       if(!confirm('Auto-balance teams across all groups (no handicaps)?')) return;
       autoBalanceAll();
     });
-
     document.getElementById('pillAutoHcp').addEventListener('click', ()=>{
       if(!confirm('Auto-balance by handicap across all groups (keeps OZ vs VA rules)?')) return;
       autoBalanceByHandicap();
     });
-
     document.getElementById('btnResetAll').addEventListener('click', ()=>{
       if(!confirm('Reset ALL players and pairings? This removes the entire roster and clears Day 1 & Day 2.')) return;
 
@@ -1510,7 +1516,6 @@
         });
       });
 
-      // wipe results too
       state.results = {
         day1: { 
           front: Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day1.front) ? null : [null,null]),
@@ -1533,141 +1538,83 @@
       }
     });
 
-    /*********************************
-     *  SCOREBOARD + RESULT CONTROLS
-     *********************************/
-    const TEAM_TO_LABEL = { ozark: TEAM_LABELS.ozark, valley: TEAM_LABELS.valley };
-    const POINTS = { teamMatch: 1, singlesMatch: 1 };
-
-    function buildResultControls(day, side, groupIndex, isTeam){
-      const wrap = document.createElement('div');
-      wrap.className = 'resultbar';
-
-      if (isTeam){
-        const label = document.createElement('span');
-        label.className = 'rlabel';
-        label.textContent = 'Result (Team):';
-        wrap.appendChild(label);
-
-        ['ozark','tie','valley'].forEach(key=>{
-          const btn = document.createElement('button');
-          btn.className = 'rbtn';
-          btn.textContent = (key==='tie' ? 'Tie' : TEAM_TO_LABEL[key]);
-          if (state.results[day][side][groupIndex] === key) btn.classList.add('active');
-          btn.addEventListener('click', ()=>{
-            state.results[day][side][groupIndex] = (state.results[day][side][groupIndex]===key ? null : key);
-            save(); renderScoreboard(); renderGrid();
-          });
-          wrap.appendChild(btn);
-        });
-
-      } else {
-        const mkRow = (matchIdx)=>{
-          const row = document.createElement('div');
-          row.className = 'resultbar';
-          const lab = document.createElement('span');
-          lab.className = 'rlabel';
-          lab.textContent = `Match ${matchIdx+1}:`;
-          row.appendChild(lab);
-
-        ['ozark','tie','valley'].forEach(key=>{
-            const btn = document.createElement('button');
-            btn.className = 'rbtn';
-            const cur = state.results[day][side][groupIndex] || [null,null];
-            if (cur[matchIdx] === key) btn.classList.add('active');
-            btn.textContent = (key==='tie' ? 'Tie' : TEAM_TO_LABEL[key]);
-            btn.addEventListener('click', ()=>{
-              const arr = state.results[day][side][groupIndex] || [null,null];
-              arr[matchIdx] = (arr[matchIdx]===key ? null : key);
-              state.results[day][side][groupIndex] = arr;
-              save(); renderScoreboard(); renderGrid();
-            });
-            row.appendChild(btn);
-          });
-
-          return row;
-        };
-
-        const topSep = document.createElement('div');
-        topSep.className = 'sep';
-        wrap.appendChild(topSep);
-
-        wrap.appendChild(mkRow(0));
-        wrap.appendChild(mkRow(1));
-      }
-
-      return wrap;
+    function printSide(day,side){
+      return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
     }
+    function renderAssignmentsTable(){
+      sanitizeGroups();
 
-    function tallyPoints(){
-      let oz = 0, va = 0;
+      const used = {
+        day1: { front:new Map(), back:new Map() },
+        day2: { front:new Map(), back:new Map() },
+      };
+      const gf = a => Array.isArray(a) ? a : [];
+
+      gf(state.groups.day1.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.front.set(pid, i+1) }));
+      gf(state.groups.day1.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.back .set(pid, i+1) }));
+      gf(state.groups.day2.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.front.set(pid, i+1) }));
+      gf(state.groups.day2.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.back .set(pid, i+1) }));
+
+      const rows = state.players.map(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${playerDisplayName(p)}</td><td>${TEAM_LABELS[p.team]}</td>`+
+          `<td>${(p.handicap!==null && p.handicap!==undefined) ? p.handicap : ''}</td>`+
+          `<td>${used.day1.front.get(p.id)||''}</td>`+
+          `<td>${used.day1.back.get(p.id)||''}</td>`+
+          `<td>${used.day2.front.get(p.id)||''}</td>`+
+          `<td>${used.day2.back.get(p.id)||''}</td>`;
+        return tr;
+      });
+      elAssignTable.innerHTML = ''; rows.forEach(r=> elAssignTable.appendChild(r));
+
+      const problems = [];
+
+      ['day1','day2'].forEach(day=>{
+        const label = day==='day1'?'Day 1':'Day 2';
+        state.players.forEach(p=>{
+          if(!used[day].front.has(p.id)) problems.push(`${label} Front: ${playerDisplayName(p)} not placed`);
+          if(!used[day].back.has(p.id))  problems.push(`${label} Back: ${playerDisplayName(p)} not placed`);
+        });
+      });
 
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
           const fmt = state.format[day][side];
           const isTeam = window.TEAM_FORMATS.has(fmt);
-          const rs = state.results?.[day]?.[side] || [];
-          rs.forEach(r=>{
-            if (isTeam){
-              if (r === 'ozark') oz += POINTS.teamMatch;
-              else if (r === 'valley') va += POINTS.teamMatch;
-              else if (r === 'tie') { oz += POINTS.teamMatch/2; va += POINTS.teamMatch/2; }
-            } else {
-              const arr = Array.isArray(r) ? r : [null,null];
-              arr.forEach(x=>{
-                if (x === 'ozark') oz += POINTS.singlesMatch;
-                else if (x === 'valley') va += POINTS.singlesMatch;
-                else if (x === 'tie') { oz += POINTS.singlesMatch/2; va += POINTS.singlesMatch/2; }
+          gf(state.groups[day][side]).forEach((g,i)=>{
+            const players = gf(g).filter(Boolean).map(findPlayer);
+            if(isTeam){
+              if(players.length>0){
+                const oz = players.filter(p=>p.team==='ozark').length;
+                const va = players.filter(p=>p.team==='valley').length;
+                if(players.length !== 4) problems.push(`${printSide(day,side)} Group ${i+1}: incomplete (needs 4 players: 2v2)`);
+                else if(!(oz===2 && va===2)) problems.push(`${printSide(day,side)} Group ${i+1}: must be 2 OZ + 2 VA (now ${oz}/${va})`);
+              }
+            }else{
+              const pairIdx = [[0,1],[2,3]];
+              pairIdx.forEach((pair, pi)=>{
+                const ids = pair.map(pos => (Array.isArray(g)?g[pos]:null)).filter(Boolean);
+                if (ids.length === 0) return;
+                if (ids.length !== 2) {
+                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: needs exactly 2 players (1v1).`);
+                  return;
+                }
+                const pA = findPlayer(ids[0]), pB = findPlayer(ids[1]);
+                if (!pA || !pB || pA.team === pB.team) {
+                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: must be OZ vs VA.`);
+                }
               });
             }
           });
         });
       });
 
-      return { ozark: oz, valley: va };
+      elAlerts.innerHTML = problems.length
+        ? `<div class="card" style="border-color:#4d2626;background:#171112"><strong style="color:#ffb3b3">Needs attention</strong><ul style="margin:.3rem 0 .2rem .9rem">${problems.map(p=>`<li>${p}</li>`).join('')}</ul></div>`
+        : `<div class="card" style="border-color:#244a3c;background:#0f1513"><strong style="color:#b9fbd2">Looks good</strong><div>Everyone is placed with correct pair sizes on both days.</div></div>`;
     }
 
-    function renderScoreboard(){
-      const s = tallyPoints();
-      const elOz = document.getElementById('scoreOzark');
-      const elVa = document.getElementById('scoreValley');
-      if (elOz) elOz.textContent = (Math.round(s.ozark*10)/10).toString();
-      if (elVa) elVa.textContent = (Math.round(s.valley*10)/10).toString();
-
-      const badge = document.getElementById('winnerBadge');
-      if (!badge) return;
-
-      const ozClinch = s.ozark >= WIN_THRESHOLD;
-      const vaClinch = s.valley >= WIN_THRESHOLD;
-
-      let winner = null;
-      if (ozClinch || vaClinch) {
-        if (s.ozark > s.valley) winner = 'ozark';
-        else if (s.valley > s.ozark) winner = 'valley';
-        else winner = 'tie';
-      }
-
-      if (winner && winner !== 'tie') {
-        badge.style.display = 'block';
-        badge.textContent = `${TEAM_LABELS[winner]} has clinched at ${Math.max(s.ozark, s.valley)} points!`;
-        if (state.winAnnounced !== winner) {
-          alert(`${TEAM_LABELS[winner]} clinches the match at ${Math.max(s.ozark, s.valley)} points!`);
-          state.winAnnounced = winner;
-          save();
-        }
-      } else if (winner === 'tie') {
-        badge.style.display = 'block';
-        badge.textContent = `Tie at ${s.ozark}–${s.valley}. Continue until someone leads.`;
-        if (state.winAnnounced !== null) { state.winAnnounced = null; save(); }
-      } else {
-        badge.style.display = 'none';
-        if (state.winAnnounced !== null) { state.winAnnounced = null; save(); }
-      }
-    }
-
-    /*********************************
-     *  5) UI HYDRATE + RENDER ALL
-     *********************************/
     function hydrateControls(){
       document.getElementById('eventName').value = state.eventName||'';
       document.getElementById('eventDate1').value = state.dates.day1||'';
@@ -1693,31 +1640,28 @@
       renderScoreboard();
     }
 
-    /*********************************
-     *  6) GLOBAL BRIDGE
-     *********************************/
-    window.state = state;
-    window.save = save;
-    window.renderAll = renderAll;
-    window.TEAM_FORMATS = window.TEAM_FORMATS || new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
-    window.desiredGroupSize = window.desiredGroupSize || desiredGroupSize;
-
-    /*********************************
-     *  7) INIT / BOOT
-     *********************************/
     try {
       load();
       ensurePlayers();
       sanitizeGroups();
       initGroupsIfNeeded();
       renderAll();
-      pushShared("boot"); // prime other pages with current snapshot
+      pushShared();
     } catch (e) {
       console.error('[boot] initial render failed:', e);
     }
+
+    window.state = state;
+    window.save = save;
+    window.renderAll = renderAll;
+    window.TEAM_FORMATS = window.TEAM_FORMATS || new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
+    window.desiredGroupSize = window.desiredGroupSize || desiredGroupSize;
+
+    document.getElementById('pillOnce').addEventListener('click', ()=> alert('One placement per player per side per day is enforced when you drop a player again.'));
+    document.getElementById('pillBalance').addEventListener('click', ()=> alert('Team events require 2v2 (2 Ozark + 2 Valley). Singles requires 1v1.'));
   </script>
 
-  <!-- Load autopair AFTER the inline script defines state/renderAll/save -->
+  <!-- Load autopair AFTER the inline app script defines state/renderAll/save -->
   <script src="autopair.js"></script>
 </body>
 </html>
