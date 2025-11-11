@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scorecard – Ozark Invitational</title>
+  <title>Scorecard – Ozark Invitational (9-Hole)</title>
 
   <!-- Site-wide styles & scripts (for topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
@@ -18,10 +18,8 @@
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 
-    /* Give room under the fixed/sticky topbar from styles.css */
     .wrap{max-width:900px;margin:88px auto 20px;padding:12px}
 
-    /* Header (local for this page’s scorecard controls) */
     .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
     .brand{display:flex;align-items:center;gap:10px}
     .logo{width:40px;height:40px;border-radius:999px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}
@@ -31,24 +29,21 @@
     .btn{background:var(--green);color:#fff;border:none;border-radius:999px;padding:.5rem 1rem;font-weight:700;cursor:pointer}
     .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
 
-    /* Sheet */
     .sheet{position:relative;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
     .sheet::before{content:"";position:absolute;inset:0;opacity:.07;pointer-events:none;background:url("images/ozark-logo.png") no-repeat 50% 52%/420px}
     .sheet-inner{position:relative;z-index:1;padding:12px}
     .gold-bar{height:3px;background:linear-gradient(90deg,rgba(209,161,75,.9),rgba(36,79,60,.35));border-radius:3px;margin:.25rem 0 .5rem}
 
-    /* Meta */
     .meta{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:.4rem 0 .6rem}
     .field{border:1px solid rgba(36,79,60,.18);border-radius:10px;padding:.35rem .5rem;background:#fff}
     .label{font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;color:var(--green);opacity:.85}
     .value[contenteditable]{font-weight:700;outline:none;border-bottom:1px dashed rgba(36,79,60,.35)}
 
-    /* Table */
     table{width:100%;border-collapse:collapse}
     th,td{border:1px solid rgba(0,0,0,.12);padding:.32rem .28rem;font-size:.9rem;text-align:center}
     thead th{background:#f7f4ec;color:#2b2b2b;font-weight:800}
     .col-hole{width:34px}
-    .col-name{text-align:left;width:24%}
+    .col-name{text-align:left;width:30%}
     .muted{opacity:.7}
     .row-label{background:#fcfaf6;color:var(--green);font-weight:800}
     .accent{background:rgba(209,161,75,.12);font-weight:800}
@@ -57,15 +52,13 @@
     .note h4{margin:.1rem 0 .2rem;font-size:.85rem;color:var(--green)}
     .tiny{font-size:.75rem;opacity:.85}
 
-    /* Config drawer */
     .drawer{margin:12px 0;border:1px solid rgba(0,0,0,.08);background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
-    .drawer-h{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--green);color:#fff;padding:.6rem .8rem}
+    .drawer-h{display:flex;align-items:center;justify-content:space-between;background:var(--green);color:#fff;padding:.6rem .8rem}
     .drawer-b{padding:.8rem}
     .grid{display:grid;gap:10px}
     .grid.cols-3{grid-template-columns:repeat(3,1fr)}
     .grid.cols-2{grid-template-columns:repeat(2,1fr)}
     textarea, input[type="text"], select{width:100%;padding:.6rem .7rem;border:1px solid rgba(0,0,0,.15);border-radius:8px;background:#fff;font:inherit}
-    textarea{min-height:120px;resize:vertical}
 
     @media print{
       .topbar, .drawer, .actions{display:none}
@@ -102,8 +95,8 @@
       <div class="brand">
         <div class="logo">OI</div>
         <div>
-          <div class="title">Ozark Invitational — Scorecard</div>
-          <div class="sub">Configurable holes · Matches your site palette · Live pairings</div>
+          <div class="title">Ozark Invitational — Scorecard (9-Hole)</div>
+          <div class="sub">One card per round • Auto-fills from pairings • Saves per round</div>
         </div>
       </div>
       <div class="actions">
@@ -116,10 +109,9 @@
     <section class="drawer" id="drawer" hidden>
       <div class="drawer-h">
         <strong>Setup</strong>
-        <small class="tiny">Paste hole data (Par / Yardage / Stroke Index) & choose which pairing to print</small>
+        <small class="tiny">Pick round & paste Par / Yardage / SI for the 9 you’re playing</small>
       </div>
       <div class="drawer-b">
-        <!-- pairing pickers fed by bridge (defaults from URL) -->
         <div class="grid cols-3" style="margin-bottom:8px">
           <div>
             <label class="tiny">Day</label>
@@ -151,42 +143,22 @@
             <input id="tees" type="text" placeholder="e.g., White" value="White" />
           </div>
         </div>
+
         <div class="grid cols-3" style="margin-top:8px">
           <div>
-            <label class="tiny">Front 9 – Par (comma)</label>
-            <input id="parF" type="text" value="4,5,3,4,4,3,5,4,4" />
+            <label class="tiny">This 9 – Par (comma, 9)</label>
+            <input id="par9" type="text" value="4,5,3,4,4,3,5,4,4" />
           </div>
           <div>
-            <label class="tiny">Front 9 – Yardage (comma)</label>
-            <input id="ydF" type="text" value="370,505,160,385,410,175,520,355,390" />
+            <label class="tiny">This 9 – Yardage (comma, 9)</label>
+            <input id="yd9" type="text" value="370,505,160,385,410,175,520,355,390" />
           </div>
           <div>
-            <label class="tiny">Front 9 – SI (1–18, comma)</label>
-            <input id="siF" type="text" value="9,5,17,1,13,15,7,3,11" />
-          </div>
-          <div>
-            <label class="tiny">Back 9 – Par (comma)</label>
-            <input id="parB" type="text" value="4,4,5,3,4,4,5,3,4" />
-          </div>
-          <div>
-            <label class="tiny">Back 9 – Yardage (comma)</label>
-            <input id="ydB" type="text" value="380,360,520,150,405,395,535,165,410" />
-          </div>
-          <div>
-            <label class="tiny">Back 9 – SI (1–18, comma)</label>
-            <input id="siB" type="text" value="8,6,12,18,2,10,4,16,14" />
+            <label class="tiny">This 9 – SI (1–18, pick 9)</label>
+            <input id="si9" type="text" value="9,5,17,1,13,15,7,3,11" />
           </div>
         </div>
-        <div class="grid cols-2" style="margin-top:8px">
-          <div>
-            <label class="tiny">Show yardage row?</label>
-            <select id="showYds"><option value="yes" selected>Yes</option><option value="no">No</option></select>
-          </div>
-          <div>
-            <label class="tiny">Scoring</label>
-            <select id="scoring"><option value="stroke" selected>Stroke</option><option value="best">Team Best (per hole)</option></select>
-          </div>
-        </div>
+
         <div class="actions" style="margin-top:10px">
           <button class="btn" id="btnApply">Apply</button>
           <button class="btn ghost" onclick="toggleDrawer()">Close</button>
@@ -197,6 +169,7 @@
     <section class="sheet">
       <div class="sheet-inner">
         <div class="gold-bar"></div>
+
         <div class="meta">
           <div class="field"><div class="label">Course</div><div id="metaCourse" class="value" contenteditable>Diamond Hills CC</div></div>
           <div class="field"><div class="label">Date</div><div id="metaDate" class="value" contenteditable>____ / ____ / 2026</div></div>
@@ -213,8 +186,6 @@
               <th>HCP</th>
               <th class="col-hole">1</th><th class="col-hole">2</th><th class="col-hole">3</th><th class="col-hole">4</th><th class="col-hole">5</th><th class="col-hole">6</th><th class="col-hole">7</th><th class="col-hole">8</th><th class="col-hole">9</th>
               <th class="accent">OUT</th>
-              <th class="col-hole">10</th><th class="col-hole">11</th><th class="col-hole">12</th><th class="col-hole">13</th><th class="col-hole">14</th><th class="col-hole">15</th><th class="col-hole">16</th><th class="col-hole">17</th><th class="col-hole">18</th>
-              <th class="accent">IN</th>
               <th class="accent">TOT</th>
             </tr>
           </thead>
@@ -231,389 +202,329 @@
 
         <div class="note">
           <h4>Notes</h4>
-          <p class="tiny">Use the <strong>Setup</strong> panel to paste exact Par / Yardage / Stroke Index for your course. Circle birdies • Square bogeys • “✓” for concessions.</p>
+          <p class="tiny">One 9-hole round per card. Change Day/Side/Group in <strong>Setup</strong> to load a fresh round’s players. Scores auto-save to this round.</p>
         </div>
       </div>
     </section>
   </div>
 
- <script>
-  // Mobile menu toggle
-  (function () {
-    const btn = document.getElementById('navToggle');
-    const nav = document.querySelector('.nav');
-    if (!btn || !nav) return;
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!open));
-      nav.classList.toggle('open', !open);
-    });
-  })();
+  <!-- Page-specific logic: 9-hole card + persistence + bridge -->
+  <script>
+    // Mobile menu toggle
+    (function () {
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        nav.classList.toggle('open', !open);
+      });
+    })();
 
-  // Current tab highlight (GitHub Pages-safe)
-  (function(){
-    const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    document.querySelectorAll('.nav a').forEach(a => {
-      const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
-      if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
-    });
-  })();
+    // Highlight current tab
+    (function(){
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+    })();
 
-  // ----- Scorecard logic + persistence -----
-  const card = document.getElementById('card');
-  const metaCourse = document.getElementById('metaCourse');
-  const metaTees   = document.getElementById('metaTees');
-  const metaFormat = document.getElementById('metaFormat');
-  const metaDate   = document.getElementById('metaDate');
-  const metaGroup  = document.getElementById('metaGroup');
+    // ---------- Elements
+    const card = document.getElementById('card');
+    const metaCourse = document.getElementById('metaCourse');
+    const metaTees   = document.getElementById('metaTees');
+    const metaFormat = document.getElementById('metaFormat');
+    const metaDate   = document.getElementById('metaDate');
+    const metaGroup  = document.getElementById('metaGroup');
 
-  const SCORE_KEY_PREFIX = 'ozarkScores_v1';
+    function toggleDrawer(){ const d = document.getElementById('drawer'); d.hidden = !d.hidden; }
 
-  function toggleDrawer(){
-    const d = document.getElementById('drawer');
-    d.hidden = !d.hidden;
-  }
-
-  // Build 18 scoring cells for template rows
-  function ensureCells(tr){
-    const needed = 18 + 3; // 18 holes + OUT + IN + TOT (we already have 2 cells at start: name + hcp)
-    while(tr.children.length < (2 + needed)){
-      const td = document.createElement('td');
-      td.contentEditable = true;
-      td.className = 'sc';
-      tr.appendChild(td);
-    }
-    // Label OUT/IN/TOT cells
-    const tds = Array.from(tr.children);
-    const out = tds[2+9];       // OUT
-    const inn = tds[2+18+1];    // IN
-    const tot = tds[2+18+2];    // TOT
-    if(out) out.classList.add('accent','sum-out');
-    if(inn) inn.classList.add('accent','sum-in');
-    if(tot) tot.classList.add('accent','sum-tot');
-  }
-
-  function fillRow(rowId, arrF, arrB, withTotals){
-    const tr = document.getElementById(rowId);
-    ensureCells(tr);
-    const tds = Array.from(tr.children);
-    for(let i=0;i<18;i++){
-      tds[2+i].textContent = (i<9?arrF[i]:arrB[i-9]) ?? '';
-      tds[2+i].contentEditable = false;
-    }
-    if(withTotals){
-      const sumF = arrF.reduce((a,b)=>a+(+b||0),0);
-      const sumB = arrB.reduce((a,b)=>a+(+b||0),0);
-      tds[2+9].textContent = sumF;          // OUT
-      tds[2+18+1].textContent = sumB;       // IN
-      tds[2+18+2].textContent = sumF+sumB;  // TOT
-    }
-  }
-
-  function buildPlayerRows(){
-    card.querySelectorAll('tbody tr.p').forEach(tr=>ensureCells(tr));
-  }
-
-  function recalcPlayers(){
-    card.querySelectorAll('tbody tr.p').forEach(tr=>{
+    // ---------- Build 9 scoring cells (plus OUT, TOT) for each row
+    function ensureCells9(tr){
+      const needed = 9 + 2; // 9 holes + OUT + TOT  (we already have 2 starter cells: name + hcp/—)
+      while (tr.children.length < (2 + needed)){
+        const td = document.createElement('td');
+        td.contentEditable = true;
+        td.className = 'sc';
+        tr.appendChild(td);
+      }
       const tds = Array.from(tr.children);
-      let out=0,in_=0;
-      for(let i=0;i<9;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) out+=v; }
-      for(let i=9;i<18;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) in_+=v; }
-      tds[2+9].textContent = out||'';
-      tds[2+18+1].textContent = in_||'';
-      tds[2+18+2].textContent = (out+in_)||'';
-    });
-  }
+      const out = tds[2+9];     // after 9 holes
+      const tot = tds[2+9+1];
+      if(out) out.classList.add('accent','sum-out');
+      if(tot) tot.classList.add('accent','sum-tot');
+    }
 
-  function parseCSV(str, len){
-    const arr = String(str||'').split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
-    while(arr.length < len) arr.push('');
-    return arr.slice(0,len);
-  }
+    function fillRow9(rowId, arr9, withTotals){
+      const tr = document.getElementById(rowId);
+      ensureCells9(tr);
+      const tds = Array.from(tr.children);
+      for (let i=0;i<9;i++){
+        tds[2+i].textContent = arr9[i] ?? '';
+        tds[2+i].contentEditable = false;
+      }
+      if (withTotals){
+        const sum = arr9.reduce((a,b)=>a+(+b||0),0);
+        tds[2+9].textContent  = sum; // OUT
+        tds[2+10].textContent = sum; // TOT mirrors OUT on a 9-hole card
+      }
+    }
 
-  function applySetup(){
-    const parF = parseCSV(document.getElementById('parF').value,9);
-    const parB = parseCSV(document.getElementById('parB').value,9);
-    const ydF  = parseCSV(document.getElementById('ydF').value,9);
-    const ydB  = parseCSV(document.getElementById('ydB').value,9);
-    const siF  = parseCSV(document.getElementById('siF').value,9);
-    const siB  = parseCSV(document.getElementById('siB').value,9);
+    function buildPlayerRows(){
+      card.querySelectorAll('tbody tr.p').forEach(tr=>ensureCells9(tr));
+    }
 
-    fillRow('rowPar', parF, parB, true);
-    fillRow('rowSI',  siF,  siB,  false);
-    if(document.getElementById('showYds').value === 'yes'){
+    function recalcPlayers9(){
+      card.querySelectorAll('tbody tr.p').forEach(tr=>{
+        const tds = Array.from(tr.children);
+        let out=0;
+        for(let i=0;i<9;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) out+=v; }
+        tds[2+9].textContent  = out || '';
+        tds[2+10].textContent = out || '';
+      });
+    }
+
+    // ---------- Setup inputs
+    function parseCSV9(str){
+      const arr = String(str||'').split(/\s*,\s*/).map(s=>s.trim()).filter(Boolean);
+      while(arr.length < 9) arr.push('');
+      return arr.slice(0,9);
+    }
+
+    function applySetup(){
+      const par9 = parseCSV9(document.getElementById('par9').value);
+      const yd9  = parseCSV9(document.getElementById('yd9').value);
+      const si9  = parseCSV9(document.getElementById('si9').value);
+
+      fillRow9('rowPar', par9, true);
+      fillRow9('rowSI',  si9,  false);
       document.getElementById('rowYds').style.display='table-row';
-      fillRow('rowYds', ydF, ydB, true);
-    } else {
-      document.getElementById('rowYds').style.display='none';
+      fillRow9('rowYds', yd9,  true);
+
+      document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
+      document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
+
+      // don’t close automatically; let user close
+      // toggleDrawer();
+      persistNow(); // save baseline course info as well
+    }
+    document.getElementById('btnApply').addEventListener('click', applySetup);
+
+    // ---------- Persistence (round-scoped: day + side + group)
+    const SCORE_NS = 'ozarkScores9_v1';
+    function storageKey(sel){ return `${SCORE_NS}:${sel.day}:${sel.side}:${sel.group}`; }
+    function writeJSON(key, obj){ try{ localStorage.setItem(key, JSON.stringify(obj)); }catch{} }
+    function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch{ return null; } }
+
+    function collectCardRows9(){
+      const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+      return rows.map(tr=>{
+        const name = tr.querySelector('.col-name')?.textContent?.trim() || '';
+        const hcp  = tr.querySelector('.hcp')?.textContent?.trim() || '';
+        const tds = Array.from(tr.children);
+        const holes = [];
+        for(let h=0; h<9; h++){
+          holes.push(tds[2+h]?.textContent || '');
+        }
+        return { name, hcp, holes9: holes };
+      });
     }
 
-    document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
-    document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
-  }
+    function applyCardRows9(dataRows){
+      if (!Array.isArray(dataRows)) return;
+      const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+      dataRows.forEach((p,i)=>{
+        const tr = rows[i]; if (!tr) return;
+        const tds = Array.from(tr.children);
+        (p.holes9||[]).forEach((val, idx)=>{
+          if (tds[2+idx]) tds[2+idx].textContent = val;
+        });
+      });
+      recalcPlayers9();
+    }
 
-  document.getElementById('btnApply')?.addEventListener('click', applySetup);
-
-  // ========= Persistence helpers =========
-  function storageKey(sel){
-    const g = Math.max(1, parseInt(sel.group,10) || 1);
-    return `${SCORE_KEY_PREFIX}:${sel.day}:${sel.side}:${g}`;
-  }
-  function readJSON(k){
-    try { return JSON.parse(localStorage.getItem(k) || ''); } catch { return null; }
-  }
-  function writeJSON(k, v){
-    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
-  }
-
-  function collectCardData(){
-    const rows = Array.from(card.querySelectorAll('tbody tr.p'));
-    const players = [];
-    rows.forEach(tr=>{
-      const name = tr.querySelector('.col-name')?.textContent?.trim() || '';
-      const hcp  = tr.querySelector('.hcp')?.textContent?.trim() || '';
-      const tds = Array.from(tr.children);
-      const holes = [];
-      for(let i=0;i<18;i++) holes.push(tds[2+i]?.textContent || '');
-      players.push({ name, hcp, holes });
-    });
-    return {
-      meta: {
+    function collectMeta(){
+      return {
         course: metaCourse?.textContent || '',
         tees:   metaTees?.textContent   || '',
         format: metaFormat?.textContent || '',
         date:   metaDate?.textContent   || '',
         group:  metaGroup?.textContent  || ''
-      },
-      players,
-      ts: Date.now()
-    };
-  }
-
-  function applyCardData(data){
-    if (!data) return;
-    const rows = Array.from(card.querySelectorAll('tbody tr.p'));
-
-    // meta (non-destructive: only fill if present)
-    if (data.meta){
-      if (data.meta.course) metaCourse.textContent = data.meta.course;
-      if (data.meta.tees)   metaTees.textContent   = data.meta.tees;
-      if (data.meta.format) metaFormat.textContent = data.meta.format;
-      if (data.meta.date)   metaDate.textContent   = data.meta.date;
-      if (data.meta.group)  metaGroup.textContent  = data.meta.group;
+      };
     }
 
-    // per-player
-    (data.players || []).forEach((p, i)=>{
-      const tr = rows[i]; if (!tr) return;
-      const nameCell = tr.querySelector('.col-name');
-      const hcpCell  = tr.querySelector('.hcp');
-      if (p.name && nameCell) nameCell.textContent = p.name;
-      if (typeof p.hcp !== 'undefined' && hcpCell) hcpCell.textContent = p.hcp;
+    function persistNow(){
+      const sel = getSel();
+      const payload = { meta: collectMeta(), players: collectCardRows9(), ts: Date.now() };
+      writeJSON(storageKey(sel), payload);
+    }
 
-      const tds = Array.from(tr.children);
-      const holes = p.holes || [];
-      for(let h=0; h<18; h++){
-        if (typeof holes[h] !== 'undefined' && tds[2+h]){
-          tds[2+h].textContent = holes[h];
-        }
-      }
-    });
+    let saveTO=null;
+    function scheduleSave(){
+      if (saveTO) clearTimeout(saveTO);
+      saveTO = setTimeout(persistNow, 250);
+    }
+    window.addEventListener('beforeunload', persistNow);
 
-    recalcPlayers();
-  }
-
-  // Debounced autosave
-  let saveTO = null;
-  function scheduleSave(sel){
-    if (saveTO) clearTimeout(saveTO);
-    saveTO = setTimeout(()=>{
-      const k = storageKey(sel);
-      writeJSON(k, collectCardData());
-    }, 250);
-  }
-
-  // On any score/HCP/meta edit, save to the current selection
-  function wireAutosave(getSel){
+    // Live totals + autosave on edit
     card.addEventListener('input', e=>{
-      if (e.target.classList.contains('sc') || e.target.classList.contains('hcp')){
-        recalcPlayers();
-        scheduleSave(getSel());
+      if(e.target.classList.contains('sc')){
+        recalcPlayers9();
+        scheduleSave();
       }
     });
-    [metaCourse, metaTees, metaFormat, metaDate, metaGroup].forEach(el=>{
-      el?.addEventListener('blur', ()=> scheduleSave(getSel()));
-      el?.addEventListener('input', ()=> scheduleSave(getSel()));
-    });
-    window.addEventListener('beforeunload', ()=> writeJSON(storageKey(getSel()), collectCardData()));
-  }
-
-  // Initial build of cells and baseline course values
-  buildPlayerRows();
-  applySetup();
-  // Live totals as you type (kept for safety—autosave also triggers recalc)
-  card.addEventListener('input', e=>{
-    if(e.target.classList.contains('sc')) recalcPlayers();
-  });
-
-  // ========= BRIDGE-LITE (adopt scoreboard pairings) + persistence wiring =========
-  (function(){
-    const SHARED_KEY = "ozarkShared_v1";
-    let LAST_TS = 0;
-
-    function qs(name, fallback){
-      const u = new URL(location.href);
-      return u.searchParams.get(name) || fallback;
-    }
-
-    // Controls in drawer (for changing which pairing to view/print)
-    const selDay   = document.getElementById('selDay');
-    const selSide  = document.getElementById('selSide');
-    const selGroup = document.getElementById('selGroup');
-
-    // Default selection from URL (supports ?day=day1&side=front&group=1)
-    let current = {
-      day:  (qs('day','day1') === 'day2') ? 'day2' : 'day1',
-      side: (qs('side','front') === 'back') ? 'back' : 'front',
-      group: Math.max(1, parseInt(qs('group','1'), 10) || 1)
-    };
-    selDay.value = current.day;
-    selSide.value = current.side;
-
-    function getSel(){ return { day: current.day, side: current.side, group: current.group }; }
-    window.__scorecardSel = getSel; // expose for debugging
-
-    selDay.addEventListener('change', ()=>{
-      current.day = selDay.value;
-      refreshFromShared(); // will render + then try load persisted scores for new selection
-    });
-    selSide.addEventListener('change', ()=>{
-      current.side = selSide.value;
-      refreshFromShared();
-    });
-    selGroup.addEventListener('change', ()=>{
-      current.group = parseInt(selGroup.value,10)||1;
-      renderSelectedGroup(); // and then load for this selection
-      loadPersistedForCurrent();
+    document.querySelectorAll('.meta .value[contenteditable]').forEach(el=>{
+      el.addEventListener('input', scheduleSave);
+      el.addEventListener('blur',  scheduleSave);
     });
 
-    // If user edits the Group # meta cell, respect it on blur
-    metaGroup.addEventListener('blur', ()=>{
-      const n = parseInt(metaGroup.textContent,10);
-      if (Number.isFinite(n) && n>0) {
-        current.group = n;
-        if (selGroup.value !== String(n)) selGroup.value = String(n);
+    // ---------- BRIDGE-LITE (adopt scoreboard pairings)
+    (function(){
+      const SHARED_KEY = "ozarkShared_v1";
+      let LAST_TS = 0;
+
+      function qs(name, fallback){
+        const u = new URL(location.href);
+        return u.searchParams.get(name) || fallback;
+      }
+
+      const selDay   = document.getElementById('selDay');
+      const selSide  = document.getElementById('selSide');
+      const selGroup = document.getElementById('selGroup');
+
+      let current = {
+        day:  (qs('day','day1') === 'day2') ? 'day2' : 'day1',
+        side: (qs('side','front') === 'back') ? 'back' : 'front',
+        group: Math.max(1, parseInt(qs('group','1'), 10) || 1)
+      };
+      selDay.value = current.day;
+      selSide.value = current.side;
+
+      selDay.addEventListener('change', ()=>{ current.day = selDay.value; refreshFromShared(); });
+      selSide.addEventListener('change', ()=>{ current.side = selSide.value; refreshFromShared(); });
+      selGroup.addEventListener('change', ()=>{ current.group = parseInt(selGroup.value,10)||1; renderSelectedGroup(); loadPersistedForCurrent(); });
+
+      metaGroup.addEventListener('blur', ()=>{
+        const n = parseInt(metaGroup.textContent,10);
+        if (Number.isFinite(n) && n>0) {
+          current.group = n;
+          if (selGroup.value !== String(n)) selGroup.value = String(n);
+          renderSelectedGroup();
+          loadPersistedForCurrent();
+        }
+      });
+
+      window.getSel = () => ({...current}); // expose for persistence helpers
+
+      let shared = null;
+
+      function adoptShared(raw){
+        if(!raw) return;
+        shared = raw;
+        LAST_TS = raw.ts || Date.now();
+
+        // group count
+        try{
+          const list = (shared.groups?.[current.day]?.[current.side]) || [];
+          const count = Math.max(1, list.length || 1);
+          const opts = [];
+          for(let i=1;i<=count;i++) opts.push(`<option value="${i}">${i}</option>`);
+          selGroup.innerHTML = opts.join('');
+          if (current.group > count) current.group = count;
+          selGroup.value = String(current.group);
+        }catch{}
+
+        // meta format/date from selection
+        const fmt = (shared.format?.[current.day]?.[current.side]) || 'Best Ball';
+        metaFormat.textContent = fmt;
+
+        const dateStr = (shared.dates && shared.dates[current.day]) ? shared.dates[current.day] : metaDate.textContent;
+        if (dateStr) metaDate.textContent = dateStr;
+
         renderSelectedGroup();
         loadPersistedForCurrent();
       }
-    });
 
-    let shared = null; // latest snapshot
+      function renderSelectedGroup(){
+        if(!shared) return;
+        const gArr = shared.groups?.[current.day]?.[current.side];
+        const idx = Math.max(0, Math.min((gArr?.length||1)-1, current.group-1));
+        const ids = Array.isArray(gArr?.[idx]) ? gArr[idx] : [];
 
-    function adoptShared(raw){
-      if(!raw) return;
-      shared = raw;
-      LAST_TS = raw.ts || Date.now();
+        const byId = new Map((shared.players||[]).map(p=>[String(p.id), p]));
+        const players = ids.map(id => byId.get(String(id)) || null);
 
-      // Fill group count selector
-      try{
-        const list = (shared.groups?.[current.day]?.[current.side]) || [];
-        const count = Math.max(1, list.length || 1);
-        const opts = [];
-        for(let i=1;i<=count;i++) opts.push(`<option value="${i}">${i}</option>`);
-        selGroup.innerHTML = opts.join('');
-        if (current.group > count) current.group = count;
-        selGroup.value = String(current.group);
-      }catch{}
+        metaGroup.textContent = String(idx+1);
 
-      // Fill meta: Format + Date from selection
-      const fmt = (shared.format?.[current.day]?.[current.side]) || 'Best Ball';
-      metaFormat.textContent = fmt;
-
-      const dateStr = (shared.dates && shared.dates[current.day]) ? shared.dates[current.day] : metaDate.textContent;
-      if (dateStr) metaDate.textContent = dateStr;
-
-      renderSelectedGroup();
-      // After names land, apply any persisted scores for this selection
-      loadPersistedForCurrent();
-    }
-
-    function renderSelectedGroup(){
-      if(!shared) return;
-      const gArr = shared.groups?.[current.day]?.[current.side];
-      if(!Array.isArray(gArr) || !gArr.length) {
-        writePlayersToCard([]);
-        return;
-      }
-      const idx = Math.max(0, Math.min(gArr.length-1, current.group-1));
-      const ids = Array.isArray(gArr[idx]) ? gArr[idx] : [];
-
-      // Resolve IDs to player objects
-      const byId = new Map((shared.players||[]).map(p=>[String(p.id), p]));
-      const players = ids.map(id => byId.get(String(id)) || null);
-
-      // Update Meta group #
-      metaGroup.textContent = String(idx+1);
-
-      writePlayersToCard(players);
-    }
-
-    function writePlayersToCard(players){
-      const rows = Array.from(card.querySelectorAll('tbody tr.p'));
-      for(let i=0;i<4;i++){
-        const r = rows[i];
-        const nameCell = r?.querySelector('.col-name');
-        const hcpCell  = r?.querySelector('.hcp');
-        const p = players[i] || null;
-
-        if (!nameCell || !hcpCell) continue;
-
-        if (p){
-          const teamShort = p.team === 'valley' ? 'VA' : 'OZ';
-          const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
-          nameCell.textContent = `${p.firstName || ''}${nick} ${p.lastName || ''} (${teamShort})`.replace(/\s+/g,' ').trim();
-          hcpCell.textContent = (Number.isFinite(p.handicap) ? p.handicap : '0');
-        } else {
-          nameCell.textContent = `Player ${i+1}`;
-          hcpCell.textContent = '0';
+        // write player names/hcp into 4 rows
+        const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+        for(let i=0;i<4;i++){
+          const r = rows[i];
+          if(!r) continue;
+          const nameCell = r.querySelector('.col-name');
+          const hcpCell  = r.querySelector('.hcp');
+          const p = players[i] || null;
+          if (p){
+            const teamShort = p.team === 'valley' ? 'VA' : 'OZ';
+            const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
+            nameCell.textContent = `${p.firstName || ''}${nick} ${p.lastName || ''} (${teamShort})`.replace(/\s+/g,' ').trim();
+            hcpCell.textContent = (Number.isFinite(p.handicap) ? p.handicap : '0');
+          } else {
+            nameCell.textContent = `Player ${i+1}`;
+            hcpCell.textContent = '0';
+          }
         }
       }
-    }
 
-    function refreshFromShared(){
-      try{
-        const raw = localStorage.getItem(SHARED_KEY);
-        if(!raw) return;
-        const snap = JSON.parse(raw);
-        if (!snap) return;
-        adoptShared(snap);
-      }catch(e){ console.warn('[scorecard bridge] parse error', e); }
-    }
+      function refreshFromShared(){
+        try{
+          const raw = localStorage.getItem(SHARED_KEY);
+          if(!raw) return;
+          const snap = JSON.parse(raw);
+          if (!snap) return;
+          adoptShared(snap);
+        }catch(e){ console.warn('[scorecard bridge] parse error', e); }
+      }
 
-    // ---------- Persistence: load for current selection ----------
-    function loadPersistedForCurrent(){
-      const data = readJSON(storageKey(getSel()));
-      if (data) applyCardData(data);
-    }
+      function loadPersistedForCurrent(){
+        const data = readJSON(storageKey(getSel()));
+        if (data){
+          // meta
+          if (data.meta){
+            if (data.meta.course) metaCourse.textContent = data.meta.course;
+            if (data.meta.tees)   metaTees.textContent   = data.meta.tees;
+            if (data.meta.format) metaFormat.textContent = data.meta.format;
+            if (data.meta.date)   metaDate.textContent   = data.meta.date;
+            if (data.meta.group)  metaGroup.textContent  = data.meta.group;
+          }
+          // only nine holes
+          applyCardRows9(data.players || []);
+        } else {
+          // if no saved, clear the 9
+          const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+          rows.forEach(tr=>{
+            const tds = Array.from(tr.children);
+            for(let i=0;i<9;i++) if (tds[2+i]) tds[2+i].textContent='';
+          });
+          recalcPlayers9();
+        }
+      }
 
-    // boot
-    refreshFromShared();
+      // boot
+      buildPlayerRows();
+      // Baseline course (can be overwritten by saved data)
+      applySetup();
 
-    // react to scoreboard changes
-    window.addEventListener('storage', (e)=>{
-      if (e.key !== SHARED_KEY || !e.newValue) return;
-      let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
-      if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
-      adoptShared(inc);
-      // after adopting new snapshot, try reapplying persisted scores for current
-      loadPersistedForCurrent();
-    });
-
-    // wire autosave using the live selection
-    wireAutosave(getSel);
-  })();
-</script>
-
+      refreshFromShared();
+      window.addEventListener('storage', (e)=>{
+        if (e.key !== SHARED_KEY || !e.newValue) return;
+        let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
+        if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
+        adoptShared(inc);
+      });
+    })();
+  </script>
 </body>
 </html>
