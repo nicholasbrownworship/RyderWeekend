@@ -124,10 +124,10 @@ function getPlayerPhotoURL(p){
   // If we still have a filename, join with base
   if (cleaned) return PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + cleaned;
 
-  // Try id.jpg, then slug.jpg
-  if (p.id) return PLAYER_PHOTO_BASE_PATH + String(p.id) + ".jpg";
+  // Try id.png/jpg, then slug.png/jpg (prefer .png per your convention)
+  if (p.id) return PLAYER_PHOTO_BASE_PATH + String(p.id) + ".png";
   const slug = slugifyName(p);
-  if (slug) return PLAYER_PHOTO_BASE_PATH + slug + ".jpg";
+  if (slug) return PLAYER_PHOTO_BASE_PATH + slug + ".png";
 
   return null; // use initials fallback
 }
@@ -181,9 +181,9 @@ function renderAvatar(p, size=56){
 // Ensure new signups without an explicit photo still get a sensible default filename guess
 function attachPhotoIfMissing(p){
   if (p.photo && String(p.photo).trim()) return p;
-  if (p.id) { p.photo = `${p.id}.jpg`; return p; }
+  if (p.id) { p.photo = `${p.id}.png`; return p; }
   const slug = slugifyName(p);
-  if (slug) { p.photo = `${slug}.jpg`; return p; }
+  if (slug) { p.photo = `${slug}.png`; return p; } // prefer .png
   return p; // initials fallback
 }
 for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]); }
@@ -402,7 +402,6 @@ function onWheelScroll(){
     }
 
     const prior = loadDupes();
-    const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
     const normalizeName = normalize(rawName);
     const isDupe = prior.some(p => p.name === normalizeName && p.email === normalize(contact));
     if (isDupe) {
@@ -416,6 +415,11 @@ function onWheelScroll(){
 
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
+    // ✅ append photo file to Formspree submission if provided
+    const fileInput = signupForm.querySelector('#photo');
+    const file = fileInput?.files?.[0];
+    if (file) data.append('photo', file, file.name);
+
     data.set("nickname", nickname || "—");
     data.set("team", selectedTeam);
     data.set("team_label", TEAM_LABELS[selectedTeam] || selectedTeam);
@@ -448,12 +452,13 @@ Notes: ${notes}`.trim());
           id: (crypto?.randomUUID?.() || String(Date.now())),
           firstName, nickname: nickname || "", lastName,
           team: selectedTeam,
-          photo: "", // will be auto-attached below if missing
+          // ✅ if a file was chosen, set the expected photo path for your site/CSV
+          photo: file ? `images/players/${slugifyName({firstName, lastName})}.png` : "",
           handicap: Number(handicap),
           notes, email: contact, phone
         };
 
-        // Ensure photo filename guess if not provided
+        // Ensure fallback photo filename if still empty
         attachPhotoIfMissing(playerObj);
 
         const roster = loadSignupPlayers();
@@ -541,7 +546,9 @@ Notes: ${notes}`.trim());
       team: teamLabel(p.team),
       handicap: p.handicap ?? "",
       email: p.email ?? "",
-      phone: p.phone ?? ""
+      phone: p.phone ?? "",
+      // ✅ include photo path in exports/tables
+      photo: getPlayerPhotoURL(p) ? (PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + (p.photo || `${slugifyName(p)}.png`)) : ""
     }));
   }
 
@@ -568,7 +575,9 @@ Notes: ${notes}`.trim());
       team: teamLabel(p.team),
       handicap: p.handicap ?? "",
       email: p.email ?? "",
-      phone: p.phone ?? ""
+      phone: p.phone ?? "",
+      // ✅ include photo path if present/expected
+      photo: p.photo ? p.photo : (slugifyName(p) ? `images/players/${slugifyName(p)}.png` : "")
     }));
   }
 
