@@ -423,12 +423,15 @@
     const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
     const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
     const WIN_THRESHOLD = 15.5; // clinch threshold for 24-player format
-    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // expose for autopair.js
+
+    // Expose these for autopair.js **before** it loads:
+    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
 
     // ==== Avatar / Photo config ====
-    const PHOTO_BASE = "images/players/"; // default folder
-    const DEFAULT_EXT_ORDER = ["png","jpg","jpeg","webp"]; // try order
+    const PHOTO_BASE = "images/players/";
+    const DEFAULT_EXT_ORDER = ["png","jpg","jpeg","webp"];
 
+    // ---- IMPORTANT: keep a single, stable object for `state` and export it
     let state = {
       players: [],
       filters: { team: "all", q: "" },
@@ -444,7 +447,6 @@
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
       },
-      // results: team -> "ozark"/"valley"/"tie"/null; singles -> [res1,res2]
       results: {
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
@@ -452,9 +454,19 @@
       numGroups: 6,
       winAnnounced: null
     };
+    window.state = state; // <-- expose to autopair.js
 
     function uid(){ return Math.random().toString(36).slice(2,9) }
-    function load(){ try{ const r = localStorage.getItem(STORAGE_KEY); if(r){ state = JSON.parse(r); } }catch{} }
+
+    // Keep the SAME object reference so autopair.js sees updates
+    function load(){
+      try{
+        const r = localStorage.getItem(STORAGE_KEY);
+        if(r){
+          Object.assign(state, JSON.parse(r)); // <-- merge, don't replace
+        }
+      }catch{}
+    }
 
     /* ===== Shared Bridge (broadcast to all pages) ===== */
     let LAST_SHARED_TS = 0;
@@ -521,7 +533,7 @@
 
     // Always 4 slots per group so Singles can show two 1v1 matches
     function desiredGroupSize(fmt){ return 4; }
-    window.desiredGroupSize = desiredGroupSize;
+    window.desiredGroupSize = desiredGroupSize; // <-- expose
 
     function loadPlayersFromPreviousSite(){
       try{
@@ -537,7 +549,7 @@
           email: p.email||"",
           phone: p.phone||"",
           handicap: Number.isFinite(Number(p.handicap)) ? Number(p.handicap) : null,
-          photo: p.photo || p.photourl || p.image || "" // carry over if present
+          photo: p.photo || p.photourl || p.image || ""
         }));
       }catch{ return [] }
     }
@@ -564,17 +576,13 @@
       if (!v) return "";
       let s = String(v).trim();
       if (!s) return "";
-      // Strip leading slashes
       s = s.replace(/^\/+/, "");
-      // If user pasted absolute URL, use as-is
       if (/^https?:\/\//i.test(s)) return s;
-      // If they included "images/players/", keep it (we'll join carefully)
       return s;
     }
     function buildCandidatePhotoURLs(p){
       const explicit = normalizePhotoValue(p.photo || p.photourl || p.image || "");
       if (explicit) {
-        // If relative and not starting with our base, join
         if (!/^https?:\/\//i.test(explicit) && !explicit.startsWith(PHOTO_BASE)) {
           return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit.replace(/^\/+/,"")];
         }
@@ -584,15 +592,13 @@
       if (!slug) return [];
       return DEFAULT_EXT_ORDER.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
     }
-    // image cache: id -> resolved URL or "" (none)
     const AVATAR_CACHE = new Map();
 
     function makeAvatarEl(p, size=28){
       const wrap = document.createElement('div');
       wrap.className = 'av';
       wrap.style.width = wrap.style.height = size + "px";
-      // If cached
-      if (AVATAR_CACHE.has(p.id)) {
+      if (AVATAR_CACHE.has(p?.id)) {
         const url = AVATAR_CACHE.get(p.id);
         if (url) {
           const img = document.createElement('img');
@@ -605,20 +611,19 @@
         return wrap;
       }
 
-      const initials = ((p.firstName?.[0]||"") + (p.lastName?.[0]||"")).toUpperCase() || "??";
+      const initials = ((p?.firstName?.[0]||"") + (p?.lastName?.[0]||"")).toUpperCase() || "??";
       wrap.textContent = initials;
 
-      const candidates = buildCandidatePhotoURLs(p);
+      const candidates = p ? buildCandidatePhotoURLs(p) : [];
       if (!candidates.length) {
-        AVATAR_CACHE.set(p.id, ""); // none
+        if (p?.id) AVATAR_CACHE.set(p.id, "");
         return wrap;
       }
 
-      // Try sequentially: png -> jpg -> jpeg -> webp, or explicit one
       let idx = 0;
       const tryNext = () => {
         if (idx >= candidates.length) {
-          AVATAR_CACHE.set(p.id, ""); // none worked
+          if (p?.id) AVATAR_CACHE.set(p.id, "");
           return;
         }
         const url = candidates[idx++];
@@ -631,7 +636,7 @@
           img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
           img.src = url;
           wrap.appendChild(img);
-          AVATAR_CACHE.set(p.id, url);
+          if (p?.id) AVATAR_CACHE.set(p.id, url);
         };
         test.onerror = tryNext;
         test.src = url;
@@ -641,7 +646,6 @@
       return wrap;
     }
 
-    /* === normalizer used by merge/imports (includes handicap + photo) === */
     function normalizePlayer(p){
       const obj = {...p};
 
@@ -654,22 +658,17 @@
         last  = last  || parts.slice(1).join(" ") || "";
       }
 
-      // nickname
       const nickname = obj.nickname || obj.Nickname || obj.nick || "";
 
-      // team
       let teamRaw = obj.team || obj.Team || "";
       let team = "ozark";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("val")) team = "valley";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("oz")) team = "ozark";
 
-      // contact
       const email = obj.email || obj.Email || "";
       const phone = obj.phone || obj.Phone || "";
 
-      // handicap (accepts: handicap, hcp, hi, index)
-      const hRaw =
-        obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
+      const hRaw = obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
       let handicap = null;
       if (hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== "") {
         const cleaned = String(hRaw).replace(/[^\d.\-]/g, "");
@@ -677,9 +676,7 @@
         handicap = Number.isFinite(num) ? num : null;
       }
 
-      // photo (accepts several headers)
       const photo = normalizePhotoValue(obj.photo || obj.Photo || obj.photourl || obj.PhotoURL || obj.image || obj.Image || "");
-
       const id = obj.id || uid();
 
       return {
@@ -719,7 +716,6 @@
       return `${p.firstName} ${nick}${p.lastName}`.replace(/\s+/g,' ').trim();
     }
 
-    /* remove player helper (cleans from all groups + roster) */
     function removePlayerEverywhere(playerId){
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
@@ -766,7 +762,6 @@
           card.dataset.id = p.id;
 
           const av = makeAvatarEl(p, 28);
-
           const hcpStr = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : ``;
 
           const info = document.createElement('div');
@@ -825,10 +820,7 @@
       const hStr = prompt('Handicap (e.g., 12.4). Leave blank if unknown:') || '';
       const hNum = Number(String(hStr).replace(/[^\d.\-]/g,''));
       const handicap = Number.isFinite(hNum) ? hNum : null;
-
-      // Optional: ask for photo filename (relative to images/players)
       const photo = (prompt('Photo filename (optional) e.g. nick-brown.png')||'').trim();
-
       const p = {id:uid(), firstName, lastName, nickname, team, handicap, photo};
       state.players.push(p);
       save(); renderAll();
@@ -1372,7 +1364,6 @@
       });
 
       state.players = mergePlayers(state.players || [], mapped);
-      // purge avatar cache of any conflicting ids so new photos load
       mapped.forEach(p => AVATAR_CACHE.delete(p.id));
       save(); renderAll();
       alert(`Imported ${mapped.length} rows from CSV and merged into the roster.`);
@@ -1418,8 +1409,8 @@
 
     function autoBalanceAll(){
       const swapBetween = (arrA, arrB, condA, condB) => {
-        for (let i=0;i<arrA.length;i++){
-          for (let j=0;j<arrB.length;j++){
+        for (let i=0; i<arrA.length; i++){
+          for (let j=0; j<arrB.length; j++){
             const a = arrA[i], b = arrB[j];
             if (!a || !b) continue;
             if (condA(a) && condB(b)){
@@ -1807,6 +1798,12 @@
     } catch (e) {
       console.error('[boot] initial render failed:', e);
     }
+
+    // ---- Expose functions autopair.js depends on (and keep after their definitions)
+    window.save = save;
+    window.renderAll = renderAll;
+    window.desiredGroupSize = desiredGroupSize;
+    window.TEAM_FORMATS = window.TEAM_FORMATS || new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
   </script>
 
   <!-- Load autopair AFTER the inline script defines state/renderAll/save -->
