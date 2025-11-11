@@ -1,8 +1,13 @@
+<script>
 // =======================
 // 0) CONFIG
 // =======================
 const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
+
+// If your images live in /images/players, set to "images/players/"
+// You currently said your test pics are in "images/", so we'll keep that:
 const PLAYER_PHOTO_BASE_PATH = "images/";
+
 const RESPECT_SAVED_HIDDEN_SEEDED = false; // <— OFF so hard-coded players always render
 
 // Storage keys
@@ -53,11 +58,10 @@ scheduleTabButtons.forEach((btn) => {
 // 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
 const players = [
-  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick-brown.png",   handicap: 15, notes: "Tech guy" },
-  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "barry-brown.png",    handicap: 18, notes: "OG" },
-  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh-brown.png",   handicap: 11, notes: "Long hitter" },
-  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt-brown.png",   handicap: 10, notes: "Short game guy" },
-
+  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick-brown.png",  handicap: 15, notes: "Tech guy" },
+  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "barry-brown.png", handicap: 18, notes: "OG" },
+  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh-brown.png",  handicap: 11, notes: "Long hitter" },
+  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt-brown.png",  handicap: 10, notes: "Short game guy" },
   // add more players here
 ];
 
@@ -93,7 +97,7 @@ if (RESPECT_SAVED_HIDDEN_SEEDED) {
 }
 
 // =======================
-// 4) UTIL
+// 4) UTIL + PHOTO HELPERS (avatars w/ fallbacks)
 // =======================
 function formatPlayerName(p) {
   if (p.nickname && p.nickname.trim() !== "") {
@@ -101,11 +105,90 @@ function formatPlayerName(p) {
   }
   return `${p.firstName} ${p.lastName}`;
 }
-function getPlayerPhotoUrl(p) {
-  if (!p.photo) return "images/default-player.jpg";
-  if (p.photo.startsWith("http") || p.photo.startsWith("./") || p.photo.startsWith("/")) return p.photo;
-  return PLAYER_PHOTO_BASE_PATH + p.photo;
+
+function slugifyName(p){
+  const f = (p.firstName||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
+  const l = (p.lastName||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
+  return [f,l].filter(Boolean).join("-");
 }
+
+// Returns a best-guess URL for the player's photo or null if we should use initials
+function getPlayerPhotoURL(p){
+  // 1) explicit file path provided
+  if (p.photo && typeof p.photo === "string" && p.photo.trim()){
+    if (/^https?:\/\//i.test(p.photo)) return p.photo; // allow full URLs
+    if (p.photo.startsWith("./") || p.photo.startsWith("/") ) return p.photo;
+    return PLAYER_PHOTO_BASE_PATH + p.photo.replace(/^\/+/, "");
+  }
+  // 2) try id.jpg
+  if (p.id) return PLAYER_PHOTO_BASE_PATH + String(p.id) + ".jpg";
+  // 3) (optional) try name slug
+  const slug = slugifyName(p);
+  if (slug) return PLAYER_PHOTO_BASE_PATH + slug + ".jpg";
+  // let it fall back to initials avatar
+  return null;
+}
+
+function playerInitials(p){
+  const f = (p.firstName||"").trim()[0] || "";
+  const l = (p.lastName||"").trim()[0] || "";
+  return (f + l).toUpperCase();
+}
+
+// Creates a circular avatar element.
+// If image loads -> shows image; else shows initials in a circle.
+function renderAvatar(p, size=56){
+  const wrap = document.createElement("div");
+  wrap.className = "avatar";
+  wrap.style.width = wrap.style.height = size + "px";
+  wrap.style.borderRadius = "999px";
+  wrap.style.display = "inline-grid";
+  wrap.style.placeItems = "center";
+  wrap.style.background = "#e9ecef";
+  wrap.style.color = "#334155";
+  wrap.style.fontWeight = "800";
+  wrap.style.overflow = "hidden";
+  wrap.style.boxShadow = "0 2px 10px rgba(0,0,0,.06)";
+
+  const initials = document.createElement("span");
+  initials.className = "avatar-initials";
+  initials.textContent = playerInitials(p);
+  initials.style.fontSize = "clamp(12px, 40%, 16px)";
+  initials.style.letterSpacing = ".04em";
+  wrap.appendChild(initials);
+
+  const url = getPlayerPhotoURL(p);
+  if (url){
+    const img = new Image();
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
+    img.src = url;
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "cover";
+    img.addEventListener("error", ()=> {
+      // keep initials fallback
+    });
+    img.addEventListener("load", ()=> {
+      wrap.innerHTML = "";
+      wrap.appendChild(img);
+    });
+  }
+  return wrap;
+}
+
+// Ensures new signups without an explicit photo still get a sensible default filename
+function attachPhotoIfMissing(p){
+  if (p.photo && String(p.photo).trim()) return p;
+  if (p.id) { p.photo = `${p.id}.jpg`; return p; }
+  const slug = slugifyName(p);
+  if (slug) { p.photo = `${slug}.jpg`; return p; }
+  return p; // will fallback to initials avatar
+}
+
+// Normalize all current players once on load (non-destructive)
+for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]); }
 
 // =======================
 // 5) PLAYERS WHEEL
@@ -113,22 +196,38 @@ function getPlayerPhotoUrl(p) {
 const wheelTrack = document.getElementById("playerWheel");
 const teamButtons = document.querySelectorAll(".team-btn");
 
-function toWheelModel(p) {
-  return { name: formatPlayerName(p), team: (p.team || "").toLowerCase(), photo: getPlayerPhotoUrl(p) };
+// Create DOM tile to attach avatar + labels + handlers
+function makeWheelTile(p){
+  const a = document.createElement("a");
+  a.className = "wheel-item";
+  a.dataset.team = (p.team||"").toLowerCase();
+  a.href = "#teams";
+  a.setAttribute("aria-label", formatPlayerName(p));
+
+  const thumb = document.createElement("div");
+  thumb.className = "wheel-thumb";
+  // avatar (56px)
+  thumb.appendChild(renderAvatar(p, 56));
+
+  const nm = document.createElement("span");
+  nm.className = "wheel-name";
+  nm.textContent = formatPlayerName(p);
+
+  const chip = document.createElement("span");
+  chip.className = "wheel-chip " + a.dataset.team;
+  chip.textContent = (a.dataset.team === "ozark" ? "Ozark" : "Valley");
+
+  a.appendChild(thumb);
+  a.appendChild(nm);
+  a.appendChild(chip);
+  return a;
 }
 
 function renderWheel(filter = "all") {
   if (!wheelTrack) return;
-  const list = (filter === "all") ? players : players.filter(p => p.team === filter);
-  wheelTrack.innerHTML = list.map(toWheelModel).map(p => `
-    <a class="wheel-item" data-team="${p.team}" href="#teams" aria-label="${p.name}">
-      <div class="wheel-thumb">
-        <img src="${p.photo}" alt="${p.name}" loading="lazy" decoding="async">
-      </div>
-      <span class="wheel-name">${p.name}</span>
-      <span class="wheel-chip ${p.team}">${p.team === 'ozark' ? 'Ozark' : 'Valley'}</span>
-    </a>
-  `).join('');
+  const list = (filter === "all") ? players : players.filter(p => (p.team||"").toLowerCase() === filter);
+  wheelTrack.innerHTML = "";
+  list.forEach(p => wheelTrack.appendChild(makeWheelTile(p)));
   updateCenterGlow();
 }
 
@@ -149,7 +248,8 @@ teamButtons.forEach((btn) => {
   const getStepWidth = () => {
     const item = wheelTrack?.querySelector('.wheel-item');
     if (!item) return 200;
-    const gap = parseFloat(getComputedStyle(wheelTrack).columnGap || getComputedStyle(wheelTrack).gap || 14);
+    const cs = getComputedStyle(wheelTrack);
+    const gap = parseFloat(cs.columnGap || cs.gap || 14);
     return item.offsetWidth + gap;
   };
   const scrollByItems = (n) => wheelTrack?.scrollBy({ left: getStepWidth() * n, behavior: 'smooth' });
@@ -327,10 +427,13 @@ Notes: ${notes}`.trim());
           id: (crypto?.randomUUID?.() || String(Date.now())),
           firstName, nickname: nickname || "", lastName,
           team: selectedTeam,
-          photo: "",
+          photo: "", // will be auto-attached below if missing
           handicap: Number(handicap),
           notes, email: contact, phone
         };
+
+        // Ensure photo filename guess if not provided
+        attachPhotoIfMissing(playerObj);
 
         const roster = loadSignupPlayers();
         roster.push(playerObj);
@@ -522,8 +625,6 @@ Notes: ${notes}`.trim());
       ts: Date.now()
     };
     localStorage.setItem(SHARED_KEY, JSON.stringify(merged));
-    // Trigger "storage" for other tabs/windows in same origin
-    // (same-tab listeners won't fire; they read immediately on write)
     try {
       window.dispatchEvent(new StorageEvent('storage', { key: SHARED_KEY, newValue: JSON.stringify(merged) }));
     } catch {}
@@ -543,3 +644,4 @@ Notes: ${notes}`.trim());
     writeSharedSnapshot({ eventName: "Ozark Invitational" });
   }
 })();
+</script>
