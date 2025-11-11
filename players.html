@@ -91,7 +91,7 @@
         <div class="logo"><img src="images/logo.png" alt="Ozark Invitational logo" onerror="this.style.display='none'"/></div>
         <div>
           <div class="title">Players</div>
-          <div class="sub">Browse the roster, filter by team, view profiles & placements</div>
+          <div class="sub">Browse the roster, filter by team, view profiles &amp; placements</div>
         </div>
       </div>
 
@@ -117,8 +117,8 @@
   <dialog id="profileDlg" class="profile">
     <div class="p-head">
       <div class="avatar">
-        <img id="pPhoto" alt="" onerror="this.style.display='none';document.getElementById('pInit').style.display='grid'">
-        <div id="pInit" class="init" style="display:none"></div>
+        <img id="pPhoto" alt="" style="display:none">
+        <div id="pInit" class="init" style="display:grid"></div>
       </div>
       <div>
         <div id="pName" class="p-title"></div>
@@ -133,7 +133,7 @@
           <ul class="list" id="pContact"></ul>
         </div>
         <div class="stat">
-          <h4>Handicap & Team</h4>
+          <h4>Handicap &amp; Team</h4>
           <ul class="list" id="pFacts"></ul>
         </div>
       </div>
@@ -154,6 +154,54 @@
     const SIGNUPS_KEY = "ozarkSignups_v1";
     const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
     const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
+
+    // ---- Photo resolver (aligned with scoreboard)
+    const PHOTO_BASE = "images/players/";
+    const PHOTO_EXTS = ["png","jpg","jpeg","webp"];
+    const AVATAR_CACHE = new Map(); // id -> url or ""
+
+    function normalizePhotoValue(v){
+      if (!v) return "";
+      let s = String(v).trim().replace(/\\/g,"/").replace(/^\/+/, "").replace(/^\.\//,"");
+      return s;
+    }
+    function slugify(first, last){
+      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      return [f,l].filter(Boolean).join("-");
+    }
+    function candidatePhotoURLs(p){
+      // Prefer explicit CSV-provided photo fields if present
+      const explicit = normalizePhotoValue(p.photo || p.photourl || p.image || "");
+      if (explicit){
+        if (/^https?:\/\//i.test(explicit)) return [explicit];             // absolute URL
+        if (explicit.includes("/")) return [explicit];                      // relative path (e.g., images/players/nick-brown.png)
+        return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit];            // bare filename -> join to base
+      }
+      // Else try slug from first/last with common extensions
+      const slug = slugify(p.firstName, p.lastName);
+      if (!slug) return [];
+      return PHOTO_EXTS.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
+    }
+    function loadImage(url){
+      return new Promise((res, rej)=>{
+        const img = new Image();
+        img.onload = ()=> res(url);
+        img.onerror = rej;
+        img.src = url;
+      });
+    }
+    async function resolvePhotoURL(p){
+      if (!p || !p.id) return "";
+      if (AVATAR_CACHE.has(p.id)) return AVATAR_CACHE.get(p.id);
+      const candidates = candidatePhotoURLs(p);
+      for (const url of candidates){
+        try { await loadImage(url); AVATAR_CACHE.set(p.id, url); return url; }
+        catch {}
+      }
+      AVATAR_CACHE.set(p.id, ""); // remember miss
+      return "";
+    }
 
     // ---- State
     let roster = [];
@@ -203,7 +251,8 @@
             nickname:  p.nickname || "",
             team: (p.team||"").toLowerCase().includes("val") ? "valley" : "ozark",
             email: p.email||"", phone: p.phone||"",
-            handicap: Number.isFinite(+p.handicap) ? +p.handicap : null
+            handicap: Number.isFinite(+p.handicap) ? +p.handicap : null,
+            photo: p.photo || p.photourl || p.image || ""
           }));
         }
       }catch{}
@@ -234,11 +283,12 @@
         const chipTeam = `<span class="chip ${p.team==='ozark'?'oz':'va'}">${TEAM_LABELS[p.team]||''}</span>`;
         const chipHcp  = Number.isFinite(p.handicap) ? `<span class="chip">HCP ${p.handicap}</span>` : '';
         const safeId = String(p.id||'');
+        // No src yet; we hydrate photos after render using resolver
         return `
           <div class="card" data-id="${safeId}">
             <div class="avatar">
-              <img src="images/players/${safeId}.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
-              <div class="init" style="display:none">${initials(p)}</div>
+              <img data-photo-id="${safeId}" alt="" style="display:none">
+              <div class="init">${initials(p)}</div>
             </div>
             <div class="meta">
               <div class="name">${displayName(p)}</div>
@@ -268,6 +318,28 @@
           if (p) openProfile(p);
         });
       });
+
+      // Hydrate photos after DOM is ready
+      hydrateCardPhotos(byId);
+    }
+
+    async function hydrateCardPhotos(byId){
+      const imgs = document.querySelectorAll('img[data-photo-id]');
+      for (const img of imgs){
+        const id = img.getAttribute('data-photo-id');
+        const p = byId.get(id);
+        if (!p) continue;
+        const url = await resolvePhotoURL(p);
+        const init = img.parentElement?.querySelector('.init');
+        if (url){
+          img.src = url;
+          img.style.display = '';
+          if (init) init.style.display = 'none';
+        } else {
+          img.style.display = 'none';
+          if (init) init.style.display = 'grid';
+        }
+      }
     }
 
     function placementsFor(id){
@@ -291,6 +363,20 @@
     }
 
     // ---- Profile modal
+    async function setProfilePhoto(p){
+      const pPhoto = document.getElementById('pPhoto');
+      const pInit  = document.getElementById('pInit');
+      pPhoto.style.display = 'none';
+      pInit.style.display  = 'grid';
+      const url = await resolvePhotoURL(p);
+      if (url){
+        pPhoto.src = url;
+        pPhoto.alt = `${displayName(p)} photo`;
+        pPhoto.style.display = '';
+        pInit.style.display = 'none';
+      }
+    }
+
     function openProfile(p){
       const dlg = document.getElementById('profileDlg');
       const pName = document.getElementById('pName');
@@ -299,7 +385,6 @@
       const pContact = document.getElementById('pContact');
       const pFacts = document.getElementById('pFacts');
       const pPlaces= document.getElementById('pPlaces');
-      const pPhoto = document.getElementById('pPhoto');
       const pInit  = document.getElementById('pInit');
 
       pName.textContent = displayName(p);
@@ -322,12 +407,9 @@
       const places = placementsFor(p.id);
       pPlaces.innerHTML = places.length ? places.map(x=>`<li>${x}</li>`).join('') : `<li class="muted">Not placed yet.</li>`;
 
-      // photo (fallback to initials)
-      pPhoto.style.display = '';
-      pInit.style.display  = 'none';
-      pPhoto.src = `images/players/${p.id}.jpg`;
-      pPhoto.alt = `${displayName(p)} photo`;
+      // initials fallback shown until image resolves
       pInit.textContent = initials(p);
+      setProfilePhoto(p);
 
       dlg.showModal();
     }
