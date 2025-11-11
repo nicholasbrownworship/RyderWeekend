@@ -8,27 +8,111 @@
   <!-- Shared site styles & scripts (topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js" defer></script>
-  <!-- autopair loads once at the end; removed duplicate here -->
+  <!-- autopair loads once at the very end -->
 
   <style>
     :root{
       --bg:#0b0f0d; --panel:#111617; --muted:#1b2526; --accent:#8bd3dd; --accent-2:#b7e4c7;
       --text:#e7f2f3; --hint:#99a4a6; --danger:#ff6b6b; --ok:#63e6be; --gold:#f1c40f;
       --card:#0f1415; --ink:#0b0f0d; --line:#223033; --shadow:rgba(0,0,0,.35);
-      --ui-scale:.8; /* 80% on-screen scale */
+      --ui-scale:.8;
 
-      /* light theme tokens (used by contrast patch when bg is cream) */
-      --green:#244f3c; --green-dark:#163023; --cream:#f5f0e6;
+      /* site palette tokens for the header override */
+      --green:#244f3c; 
+      --green-dark:#163023;
+      --cream:#f5f0e6;
+      --cream-ink:#1b1b1b;
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#132022 0%,#0b0f0d 45%,#0b0f0d 100%);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 10% -10%,#132022 0%,#0b0f0d 45%,#0b0f0d 100%);
+      color:var(--text);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial
+    }
 
-    /* Leave space below the shared topbar */
-    .app{display:grid;grid-template-columns:320px 1fr 420px;gap:16px;height:100%;padding:16px;
+    /* ===============================
+       SCOREBOARD-ONLY TOPBAR OVERRIDE
+       Makes the shared header readable
+       on the cream/light background theme
+       =============================== */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)) ,
+        linear-gradient(180deg, var(--green-dark), #0f2a20);
+      color: var(--cream);
+      border-bottom: 1px solid rgba(0,0,0,.35);
+      box-shadow: 0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+      backdrop-filter: saturate(120%);
+    }
+    .topbar .logo-circle{
+      background: linear-gradient(180deg,#0e2018,#0b1612);
+      color: var(--cream);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 3px 10px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .topbar .logo-text .title{ color: var(--cream); font-weight: 800; letter-spacing:.02em; }
+    .topbar .logo-text .subtitle{ color: #d9efe5; opacity:.9; }
+
+    .topbar .nav a{
+      color: var(--cream);
+      opacity: .95;
+      font-weight: 700;
+      padding: .55rem .8rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: transform .08s ease, background-color .12s ease, border-color .12s ease, opacity .12s ease;
+    }
+    .topbar .nav a:hover,
+    .topbar .nav a:focus{
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.18);
+      outline: none;
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    .topbar .nav a[aria-current="page"]{
+      background: linear-gradient(180deg,#173b30,#10271f);
+      border-color: rgba(255,255,255,.25);
+      box-shadow: 0 6px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.05);
+      color:#e7fff5;
+    }
+    .topbar .btn-nav{
+      background: linear-gradient(180deg,#d1a14b,#b98832);
+      color:#1a1407 !important;
+      font-weight:900;
+      border:1px solid #8f6a29 !important;
+      box-shadow: 0 8px 20px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .topbar .btn-nav:hover,
+    .topbar .btn-nav:focus{
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+    .nav-toggle{
+      color: var(--cream);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 10px;
+    }
+
+    /* Mobile drawer (if your styles.css uses .nav.open) */
+    .nav.open{
+      background: linear-gradient(180deg, var(--green-dark), #0f2a20);
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+
+    /* ===== App layout ===== */
+    .app{
+      display:grid;grid-template-columns:320px 1fr 420px;gap:16px;height:100%;padding:16px;
       transform:scale(var(--ui-scale)); transform-origin:top left;
       width:calc(100%/var(--ui-scale)); height:calc(100%/var(--ui-scale));
-      margin-top:88px; /* matches other pages */
+      margin-top:88px;
     }
     @media print{
       .app{transform:none!important;width:100%!important;height:auto!important;padding:0!important;margin-top:0!important}
@@ -124,44 +208,6 @@
       font-weight: 700;
       color: #c9fbff;
       text-align: center;
-    }
-
-    /* ============================
-       SCOREBOARD-ONLY CONTRAST PATCH
-       (applies safely on cream OR dark bg)
-       ============================ */
-    .panel .head{
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)),
-        linear-gradient(180deg, var(--cream, #0c1111), #ece5d6);
-      border-bottom: 1px solid #cfc6af;
-      color: var(--green-dark, #cfe6e8);
-      font-weight: 800;
-    }
-    @media (prefers-color-scheme: dark) {
-      .panel .head{
-        background:#0c1111;
-        border-bottom:1px solid var(--line);
-        color:#cfe6e8;
-      }
-    }
-    .list th{
-      background: linear-gradient(180deg, #fbf8ef 0%, #ece5d6 100%);
-      color: var(--green-dark, #163023);
-      border-bottom: 1px solid #cfc6af;
-      font-weight: 800;
-    }
-    .subheads span{
-      border:1px solid #c8bda3;
-      background:#fffef8;
-      color: var(--green-dark, #163023);
-    }
-    .card h3{
-      background: linear-gradient(180deg, #fbf8ef, #efe7d5);
-      border: 1px solid #cfc6af;
-      color: var(--green-dark, #163023);
-      border-radius: 10px;
-      padding: 6px 8px;
     }
   </style>
 </head>
@@ -710,7 +756,7 @@
             return arr;
           });
 
-          // --- keep results in sync with groups & format ---
+          // keep results in sync with groups & format
           if(!state.results) state.results = {day1:{front:[],back:[]}, day2:{front:[],back:[]}};
           if(!Array.isArray(state.results[day][side])) state.results[day][side] = [];
           while(state.results[day][side].length < state.numGroups) state.results[day][side].push(null);
@@ -719,7 +765,6 @@
           state.results[day][side] = state.results[day][side].map((r)=>{
             const isTeam = window.TEAM_FORMATS.has(fmt);
             if (isTeam) return (typeof r === 'string' || r===null) ? r : null;
-            // singles -> [null,null] shape
             return Array.isArray(r) ? [r[0] ?? null, r[1] ?? null] : [null, null];
           });
         });
@@ -1525,7 +1570,7 @@
           lab.textContent = `Match ${matchIdx+1}:`;
           row.appendChild(lab);
 
-          ['ozark','tie','valley'].forEach(key=>{
+        ['ozark','tie','valley'].forEach(key=>{
             const btn = document.createElement('button');
             btn.className = 'rbtn';
             const cur = state.results[day][side][groupIndex] || [null,null];
@@ -1592,11 +1637,9 @@
       const badge = document.getElementById('winnerBadge');
       if (!badge) return;
 
-      // Determine if someone has clinched (>= 15.5)
       const ozClinch = s.ozark >= WIN_THRESHOLD;
       const vaClinch = s.valley >= WIN_THRESHOLD;
 
-      // If both exceed simultaneously, show leader (or tie if equal)
       let winner = null;
       if (ozClinch || vaClinch) {
         if (s.ozark > s.valley) winner = 'ozark';
