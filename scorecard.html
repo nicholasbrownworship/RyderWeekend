@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ozark Invitational – Scorecard (Configurable)</title>
+  <title>Scorecard – Ozark Invitational</title>
+
+  <!-- Site-wide styles & scripts (for topbar, buttons, etc.) -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+
   <style>
     :root{
       --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
@@ -13,9 +18,10 @@
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 
-    .wrap{max-width:900px;margin:20px auto;padding:12px}
+    /* Give room under the fixed/sticky topbar from styles.css */
+    .wrap{max-width:900px;margin:88px auto 20px;padding:12px}
 
-    /* Header */
+    /* Header (local for this page’s scorecard controls) */
     .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
     .brand{display:flex;align-items:center;gap:10px}
     .logo{width:40px;height:40px;border-radius:999px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}
@@ -62,13 +68,35 @@
     textarea{min-height:120px;resize:vertical}
 
     @media print{
-      .drawer,.actions{display:none}
-      .wrap{max-width:none;padding:0}
+      .topbar, .drawer, .actions{display:none}
+      .wrap{max-width:none;margin:0;padding:0}
       .sheet{box-shadow:none;border:none}
     }
   </style>
 </head>
 <body>
+
+  <!-- Shared site header / nav -->
+  <header class="topbar">
+    <div class="logo-wrap">
+      <div class="logo-circle">OI</div>
+      <div class="logo-text">
+        <span class="title">Ozark Invitational</span>
+        <span class="subtitle">Family Golf Tournament</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="scorecard.html">Scorecard</a>
+      <a href="scoreboard.html">Scoreboard</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="index.html#teams">Players</a>
+      <a href="index.html#sponsors">Sponsors</a>
+      <a href="index.html#signup" class="btn-nav">Sign Up</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </header>
+
   <div class="wrap">
     <div class="hdr">
       <div class="brand">
@@ -84,7 +112,7 @@
       </div>
     </div>
 
-    <!-- CONFIG DRAWER: paste your real hole data here once and it fills the card -->
+    <!-- CONFIG DRAWER -->
     <section class="drawer" id="drawer" hidden>
       <div class="drawer-h">
         <strong>Setup</strong>
@@ -187,7 +215,30 @@
     </section>
   </div>
 
+  <!-- Tiny inline helpers for the shared header -->
   <script>
+    // Mobile menu toggle
+    (function () {
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        nav.classList.toggle('open', !open);
+      });
+    })();
+
+    // Current tab highlight (GitHub Pages-safe)
+    (function(){
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+    })();
+
+    // ----- Scorecard logic (unchanged) -----
     const card = document.getElementById('card');
 
     function toggleDrawer(){
