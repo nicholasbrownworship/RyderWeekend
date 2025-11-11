@@ -952,15 +952,22 @@ a {
 }
 
 .brand-img {
-  height: 40px;
+  height: 120px;        /* desktop size */
   width: auto;
   display: block;
   object-fit: contain;
+  transition: height 0.2s ease;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .brand-img {
-    height: 32px;
+    height: 55px;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand-img {
+    height: 42px;
   }
 }
 
