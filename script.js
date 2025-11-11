@@ -1,4 +1,3 @@
-<script>
 // =======================
 // 0) CONFIG
 // =======================
@@ -45,11 +44,12 @@ const scheduleDays = document.querySelectorAll(".schedule-day");
 scheduleTabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     scheduleTabButtons.forEach((b) => b.classList.remove("active"));
-    scheduleDays.forEach((d) => d.classList.remove("active"));
+    scheduleDays.forEach((d) => {
+      const isActive = d.id === btn.dataset.day;
+      d.classList.toggle("active", isActive);
+      d.toggleAttribute("hidden", !isActive);
+    });
     btn.classList.add("active");
-    const dayId = btn.dataset.day;
-    const dayEl = document.getElementById(dayId);
-    if (dayEl) dayEl.classList.add("active");
   });
 });
 
@@ -124,7 +124,7 @@ function getPlayerPhotoURL(p){
   // If we still have a filename, join with base
   if (cleaned) return PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + cleaned;
 
-  // Try id.png/jpg, then slug.png/jpg (prefer .png per your convention)
+  // Try id.png, then slug.png (prefer .png by convention)
   if (p.id) return PLAYER_PHOTO_BASE_PATH + String(p.id) + ".png";
   const slug = slugifyName(p);
   if (slug) return PLAYER_PHOTO_BASE_PATH + slug + ".png";
@@ -155,8 +155,6 @@ function renderAvatar(p, size=56){
   const initials = document.createElement("span");
   initials.className = "avatar-initials";
   initials.textContent = playerInitials(p);
-  initials.style.fontSize = "clamp(12px, 40%, 16px)";
-  initials.style.letterSpacing = ".04em";
   wrap.appendChild(initials);
 
   const url = getPlayerPhotoURL(p);
@@ -174,6 +172,9 @@ function renderAvatar(p, size=56){
       wrap.innerHTML = "";
       wrap.appendChild(img);
     });
+  } else {
+    initials.style.fontSize = "clamp(12px, 40%, 16px)";
+    initials.style.letterSpacing = ".04em";
   }
   return wrap;
 }
@@ -189,7 +190,7 @@ function attachPhotoIfMissing(p){
 for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]); }
 
 // =======================
-// 5) PLAYERS WHEEL
+// 5) PLAYERS WHEEL (safe no-op if homepage doesn't have it)
 // =======================
 function makeWheelTile(p){
   const a = document.createElement("a");
@@ -314,17 +315,19 @@ function onWheelScroll(){
 })();
 
 // =======================
-// 6) SIGNUP FORM (inject nickname + team; add to roster; refresh wheel)
+// 6) SIGNUP FORM (nickname + team + optional photo; submit via fetch; NO REDIRECT)
 // =======================
 (function () {
   const signupForm = document.getElementById("signupForm");
   const formMsg = document.getElementById("formMsg");
   if (!signupForm) return;
 
+  // If the HTML still has action/method, we'll still prevent default and use fetch.
   const loadDupes = () => { try { return JSON.parse(localStorage.getItem(SIGNUPS_DUPE_KEY) || "[]"); } catch { return []; } };
   const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
+  // If nickname/team fields are already in HTML, we won't inject duplicates.
   const makeRow = (labelEl, inputEl) => {
     const row = document.createElement("div");
     row.className = "form-row";
@@ -341,7 +344,7 @@ function onWheelScroll(){
   const nameRow = nameInput ? nameInput.closest(".form-row") : null;
   const actionsRow = signupForm.querySelector(".actions");
 
-  // Nickname (optional)
+  // Nickname (optional) – only inject if missing
   let nicknameInput = signupForm.querySelector('#nickname,[name="nickname"]');
   if (!nicknameInput) {
     const nnLabel = document.createElement("label");
@@ -356,7 +359,7 @@ function onWheelScroll(){
     if (nameRow) insertAfter(nnRow, nameRow); else if (actionsRow) signupForm.insertBefore(nnRow, actionsRow); else signupForm.appendChild(nnRow);
   }
 
-  // Team (required)
+  // Team (required) – only inject if missing
   let teamSelect = signupForm.querySelector('#signupTeam,[name="team"]');
   if (!teamSelect) {
     const tLabel = document.createElement("label");
@@ -382,10 +385,9 @@ function onWheelScroll(){
     if (nnRow) insertAfter(tRow, nnRow); else if (nameRow) insertAfter(tRow, nameRow); else if (actionsRow) signupForm.insertBefore(tRow, actionsRow); else signupForm.appendChild(tRow);
   }
 
-  // Submit handler
   signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (formMsg) formMsg.classList.remove("error");
+    e.preventDefault(); // 🔒 prevent native submit/redirect
+    formMsg?.classList.remove("error");
 
     const get = (sel) => (signupForm.querySelector(sel)?.value || "").trim();
     const rawName     = get('[name="name"]');
@@ -397,7 +399,7 @@ function onWheelScroll(){
     const notes       = get('[name="notes"]');
 
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
-      if (formMsg) { formMsg.textContent = "Please complete all required fields."; formMsg.classList.add("error"); }
+      formMsg && (formMsg.textContent = "Please complete all required fields.", formMsg.classList.add("error"));
       return;
     }
 
@@ -405,7 +407,7 @@ function onWheelScroll(){
     const normalizeName = normalize(rawName);
     const isDupe = prior.some(p => p.name === normalizeName && p.email === normalize(contact));
     if (isDupe) {
-      if (formMsg) { formMsg.textContent = "It looks like you've already signed up with this email."; formMsg.classList.add("error"); }
+      formMsg && (formMsg.textContent = "It looks like you've already signed up with this email.", formMsg.classList.add("error"));
       return;
     }
 
@@ -413,20 +415,12 @@ function onWheelScroll(){
     const firstName = parts[0];
     const lastName  = parts.length > 1 ? parts.slice(1).join(" ") : "—";
 
+    // Build payload for Formspree (no redirect)
     const data = new FormData(signupForm);
     data.set("name", `${firstName} ${lastName}`);
-    // ✅ append photo file to Formspree submission if provided
-    const fileInput = signupForm.querySelector('#photo');
-    const file = fileInput?.files?.[0];
-    if (file) data.append('photo', file, file.name);
-
     data.set("nickname", nickname || "—");
     data.set("team", selectedTeam);
     data.set("team_label", TEAM_LABELS[selectedTeam] || selectedTeam);
-    data.set("email", contact);
-    data.set("phone", phone);
-    data.set("handicap", handicap);
-    data.set("notes", notes);
     data.set("_subject", "New Ozark Invitational signup");
     data.set("summary", `
 Name: ${firstName} ${lastName}
@@ -437,6 +431,13 @@ Email: ${contact}
 Phone: ${phone}
 Notes: ${notes}`.trim());
 
+    // attach photo file if chosen (from <input type="file" id="photo">)
+    const file = signupForm.querySelector('#photo')?.files?.[0];
+    if (file) data.append('photo', file, file.name);
+
+    // UX: show submitting
+    formMsg && (formMsg.textContent = "Submitting...", formMsg.classList.remove("error"));
+
     try {
       const res = await fetch("https://formspree.io/f/xnnokdqb", {
         method: "POST",
@@ -444,55 +445,50 @@ Notes: ${notes}`.trim());
         body: data
       });
 
+      // Hard-stop any attempted redirect just in case
+      if (res.redirected) window.stop();
+
       if (res.ok) {
+        // remember this signup to prevent dupes
         prior.push({ name: normalizeName, email: normalize(contact), ts: Date.now() });
         localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(prior));
 
+        // Save a local copy (used by other pages; optional photo path hint)
         const playerObj = {
           id: (crypto?.randomUUID?.() || String(Date.now())),
           firstName, nickname: nickname || "", lastName,
           team: selectedTeam,
-          // ✅ if a file was chosen, set the expected photo path for your site/CSV
           photo: file ? `images/players/${slugifyName({firstName, lastName})}.png` : "",
           handicap: Number(handicap),
           notes, email: contact, phone
         };
-
-        // Ensure fallback photo filename if still empty
         attachPhotoIfMissing(playerObj);
 
         const roster = loadSignupPlayers();
         roster.push(playerObj);
         saveSignupPlayers(roster);
-
         upsertPlayerToMasterList(playerObj);
 
+        // If a wheel exists on this page, update it (safe no-op on homepage)
         const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
         renderWheel(activeTeam);
 
-        if (formMsg) { formMsg.textContent = "Thanks! Your signup has been submitted."; formMsg.classList.remove("error"); }
+        // Clear the form + reset team select placeholder
         signupForm.reset();
+        const select = signupForm.querySelector('#signupTeam,[name="team"]');
+        if (select) select.selectedIndex = 0;
 
-        // repopulate team options (keeps placeholder selected)
-        const select = signupForm.querySelector('[name="team"]');
-        if (select) {
-          select.innerHTML = "";
-          const ph2 = document.createElement("option");
-          ph2.value = ""; ph2.textContent = "Select a team…"; ph2.disabled = true; ph2.selected = true;
-          select.appendChild(ph2);
-          Object.entries(TEAM_LABELS).forEach(([val, label]) => {
-            const opt = document.createElement("option");
-            opt.value = val; opt.textContent = label;
-            select.appendChild(opt);
-          });
-        }
+        formMsg && (formMsg.textContent = "Thanks! Your signup has been submitted.", formMsg.classList.remove("error"));
       } else {
         let msg = "Something went wrong. Please try again.";
-        try { const err = await res.json(); if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", "); } catch {}
-        if (formMsg) { formMsg.textContent = msg; formMsg.classList.add("error"); }
+        try {
+          const err = await res.json();
+          if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", ");
+        } catch{}
+        formMsg && (formMsg.textContent = msg, formMsg.classList.add("error"));
       }
     } catch {
-      if (formMsg) { formMsg.textContent = "Network error. Please try again."; formMsg.classList.add("error"); }
+      formMsg && (formMsg.textContent = "Network error. Please try again.", formMsg.classList.add("error"));
     }
   });
 })();
@@ -547,8 +543,8 @@ Notes: ${notes}`.trim());
       handicap: p.handicap ?? "",
       email: p.email ?? "",
       phone: p.phone ?? "",
-      // ✅ include photo path in exports/tables
-      photo: getPlayerPhotoURL(p) ? (PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + (p.photo || `${slugifyName(p)}.png`)) : ""
+      // include photo path in exports/tables
+      photo: (p.photo ? (PLAYER_PHOTO_BASE_PATH.replace(/\/+$/,"") + "/" + p.photo.replace(/^\/+/, "").replace(/^players\//i,"")) : (slugifyName(p) ? `images/players/${slugifyName(p)}.png` : ""))
     }));
   }
 
@@ -576,7 +572,6 @@ Notes: ${notes}`.trim());
       handicap: p.handicap ?? "",
       email: p.email ?? "",
       phone: p.phone ?? "",
-      // ✅ include photo path if present/expected
       photo: p.photo ? p.photo : (slugifyName(p) ? `images/players/${slugifyName(p)}.png` : "")
     }));
   }
@@ -658,4 +653,5 @@ Notes: ${notes}`.trim());
   const snap = readSharedSnapshot();
   if (!snap) writeSharedSnapshot({ eventName: "Ozark Invitational" });
 })();
+
 </script>
