@@ -192,11 +192,13 @@
             <span class="muted">Join the Ozark Invitational</span>
           </div>
 
-          <form id="signupForm" action="https://formspree.io/f/xnnokdqb" method="POST">
+          <!-- CHANGED: removed action/method; added novalidate + hidden _redirect -->
+          <form id="signupForm" novalidate>
             <div style="position: absolute; left: -5000px;" aria-hidden="true">
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
             </div>
             <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
+            <input type="hidden" name="_redirect" value="false" />
 
             <div class="form-row">
               <div class="full">
@@ -206,16 +208,11 @@
             </div>
 
             <div class="form-row">
-  <div class="full">
-    <label for="nickname">Nickname (optional)</label>
-    <input
-      type="text"
-      id="nickname"
-      name="nickname"
-      placeholder="e.g., Long Ball"
-    />
-  </div>
-</div>
+              <div class="full">
+                <label for="nickname">Nickname (optional)</label>
+                <input type="text" id="nickname" name="nickname" placeholder="e.g., Long Ball" />
+              </div>
+            </div>
 
             <div class="form-row">
               <div class="full">
@@ -235,20 +232,20 @@
             </div>
 
             <div class="form-row">
-  <div class="full">
-    <label for="signupTeam">Team</label>
-    <select id="signupTeam" name="team" required>
-      <option value="" disabled selected>Select a team…</option>
-      <option value="ozark">Team Ozark</option>
-      <option value="valley">Team Valley</option>
-    </select>
-  </div>
-</div>
+              <div class="full">
+                <label for="signupTeam">Team</label>
+                <select id="signupTeam" name="team" required>
+                  <option value="" disabled selected>Select a team…</option>
+                  <option value="ozark">Team Ozark</option>
+                  <option value="valley">Team Valley</option>
+                </select>
+              </div>
+            </div>
 
             <div class="full">
-  <label for="photo">Player Photo (optional)</label>
-  <input type="file" id="photo" name="photo" accept="image/*" capture="environment" />
-</div>
+              <label for="photo">Player Photo (optional)</label>
+              <input type="file" id="photo" name="photo" accept="image/*" capture="environment" />
+            </div>
 
             <div class="full">
               <label for="notes">Notes</label>
@@ -269,12 +266,12 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
+  <!-- (Optional) Keep this small helper if you want, but script.js already handles tabs -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
       const days = Array.from(document.querySelectorAll('.schedule-day'));
       if (!buttons.length || !days.length) return;
-
       function show(id) {
         days.forEach(d => {
           const active = d.id === id;
@@ -283,7 +280,6 @@
         });
         buttons.forEach(b => b.classList.toggle('active', b.dataset.day === id));
       }
-
       buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.day)));
     })();
   </script>
