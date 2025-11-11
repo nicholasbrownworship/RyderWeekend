@@ -206,6 +206,18 @@
             </div>
 
             <div class="form-row">
+  <div class="full">
+    <label for="nickname">Nickname (optional)</label>
+    <input
+      type="text"
+      id="nickname"
+      name="nickname"
+      placeholder="e.g., Long Ball"
+    />
+  </div>
+</div>
+
+            <div class="form-row">
               <div class="full">
                 <label for="handicap">Handicap (or average score)</label>
                 <input type="number" id="handicap" name="handicap" placeholder="Handicap" required />
@@ -222,11 +234,21 @@
               <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required />
             </div>
 
+            <div class="form-row">
+  <div class="full">
+    <label for="signupTeam">Team</label>
+    <select id="signupTeam" name="team" required>
+      <option value="" disabled selected>Select a team…</option>
+      <option value="ozark">Team Ozark</option>
+      <option value="valley">Team Valley</option>
+    </select>
+  </div>
+</div>
+
             <div class="full">
   <label for="photo">Player Photo (optional)</label>
   <input type="file" id="photo" name="photo" accept="image/*" capture="environment" />
 </div>
-
 
             <div class="full">
               <label for="notes">Notes</label>
