@@ -9,6 +9,8 @@ const RESPECT_SAVED_HIDDEN_SEEDED = false; // <— OFF so hard-coded players alw
 const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
 const SIGNUPS_DUPE_KEY   = "ozarkSignupsDupes_v1";
 const HIDDEN_PLAYERS_KEY = "ozarkHiddenPlayers_v1";
+// Shared bridge key used by Scoreboard/Scorecard/Leaderboard
+const SHARED_KEY = "ozarkShared_v1";
 
 // Helpers for hidden seeded players
 const loadHiddenIds = () => {
@@ -51,15 +53,14 @@ scheduleTabButtons.forEach((btn) => {
 // 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
 const players = [
-  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick.jpg",     handicap: 15, notes: "Tech guy" },
-  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "dad.jpg",      handicap: 18, notes: "OG" },
-  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh.jpg",     handicap: 11, notes: "Long hitter" },
-  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt.jpg",     handicap: 10, notes: "Short game guy" },
-  { id: "5", firstName: "Brian",   nickname: "Bri-Ri",    lastName: "Ramirez", team: "ozark",  photo: "brian.jpg.",   handicap: 25, notes: "Summerscam" },
-  { id: "6", firstName: "Ryan",    nickname: "Pastor",    lastName: "Puls",    team: "valley", photo: "ryan.jpg",     handicap: 16, notes: "Glue guy" },
-  { id: "7", firstName: "Kenny",   nickname: "Sherriff",  lastName: "Deyoung", team: "valley", photo: "kenny.jpg",    handicap: 7,  notes: "Cat scratch fever" },
-  { id: "8", firstName: "Riley",   nickname: "Caveman",   lastName: "Shelton", team: "ozark",  photo: "riley.jpg",    handicap: 13, notes: "Insane game" },
-
+  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick.jpg",   handicap: 15, notes: "Tech guy" },
+  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "dad.jpg",    handicap: 18, notes: "OG" },
+  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh.jpg",   handicap: 11, notes: "Long hitter" },
+  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt.jpg",   handicap: 10, notes: "Short game guy" },
+  { id: "5", firstName: "Brian",   nickname: "Bri-Ri",    lastName: "Ramirez", team: "ozark",  photo: "brian.jpg",  handicap: 25, notes: "Summerscam" }, // <- fixed
+  { id: "6", firstName: "Ryan",    nickname: "Pastor",    lastName: "Puls",    team: "valley", photo: "ryan.jpg",   handicap: 16, notes: "Glue guy" },
+  { id: "7", firstName: "Kenny",   nickname: "Sherriff",  lastName: "Deyoung", team: "valley", photo: "kenny.jpg",  handicap: 7,  notes: "Cat scratch fever" },
+  { id: "8", firstName: "Riley",   nickname: "Caveman",   lastName: "Shelton", team: "ozark",  photo: "riley.jpg",  handicap: 13, notes: "Insane game" },
   // add more players here
 ];
 
@@ -283,6 +284,7 @@ renderWheel("all");
     }
 
     const prior = loadDupes();
+    const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
     const normalizeName = normalize(rawName);
     const isDupe = prior.some(p => p.name === normalizeName && p.email === normalize(contact));
     if (isDupe) {
@@ -322,7 +324,7 @@ Notes: ${notes}`.trim());
 
       if (res.ok) {
         prior.push({ name: normalizeName, email: normalize(contact), ts: Date.now() });
-        saveDupes(prior);
+        localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(prior));
 
         const playerObj = {
           id: (crypto?.randomUUID?.() || String(Date.now())),
@@ -492,4 +494,55 @@ Notes: ${notes}`.trim());
   });
 
   if (exportBtn) exportBtn.addEventListener("click", exportActiveCSV);
+})();
+
+// =======================
+// 8) SHARED SNAPSHOT BRIDGE (Scoreboard/Scorecard/Leaderboard)
+// =======================
+// This adds tiny helpers every page can use. The Scoreboard page should call publishSharedSnapshot()
+// whenever pairings, results, dates, or formats change. Scorecard/Leaderboard already *read* this key.
+(function(){
+  function safeParse(json){
+    try { return JSON.parse(json); } catch { return null; }
+  }
+
+  function readSharedSnapshot(){
+    const raw = localStorage.getItem(SHARED_KEY);
+    return safeParse(raw);
+  }
+
+  // Merge and write a partial snapshot. Auto-stamps ts.
+  function writeSharedSnapshot(partial){
+    const cur = readSharedSnapshot() || {};
+    const merged = {
+      ...cur,
+      ...partial,
+      // shallow-merge nested objects you commonly update:
+      format: { ...(cur.format||{}), ...(partial.format||{}) },
+      groups: { ...(cur.groups||{}), ...(partial.groups||{}) },
+      results:{ ...(cur.results||{}), ...(partial.results||{}) },
+      dates:  { ...(cur.dates||{}),   ...(partial.dates||{})   },
+      ts: Date.now()
+    };
+    localStorage.setItem(SHARED_KEY, JSON.stringify(merged));
+    // Trigger "storage" for other tabs/windows in same origin
+    // (same-tab listeners won't fire; they read immediately on write)
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: SHARED_KEY, newValue: JSON.stringify(merged) }));
+    } catch {}
+    return merged;
+  }
+
+  // Expose a tiny API
+  window.OZARK = Object.freeze({
+    readSharedSnapshot,
+    writeSharedSnapshot,
+    SHARED_KEY
+  });
+
+  // Optional: initialize with event name if not set (harmless on pages that never use it)
+  const snap = readSharedSnapshot();
+  if (!snap) {
+    writeSharedSnapshot({ eventName: "Ozark Invitational" });
+  }
 })();
