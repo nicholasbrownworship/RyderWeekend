@@ -237,262 +237,383 @@
     </section>
   </div>
 
-  <!-- Tiny inline helpers for the shared header -->
-  <script>
-    // Mobile menu toggle
-    (function () {
-      const btn = document.getElementById('navToggle');
-      const nav = document.querySelector('.nav');
-      if (!btn || !nav) return;
-      btn.addEventListener('click', () => {
-        const open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        nav.classList.toggle('open', !open);
-      });
-    })();
+ <script>
+  // Mobile menu toggle
+  (function () {
+    const btn = document.getElementById('navToggle');
+    const nav = document.querySelector('.nav');
+    if (!btn || !nav) return;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      nav.classList.toggle('open', !open);
+    });
+  })();
 
-    // Current tab highlight (GitHub Pages-safe)
-    (function(){
-      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-      document.querySelectorAll('.nav a').forEach(a => {
-        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
-        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
-      });
-    })();
+  // Current tab highlight (GitHub Pages-safe)
+  (function(){
+    const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    document.querySelectorAll('.nav a').forEach(a => {
+      const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+      if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+    });
+  })();
 
-    // ----- Scorecard logic (unchanged) -----
-    const card = document.getElementById('card');
-    const metaCourse = document.getElementById('metaCourse');
-    const metaTees   = document.getElementById('metaTees');
-    const metaFormat = document.getElementById('metaFormat');
-    const metaDate   = document.getElementById('metaDate');
-    const metaGroup  = document.getElementById('metaGroup');
+  // ----- Scorecard logic + persistence -----
+  const card = document.getElementById('card');
+  const metaCourse = document.getElementById('metaCourse');
+  const metaTees   = document.getElementById('metaTees');
+  const metaFormat = document.getElementById('metaFormat');
+  const metaDate   = document.getElementById('metaDate');
+  const metaGroup  = document.getElementById('metaGroup');
 
-    function toggleDrawer(){ const d = document.getElementById('drawer'); d.hidden = !d.hidden; }
+  const SCORE_KEY_PREFIX = 'ozarkScores_v1';
 
-    // Build 18 scoring cells for template rows
-    function ensureCells(tr){
-      const needed = 18 + 3; // 18 holes + OUT + IN + TOT (we already have 2 cells at start: name + hcp)
-      while(tr.children.length < (2 + needed)){
-        const td = document.createElement('td');
-        td.contentEditable = true;
-        td.className = 'sc';
-        tr.appendChild(td);
-      }
-      // Label OUT/IN/TOT cells
+  function toggleDrawer(){
+    const d = document.getElementById('drawer');
+    d.hidden = !d.hidden;
+  }
+
+  // Build 18 scoring cells for template rows
+  function ensureCells(tr){
+    const needed = 18 + 3; // 18 holes + OUT + IN + TOT (we already have 2 cells at start: name + hcp)
+    while(tr.children.length < (2 + needed)){
+      const td = document.createElement('td');
+      td.contentEditable = true;
+      td.className = 'sc';
+      tr.appendChild(td);
+    }
+    // Label OUT/IN/TOT cells
+    const tds = Array.from(tr.children);
+    const out = tds[2+9];       // OUT
+    const inn = tds[2+18+1];    // IN
+    const tot = tds[2+18+2];    // TOT
+    if(out) out.classList.add('accent','sum-out');
+    if(inn) inn.classList.add('accent','sum-in');
+    if(tot) tot.classList.add('accent','sum-tot');
+  }
+
+  function fillRow(rowId, arrF, arrB, withTotals){
+    const tr = document.getElementById(rowId);
+    ensureCells(tr);
+    const tds = Array.from(tr.children);
+    for(let i=0;i<18;i++){
+      tds[2+i].textContent = (i<9?arrF[i]:arrB[i-9]) ?? '';
+      tds[2+i].contentEditable = false;
+    }
+    if(withTotals){
+      const sumF = arrF.reduce((a,b)=>a+(+b||0),0);
+      const sumB = arrB.reduce((a,b)=>a+(+b||0),0);
+      tds[2+9].textContent = sumF;          // OUT
+      tds[2+18+1].textContent = sumB;       // IN
+      tds[2+18+2].textContent = sumF+sumB;  // TOT
+    }
+  }
+
+  function buildPlayerRows(){
+    card.querySelectorAll('tbody tr.p').forEach(tr=>ensureCells(tr));
+  }
+
+  function recalcPlayers(){
+    card.querySelectorAll('tbody tr.p').forEach(tr=>{
       const tds = Array.from(tr.children);
-      const out = tds[2+9];       // OUT summary cell index
-      const inn = tds[2+18+1];    // IN
-      const tot = tds[2+18+2];    // TOT
-      if(out) out.classList.add('accent','sum-out');
-      if(inn) inn.classList.add('accent','sum-in');
-      if(tot) tot.classList.add('accent','sum-tot');
+      let out=0,in_=0;
+      for(let i=0;i<9;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) out+=v; }
+      for(let i=9;i<18;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) in_+=v; }
+      tds[2+9].textContent = out||'';
+      tds[2+18+1].textContent = in_||'';
+      tds[2+18+2].textContent = (out+in_)||'';
+    });
+  }
+
+  function parseCSV(str, len){
+    const arr = String(str||'').split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
+    while(arr.length < len) arr.push('');
+    return arr.slice(0,len);
+  }
+
+  function applySetup(){
+    const parF = parseCSV(document.getElementById('parF').value,9);
+    const parB = parseCSV(document.getElementById('parB').value,9);
+    const ydF  = parseCSV(document.getElementById('ydF').value,9);
+    const ydB  = parseCSV(document.getElementById('ydB').value,9);
+    const siF  = parseCSV(document.getElementById('siF').value,9);
+    const siB  = parseCSV(document.getElementById('siB').value,9);
+
+    fillRow('rowPar', parF, parB, true);
+    fillRow('rowSI',  siF,  siB,  false);
+    if(document.getElementById('showYds').value === 'yes'){
+      document.getElementById('rowYds').style.display='table-row';
+      fillRow('rowYds', ydF, ydB, true);
+    } else {
+      document.getElementById('rowYds').style.display='none';
     }
 
-    function fillRow(rowId, arrF, arrB, withTotals){
-      const tr = document.getElementById(rowId);
-      ensureCells(tr);
+    document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
+    document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
+  }
+
+  document.getElementById('btnApply')?.addEventListener('click', applySetup);
+
+  // ========= Persistence helpers =========
+  function storageKey(sel){
+    const g = Math.max(1, parseInt(sel.group,10) || 1);
+    return `${SCORE_KEY_PREFIX}:${sel.day}:${sel.side}:${g}`;
+  }
+  function readJSON(k){
+    try { return JSON.parse(localStorage.getItem(k) || ''); } catch { return null; }
+  }
+  function writeJSON(k, v){
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+  }
+
+  function collectCardData(){
+    const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+    const players = [];
+    rows.forEach(tr=>{
+      const name = tr.querySelector('.col-name')?.textContent?.trim() || '';
+      const hcp  = tr.querySelector('.hcp')?.textContent?.trim() || '';
       const tds = Array.from(tr.children);
-      for(let i=0;i<18;i++){
-        tds[2+i].textContent = (i<9?arrF[i]:arrB[i-9]) ?? '';
-        tds[2+i].contentEditable = false;
+      const holes = [];
+      for(let i=0;i<18;i++) holes.push(tds[2+i]?.textContent || '');
+      players.push({ name, hcp, holes });
+    });
+    return {
+      meta: {
+        course: metaCourse?.textContent || '',
+        tees:   metaTees?.textContent   || '',
+        format: metaFormat?.textContent || '',
+        date:   metaDate?.textContent   || '',
+        group:  metaGroup?.textContent  || ''
+      },
+      players,
+      ts: Date.now()
+    };
+  }
+
+  function applyCardData(data){
+    if (!data) return;
+    const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+
+    // meta (non-destructive: only fill if present)
+    if (data.meta){
+      if (data.meta.course) metaCourse.textContent = data.meta.course;
+      if (data.meta.tees)   metaTees.textContent   = data.meta.tees;
+      if (data.meta.format) metaFormat.textContent = data.meta.format;
+      if (data.meta.date)   metaDate.textContent   = data.meta.date;
+      if (data.meta.group)  metaGroup.textContent  = data.meta.group;
+    }
+
+    // per-player
+    (data.players || []).forEach((p, i)=>{
+      const tr = rows[i]; if (!tr) return;
+      const nameCell = tr.querySelector('.col-name');
+      const hcpCell  = tr.querySelector('.hcp');
+      if (p.name && nameCell) nameCell.textContent = p.name;
+      if (typeof p.hcp !== 'undefined' && hcpCell) hcpCell.textContent = p.hcp;
+
+      const tds = Array.from(tr.children);
+      const holes = p.holes || [];
+      for(let h=0; h<18; h++){
+        if (typeof holes[h] !== 'undefined' && tds[2+h]){
+          tds[2+h].textContent = holes[h];
+        }
       }
-      if(withTotals){
-        const sumF = arrF.reduce((a,b)=>a+(+b||0),0);
-        const sumB = arrB.reduce((a,b)=>a+(+b||0),0);
-        tds[2+9].textContent = sumF;       // OUT
-        tds[2+18+1].textContent = sumB;    // IN
-        tds[2+18+2].textContent = sumF+sumB; // TOT
-      }
-    }
-
-    function buildPlayerRows(){
-      card.querySelectorAll('tbody tr.p').forEach(tr=>ensureCells(tr));
-    }
-
-    function recalcPlayers(){
-      card.querySelectorAll('tbody tr.p').forEach(tr=>{
-        const tds = Array.from(tr.children);
-        let out=0,in_=0;
-        for(let i=0;i<9;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) out+=v; }
-        for(let i=9;i<18;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) in_+=v; }
-        tds[2+9].textContent = out||'';
-        tds[2+18+1].textContent = in_||'';
-        tds[2+18+2].textContent = (out+in_)||'';
-      });
-    }
-
-    function parseCSV(str, len){
-      const arr = String(str||'').split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
-      while(arr.length < len) arr.push('');
-      return arr.slice(0,len);
-    }
-
-    function applySetup(){
-      const parF = parseCSV(document.getElementById('parF').value,9);
-      const parB = parseCSV(document.getElementById('parB').value,9);
-      const ydF  = parseCSV(document.getElementById('ydF').value,9);
-      const ydB  = parseCSV(document.getElementById('ydB').value,9);
-      const siF  = parseCSV(document.getElementById('siF').value,9);
-      const siB  = parseCSV(document.getElementById('siB').value,9);
-
-      fillRow('rowPar', parF, parB, true);
-      fillRow('rowSI', siF,  siB,  false);
-      if(document.getElementById('showYds').value === 'yes'){
-        document.getElementById('rowYds').style.display='table-row';
-        fillRow('rowYds', ydF, ydB, true);
-      } else {
-        document.getElementById('rowYds').style.display='none';
-      }
-
-      document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
-      document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
-    }
-
-    document.getElementById('btnApply').addEventListener('click', applySetup);
-
-    // Initial build of cells and baseline course values
-    buildPlayerRows();
-    applySetup();
-
-    // Live totals as you type
-    card.addEventListener('input', e=>{
-      if(e.target.classList.contains('sc')) recalcPlayers();
     });
 
-    // ========= BRIDGE-LITE (adopt scoreboard pairings) =========
-    (function(){
-      const SHARED_KEY = "ozarkShared_v1";
-      let LAST_TS = 0;
+    recalcPlayers();
+  }
 
-      function qs(name, fallback){
-        const u = new URL(location.href);
-        return u.searchParams.get(name) || fallback;
+  // Debounced autosave
+  let saveTO = null;
+  function scheduleSave(sel){
+    if (saveTO) clearTimeout(saveTO);
+    saveTO = setTimeout(()=>{
+      const k = storageKey(sel);
+      writeJSON(k, collectCardData());
+    }, 250);
+  }
+
+  // On any score/HCP/meta edit, save to the current selection
+  function wireAutosave(getSel){
+    card.addEventListener('input', e=>{
+      if (e.target.classList.contains('sc') || e.target.classList.contains('hcp')){
+        recalcPlayers();
+        scheduleSave(getSel());
       }
+    });
+    [metaCourse, metaTees, metaFormat, metaDate, metaGroup].forEach(el=>{
+      el?.addEventListener('blur', ()=> scheduleSave(getSel()));
+      el?.addEventListener('input', ()=> scheduleSave(getSel()));
+    });
+    window.addEventListener('beforeunload', ()=> writeJSON(storageKey(getSel()), collectCardData()));
+  }
 
-      // Controls in drawer (for changing which pairing to view/print)
-      const selDay   = document.getElementById('selDay');
-      const selSide  = document.getElementById('selSide');
-      const selGroup = document.getElementById('selGroup');
+  // Initial build of cells and baseline course values
+  buildPlayerRows();
+  applySetup();
+  // Live totals as you type (kept for safety—autosave also triggers recalc)
+  card.addEventListener('input', e=>{
+    if(e.target.classList.contains('sc')) recalcPlayers();
+  });
 
-      // Default selection from URL (supports ?day=day1&side=front&group=1)
-      let current = {
-        day:  (qs('day','day1') === 'day2') ? 'day2' : 'day1',
-        side: (qs('side','front') === 'back') ? 'back' : 'front',
-        group: Math.max(1, parseInt(qs('group','1'), 10) || 1)
-      };
-      selDay.value = current.day;
-      selSide.value = current.side;
+  // ========= BRIDGE-LITE (adopt scoreboard pairings) + persistence wiring =========
+  (function(){
+    const SHARED_KEY = "ozarkShared_v1";
+    let LAST_TS = 0;
 
-      selDay.addEventListener('change', ()=>{ current.day = selDay.value; refreshFromShared(); });
-      selSide.addEventListener('change', ()=>{ current.side = selSide.value; refreshFromShared(); });
-      selGroup.addEventListener('change', ()=>{ current.group = parseInt(selGroup.value,10)||1; renderSelectedGroup(); });
+    function qs(name, fallback){
+      const u = new URL(location.href);
+      return u.searchParams.get(name) || fallback;
+    }
 
-      // If user edits the Group # meta cell, respect it on blur
-      metaGroup.addEventListener('blur', ()=>{
-        const n = parseInt(metaGroup.textContent,10);
-        if (Number.isFinite(n) && n>0) {
-          current.group = n;
-          if (selGroup.value !== String(n)) selGroup.value = String(n);
-          renderSelectedGroup();
-        }
-      });
+    // Controls in drawer (for changing which pairing to view/print)
+    const selDay   = document.getElementById('selDay');
+    const selSide  = document.getElementById('selSide');
+    const selGroup = document.getElementById('selGroup');
 
-      let shared = null; // latest snapshot
+    // Default selection from URL (supports ?day=day1&side=front&group=1)
+    let current = {
+      day:  (qs('day','day1') === 'day2') ? 'day2' : 'day1',
+      side: (qs('side','front') === 'back') ? 'back' : 'front',
+      group: Math.max(1, parseInt(qs('group','1'), 10) || 1)
+    };
+    selDay.value = current.day;
+    selSide.value = current.side;
 
-      function adoptShared(raw){
-        if(!raw) return;
-        shared = raw;
-        LAST_TS = raw.ts || Date.now();
+    function getSel(){ return { day: current.day, side: current.side, group: current.group }; }
+    window.__scorecardSel = getSel; // expose for debugging
 
-        // Fill group count selector
-        try{
-          const list = (shared.groups?.[current.day]?.[current.side]) || [];
-          const count = Math.max(1, list.length || 1);
-          const opts = [];
-          for(let i=1;i<=count;i++) opts.push(`<option value="${i}">${i}</option>`);
-          selGroup.innerHTML = opts.join('');
-          if (current.group > count) current.group = count;
-          selGroup.value = String(current.group);
-        }catch{}
-
-        // Fill meta: Format + Date from selection
-        const fmt = (shared.format?.[current.day]?.[current.side]) || 'Best Ball';
-        metaFormat.textContent = fmt;
-
-        const dateStr = (shared.dates && shared.dates[current.day]) ? shared.dates[current.day] : metaDate.textContent;
-        if (dateStr) metaDate.textContent = dateStr;
-
-        renderSelectedGroup();
-      }
-
-      function renderSelectedGroup(){
-        if(!shared) return;
-        const gArr = shared.groups?.[current.day]?.[current.side];
-        if(!Array.isArray(gArr) || !gArr.length) {
-          // clear names if no data
-          writePlayersToCard([]);
-          return;
-        }
-        const idx = Math.max(0, Math.min(gArr.length-1, current.group-1));
-        const ids = Array.isArray(gArr[idx]) ? gArr[idx] : [];
-
-        // Resolve IDs to player objects
-        const byId = new Map((shared.players||[]).map(p=>[String(p.id), p]));
-        const players = ids.map(id => byId.get(String(id)) || null);
-
-        // Update Meta group #
-        metaGroup.textContent = String(idx+1);
-
-        writePlayersToCard(players);
-      }
-
-      function writePlayersToCard(players){
-        const rows = Array.from(card.querySelectorAll('tbody tr.p'));
-        for(let i=0;i<4;i++){
-          const r = rows[i];
-          const nameCell = r?.querySelector('.col-name');
-          const hcpCell  = r?.querySelector('.hcp');
-          const p = players[i] || null;
-
-          if (!nameCell || !hcpCell) continue;
-
-          if (p){
-            const teamShort = p.team === 'valley' ? 'VA' : 'OZ';
-            const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
-            nameCell.textContent = `${p.firstName || ''}${nick} ${p.lastName || ''} (${teamShort})`.replace(/\s+/g,' ').trim();
-            hcpCell.textContent = (Number.isFinite(p.handicap) ? p.handicap : '0');
-          } else {
-            nameCell.textContent = `Player ${i+1}`;
-            hcpCell.textContent = '0';
-          }
-        }
-      }
-
-      function refreshFromShared(){
-        try{
-          const raw = localStorage.getItem(SHARED_KEY);
-          if(!raw) return;
-          const snap = JSON.parse(raw);
-          if (!snap) return;
-          adoptShared(snap);
-        }catch(e){ console.warn('[scorecard bridge] parse error', e); }
-      }
-
-      // boot
+    selDay.addEventListener('change', ()=>{
+      current.day = selDay.value;
+      refreshFromShared(); // will render + then try load persisted scores for new selection
+    });
+    selSide.addEventListener('change', ()=>{
+      current.side = selSide.value;
       refreshFromShared();
+    });
+    selGroup.addEventListener('change', ()=>{
+      current.group = parseInt(selGroup.value,10)||1;
+      renderSelectedGroup(); // and then load for this selection
+      loadPersistedForCurrent();
+    });
 
-      // react to scoreboard changes
-      window.addEventListener('storage', (e)=>{
-        if (e.key !== SHARED_KEY || !e.newValue) return;
-        let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
-        if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
-        adoptShared(inc);
-      });
+    // If user edits the Group # meta cell, respect it on blur
+    metaGroup.addEventListener('blur', ()=>{
+      const n = parseInt(metaGroup.textContent,10);
+      if (Number.isFinite(n) && n>0) {
+        current.group = n;
+        if (selGroup.value !== String(n)) selGroup.value = String(n);
+        renderSelectedGroup();
+        loadPersistedForCurrent();
+      }
+    });
 
-      // keep drawer selection in sync with URL if provided
-      // (no pushState changes; just initial read)
-    })();
-  </script>
+    let shared = null; // latest snapshot
+
+    function adoptShared(raw){
+      if(!raw) return;
+      shared = raw;
+      LAST_TS = raw.ts || Date.now();
+
+      // Fill group count selector
+      try{
+        const list = (shared.groups?.[current.day]?.[current.side]) || [];
+        const count = Math.max(1, list.length || 1);
+        const opts = [];
+        for(let i=1;i<=count;i++) opts.push(`<option value="${i}">${i}</option>`);
+        selGroup.innerHTML = opts.join('');
+        if (current.group > count) current.group = count;
+        selGroup.value = String(current.group);
+      }catch{}
+
+      // Fill meta: Format + Date from selection
+      const fmt = (shared.format?.[current.day]?.[current.side]) || 'Best Ball';
+      metaFormat.textContent = fmt;
+
+      const dateStr = (shared.dates && shared.dates[current.day]) ? shared.dates[current.day] : metaDate.textContent;
+      if (dateStr) metaDate.textContent = dateStr;
+
+      renderSelectedGroup();
+      // After names land, apply any persisted scores for this selection
+      loadPersistedForCurrent();
+    }
+
+    function renderSelectedGroup(){
+      if(!shared) return;
+      const gArr = shared.groups?.[current.day]?.[current.side];
+      if(!Array.isArray(gArr) || !gArr.length) {
+        writePlayersToCard([]);
+        return;
+      }
+      const idx = Math.max(0, Math.min(gArr.length-1, current.group-1));
+      const ids = Array.isArray(gArr[idx]) ? gArr[idx] : [];
+
+      // Resolve IDs to player objects
+      const byId = new Map((shared.players||[]).map(p=>[String(p.id), p]));
+      const players = ids.map(id => byId.get(String(id)) || null);
+
+      // Update Meta group #
+      metaGroup.textContent = String(idx+1);
+
+      writePlayersToCard(players);
+    }
+
+    function writePlayersToCard(players){
+      const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+      for(let i=0;i<4;i++){
+        const r = rows[i];
+        const nameCell = r?.querySelector('.col-name');
+        const hcpCell  = r?.querySelector('.hcp');
+        const p = players[i] || null;
+
+        if (!nameCell || !hcpCell) continue;
+
+        if (p){
+          const teamShort = p.team === 'valley' ? 'VA' : 'OZ';
+          const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
+          nameCell.textContent = `${p.firstName || ''}${nick} ${p.lastName || ''} (${teamShort})`.replace(/\s+/g,' ').trim();
+          hcpCell.textContent = (Number.isFinite(p.handicap) ? p.handicap : '0');
+        } else {
+          nameCell.textContent = `Player ${i+1}`;
+          hcpCell.textContent = '0';
+        }
+      }
+    }
+
+    function refreshFromShared(){
+      try{
+        const raw = localStorage.getItem(SHARED_KEY);
+        if(!raw) return;
+        const snap = JSON.parse(raw);
+        if (!snap) return;
+        adoptShared(snap);
+      }catch(e){ console.warn('[scorecard bridge] parse error', e); }
+    }
+
+    // ---------- Persistence: load for current selection ----------
+    function loadPersistedForCurrent(){
+      const data = readJSON(storageKey(getSel()));
+      if (data) applyCardData(data);
+    }
+
+    // boot
+    refreshFromShared();
+
+    // react to scoreboard changes
+    window.addEventListener('storage', (e)=>{
+      if (e.key !== SHARED_KEY || !e.newValue) return;
+      let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
+      if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
+      adoptShared(inc);
+      // after adopting new snapshot, try reapplying persisted scores for current
+      loadPersistedForCurrent();
+    });
+
+    // wire autosave using the live selection
+    wireAutosave(getSel);
+  })();
+</script>
+
 </body>
 </html>
