@@ -3,345 +3,401 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scoreboard — Ozark Invitational</title>
+  <title>Leaderboard – Ozark Invitational</title>
+
+  <!-- Site-wide styles & scripts (for topbar, buttons, etc.) -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+
   <style>
     :root{
       --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
-      --radius:16px; --shadow:0 14px 36px rgba(0,0,0,.08);
+      --panel:#ffffff; --line:#e7e0d1;
+      --radius:14px; --shadow:0 14px 38px rgba(0,0,0,.06);
       --oz:#2ecc71; --va:#3498db;
-      --fs:1; /* UI scale */
     }
-    *{box-sizing:border-box}
+
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif; line-height:1.5}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 
-    .wrap{max-width:1200px;margin:28px auto;padding:16px; transform:scale(var(--fs)); transform-origin: top center}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
-    h1{margin:0;color:var(--green);letter-spacing:.02em}
-    .sub{margin:4px 0 0;color:#5b5b5b}
+    .wrap{max-width:1100px;margin:88px auto 20px;padding:12px}
 
-    .panel{background:var(--cream);border:1px solid #e7e1d6;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .grid{display:grid;gap:14px}
-    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
-    .grid.cols-2{grid-template-columns:1.3fr .7fr}
-    @media (max-width:1100px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:40px;height:40px;border-radius:999px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}
+    .title{font-weight:800;letter-spacing:-.01em}
+    .sub{opacity:.7;font-size:.9rem;margin-top:-2px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:var(--green);color:#fff;border:none;border-radius:999px;padding:.5rem 1rem;font-weight:700;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
 
-    .btn{appearance:none;border:1px solid var(--green);background:var(--green);color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-    .btn.ghost{background:#fff;color:var(--green)}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    select,input[type="number"]{padding:8px 10px;border:1px solid #c9c3b8;border-radius:10px;background:#fff}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff}
+    .card .body{padding:12px 14px}
 
-    /* Team score bar */
-    .scorebar{display:flex;gap:14px;align-items:center}
-    .bar{position:relative;height:22px;border:1px solid #d8d0c2;background:#fff;border-radius:999px;overflow:hidden;flex:1}
-    .fillA,.fillB{position:absolute;top:0;bottom:0}
-    .fillA{left:0;background:linear-gradient(90deg,var(--oz),#25a65b)}
-    .fillB{right:0;background:linear-gradient(90deg,#2a6ea8,var(--va))}
-    .ticks{display:flex;gap:8px;margin-top:6px;font-size:12px;color:#6b614f}
-    .kpi{display:flex;gap:8px;align-items:center;font-weight:800}
-    .pill{padding:4px 8px;border:1px solid #d8d0c2;border-radius:999px;background:#fff}
+    .totals{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+    .teamBox{display:flex;flex-direction:column;gap:6px}
+    .teamName{font-weight:800;letter-spacing:.02em}
+    .teamScore{font-size:2rem;font-weight:900}
+    .bar{height:14px;background:#eee;border-radius:999px;overflow:hidden;border:1px solid #ddd}
+    .bar > div{height:100%}
 
-    /* Tables */
-    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
-    thead th{position:sticky;top:0;background:#f7f4ed;border-bottom:1px solid #e5ddcf;padding:10px;text-align:left;font-size:14px}
-    tbody td{padding:10px;border-bottom:1px solid #efe8db;vertical-align:middle}
-    tbody tr:nth-child(odd){background:#faf7f1}
-    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    select{padding:.5rem .7rem;border:1px solid #d9d2c4;border-radius:10px;background:#fff;font:inherit}
 
-    .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .badge{padding:4px 10px;border-radius:999px;background:#fff;border:1px solid #d8d0c2;font-weight:800}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid #ece6d6;padding:.55rem .6rem;font-size:.95rem;text-align:left}
+    .table thead th{background:#f7f4ec;font-weight:800}
+    .muted{opacity:.7}
 
-    /* Winner banner */
-    .banner{display:none;margin-top:10px;padding:12px;border-radius:12px;background:#d1e7dd;border:1px solid #badbcc;color:#0f5132;font-weight:900}
-    .banner.show{display:block}
+    .badge{border:1px solid #d9d2c4;border-radius:999px;padding:.2rem .5rem;background:#fff;font-size:.75rem}
+    .pill{border:1px solid #d9d2c4;border-radius:999px;padding:.15rem .5rem;background:#fff;font-size:.75rem}
 
-    /* Ticker */
-    .ticker{overflow:hidden;white-space:nowrap;border-top:1px dashed #e0d8c8;color:#6b614f;padding-top:10px;font-size:14px}
-    .ticker span{margin-right:24px}
+    .winner{font-weight:800}
+    .oz{color:var(--green-dark)}
+    .va{color:#1b4d80}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+    .dot.oz{background:var(--oz)}
+    .dot.va{background:var(--va)}
+
+    .small{font-size:.85rem}
+
+    @media print{
+      .topbar, .actions, .filters{display:none}
+      .wrap{max-width:none;margin:0;padding:0}
+      .card{box-shadow:none;border:1px solid #bbb;border-radius:10px}
+      .card .head{background:#fff;border-bottom:1px solid #ddd}
+    }
   </style>
 </head>
 <body>
+
+  <!-- Shared site header / nav -->
+  <header class="topbar">
+    <div class="logo-wrap">
+      <div class="logo-circle">OI</div>
+      <div class="logo-text">
+        <span class="title">Ozark Invitational</span>
+        <span class="subtitle">Family Golf Tournament</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="scorecard.html">Scorecard</a>
+      <a href="scoreboard.html">Scoreboard</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="index.html#teams">Players</a>
+      <a href="index.html#sponsors">Sponsors</a>
+      <a href="index.html#signup" class="btn-nav">Sign Up</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </header>
+
   <div class="wrap">
-    <header>
-      <div>
-        <h1>Event Scoreboard</h1>
-        <div class="sub">Auto-syncs with your Leaderboard & Ryder pages (localStorage).</div>
-      </div>
-      <div class="row">
-        <button class="btn" id="btnFullscreen">Fullscreen</button>
-        <label class="pill">Refresh:
-          <select id="refreshRate">
-            <option value="0">Paused</option>
-            <option value="3000">3s</option>
-            <option value="5000" selected>5s</option>
-            <option value="10000">10s</option>
-          </select>
-        </label>
-        <label class="pill">Scale:
-          <select id="scaleSel">
-            <option value="0.9">90%</option>
-            <option value="1" selected>100%</option>
-            <option value="1.1">110%</option>
-            <option value="1.2">120%</option>
-          </select>
-        </label>
-      </div>
-    </header>
-
-    <!-- Ryder Team vs Team -->
-    <section class="panel" id="ryderPanel">
-      <div class="title">
-        <div class="row">
-          <span class="badge">Ryder Points</span>
-          <span id="ryMeta" class="sub"></span>
+    <div class="hdr">
+      <div class="brand">
+        <div class="logo">OI</div>
+        <div>
+          <div class="title">Ozark Invitational — Leaderboard</div>
+          <div class="sub">Live team totals & round-by-round results</div>
         </div>
-        <div id="winnerBanner" class="banner"></div>
       </div>
+      <div class="actions">
+        <button class="btn" onclick="window.print()">Print</button>
+      </div>
+    </div>
 
-      <div class="scorebar">
-        <div class="kpi" id="labelA"><span style="width:12px;height:12px;border-radius:50%;background:var(--oz);display:inline-block"></span><span>Team A</span><span id="ptsA">0</span></div>
-        <div class="bar">
-          <div class="fillA" id="fillA" style="width:0%"></div>
-          <div class="fillB" id="fillB" style="width:0%"></div>
+    <!-- Totals card -->
+    <section class="card" style="margin-bottom:12px">
+      <div class="head">
+        <div class="filters">
+          <label class="small">Day
+            <select id="fDay">
+              <option value="all">All</option>
+              <option value="day1">Day 1</option>
+              <option value="day2">Day 2</option>
+            </select>
+          </label>
+          <label class="small">Side
+            <select id="fSide">
+              <option value="all">All</option>
+              <option value="front">Front 9</option>
+              <option value="back">Back 9</option>
+            </select>
+          </label>
         </div>
-        <div class="kpi" id="labelB"><span style="width:12px;height:12px;border-radius:50%;background:var(--va);display:inline-block"></span><span>Team B</span><span id="ptsB">0</span></div>
+        <div class="badge small" id="eventNameBadge">Event</div>
       </div>
-      <div class="ticks" id="ryTicks"></div>
-      <div class="ticker" id="ryTicker"></div>
+      <div class="body">
+        <div class="totals">
+          <div class="teamBox">
+            <div class="teamName"><span class="dot oz"></span>Team Ozark</div>
+            <div class="teamScore" id="scoreOz">0</div>
+          </div>
+
+          <div class="bar" aria-label="Match progress">
+            <div id="barFill" style="width:50%; background:linear-gradient(90deg, var(--oz), var(--va));"></div>
+          </div>
+
+          <div class="teamBox" style="align-items:end;text-align:right">
+            <div class="teamName"><span class="dot va"></span>Team Valley</div>
+            <div class="teamScore" id="scoreVa">0</div>
+          </div>
+        </div>
+        <div class="small muted" style="margin-top:8px">
+          <span class="pill">Team formats: 1 pt</span>
+          <span class="pill">Singles matches: 1 pt each</span>
+          <span class="pill">Tie: 0.5 / 0.5</span>
+        </div>
+      </div>
     </section>
 
-    <!-- Leader lists -->
-    <section class="grid cols-3" style="margin-top:14px">
-      <div class="panel">
-        <div class="title"><h3 style="margin:0">Top 10 — Gross</h3><span class="badge" id="grossParBadge">Par: —</span></div>
-        <div style="overflow:auto;border-radius:12px">
-          <table id="tblGross">
-            <thead><tr><th>#</th><th>Player</th><th>Team</th><th class="num">R1</th><th class="num">R2</th><th class="num">R3</th><th class="num">R4</th><th class="num">Gross</th><th class="num">±Par</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+    <!-- Results table -->
+    <section class="card">
+      <div class="head">
+        <strong>Round Results</strong>
+        <span class="small muted" id="filterNote"></span>
       </div>
-
-      <div class="panel">
-        <div class="title"><h3 style="margin:0">Top 10 — Net</h3><span class="badge">HCP Applied</span></div>
-        <div style="overflow:auto;border-radius:12px">
-          <table id="tblNet">
-            <thead><tr><th>#</th><th>Player</th><th>Team</th><th class="num">Gross</th><th class="num">HCP</th><th class="num">Net</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="title"><h3 style="margin:0">Round Leaders</h3><span class="badge" id="rlParBadge">Pars set per round</span></div>
-        <div style="overflow:auto;border-radius:12px">
-          <table id="tblRounds">
-            <thead><tr><th>Round</th><th>Leader</th><th class="num">Score</th><th class="num">±Par</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <div class="body">
+        <table class="table" id="tbl">
+          <thead>
+            <tr>
+              <th style="width:110px">Day</th>
+              <th style="width:110px">Side</th>
+              <th style="width:140px">Format</th>
+              <th style="width:70px">Group</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
       </div>
     </section>
   </div>
 
-<script>
-/* ===== Keys shared with leaderboard.html ===== */
-const LS_KEY = 'scoreboard_players_v8';
-const PAR_KEY = 'scoreboard_par_v1';
-const RYDER_KEY = 'scoreboard_ryder_v3';
+  <!-- Tiny inline helpers for the shared header -->
+  <script>
+    // Mobile menu toggle
+    (function () {
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        nav.classList.toggle('open', !open);
+      });
+    })();
 
-/* ===== State ===== */
-let players = [];
-let par = { r1:null, r2:null, r3:null, r4:null };
-let ryder = { teams:[], teamA:null, teamB:null, roundFormat:{r1:'Best Ball',r2:'Scramble',r3:'Alt Shot',r4:'Singles'}, matches:{r1:[],r2:[],r3:[],r4:[]} };
-let refreshTimer = null;
+    // Current tab highlight (GitHub Pages-safe)
+    (function(){
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+    })();
 
-/* ===== Elements ===== */
-const ptsA = document.getElementById('ptsA');
-const ptsB = document.getElementById('ptsB');
-const fillA = document.getElementById('fillA');
-const fillB = document.getElementById('fillB');
-const labelA = document.getElementById('labelA');
-const labelB = document.getElementById('labelB');
-const ryMeta = document.getElementById('ryMeta');
-const ryTicks = document.getElementById('ryTicks');
-const ryTicker = document.getElementById('ryTicker');
-const winnerBanner = document.getElementById('winnerBanner');
-const grossParBadge = document.getElementById('grossParBadge');
-const rlParBadge = document.getElementById('rlParBadge');
+    // ============== LEADERBOARD BRIDGE ==============
+    (function(){
+      const SHARED_KEY = "ozarkShared_v1";
+      const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
+      const TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
 
-const tblGross = document.querySelector('#tblGross tbody');
-const tblNet   = document.querySelector('#tblNet tbody');
-const tblRounds= document.querySelector('#tblRounds tbody');
+      // URL param helpers / defaults
+      function qs(name, def){ const u=new URL(location.href); return u.searchParams.get(name) || def; }
+      const fDay  = document.getElementById('fDay');
+      const fSide = document.getElementById('fSide');
+      fDay.value  = (qs('day','all').toLowerCase()==='day2') ? 'day2' : (qs('day','all').toLowerCase()==='day1' ? 'day1':'all');
+      fSide.value = (qs('side','all').toLowerCase()==='front' || qs('side','all').toLowerCase()==='back') ? qs('side','all').toLowerCase() : 'all';
 
-const scaleSel = document.getElementById('scaleSel');
-const refreshSel = document.getElementById('refreshRate');
-const btnFullscreen = document.getElementById('btnFullscreen');
+      const elOz   = document.getElementById('scoreOz');
+      const elVa   = document.getElementById('scoreVa');
+      const bar    = document.getElementById('barFill');
+      const tbody  = document.getElementById('tbody');
+      const note   = document.getElementById('filterNote');
+      const evtBadge = document.getElementById('eventNameBadge');
 
-/* ===== Utils ===== */
-const sum = arr => arr.reduce((s,v)=>s+(Number.isFinite(v)?v:0),0);
-const esc = s => String(s??'').replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-function loadAll(){
-  try{ const raw = localStorage.getItem(LS_KEY); if(raw) players = JSON.parse(raw)||[]; else players = []; }catch{ players = []; }
-  try{ const rp = localStorage.getItem(PAR_KEY); if(rp) par = {...par, ...(JSON.parse(rp)||{})}; }catch{}
-  try{ const rr = localStorage.getItem(RYDER_KEY); if(rr) ryder = {...ryder, ...(JSON.parse(rr)||{})}; }catch{}
-}
-function toParRound(score, rkey){
-  if(!Number.isFinite(score) || !Number.isFinite(par[rkey])) return '';
-  const d = score - par[rkey];
-  return (d>0?'+':'') + d;
-}
-function toParTotal(total){
-  const vals=[par.r1,par.r2,par.r3,par.r4].filter(n=>Number.isFinite(n));
-  if(!vals.length) return '';
-  const pSum = vals.reduce((a,b)=>a+b,0);
-  const diff = total - pSum;
-  return (diff>0?'+':'') + diff;
-}
+      let shared=null, LAST_TS=0;
 
-/* ===== Renderers ===== */
-function renderRyder(){
-  // Compute points
-  let A=0,B=0, created=0;
-  const tickMsgs = [];
-  const teamA = ryder.teamA || 'Team A';
-  const teamB = ryder.teamB || 'Team B';
-  (['r1','r2','r3','r4']).forEach(r=>{
-    (ryder.matches[r]||[]).forEach(m=>{
-      created += 1;
-      if(m.result==='A'){ A+=1; tickMsgs.push(`${teamA} win (${r.toUpperCase()})`); }
-      else if(m.result==='B'){ B+=1; tickMsgs.push(`${teamB} win (${r.toUpperCase()})`); }
-      else if(m.result==='H'){ A+=.5; B+=.5; tickMsgs.push(`Half point each (${r.toUpperCase()})`); }
-    });
-  });
+      fDay.addEventListener('change', renderAll);
+      fSide.addEventListener('change', renderAll);
 
-  ptsA.textContent = A;
-  ptsB.textContent = B;
-  labelA.querySelector('span + span').textContent = teamA;
-  labelB.querySelector('span + span').textContent = teamB;
+      function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 
-  const totalPts = Math.max(1, created); // avoid /0
-  const aPct = Math.min(100, (A/totalPts)*100);
-  const bPct = Math.min(100, (B/totalPts)*100);
-  fillA.style.width = aPct + '%';
-  fillB.style.width = bPct + '%';
+      function tallyPoints(snap){
+        let oz=0, va=0, total=0;
 
-  ryMeta.textContent = created ? `Matches created: ${created} • Majority to clinch: ${Math.floor(created/2)+1}` : 'No matches created yet';
-  ryTicks.innerHTML = created ? Array.from({length:created}, (_,i)=>`<span>•</span>`).join('') : '';
+        const considerDay  = fDay.value;
+        const considerSide = fSide.value;
 
-  // Winner / clinch
-  const majority = created/2;
-  let msg = '';
-  if(created===0){
-    msg = '';
-  } else if (A>majority){
-    msg = `${teamA} have clinched! (${A} – ${B})`;
-  } else if (B>majority){
-    msg = `${teamB} have clinched! (${B} – ${A})`;
-  } else {
-    const needA = Math.max(0, Math.floor(majority+1 - A));
-    const needB = Math.max(0, Math.floor(majority+1 - B));
-    msg = `First to ${Math.floor(majority)+1} points clinches • ${teamA} need ~${needA}, ${teamB} need ~${needB}`;
-  }
-  if(msg){ winnerBanner.textContent = msg; winnerBanner.classList.add('show'); }
-  else { winnerBanner.textContent = ''; winnerBanner.classList.remove('show'); }
+        ['day1','day2'].forEach(day=>{
+          if (considerDay!=='all' && considerDay!==day) return;
+          ['front','back'].forEach(side=>{
+            if (considerSide!=='all' && considerSide!==side) return;
 
-  // Ticker
-  ryTicker.innerHTML = tickMsgs.slice(-12).map(t=>`<span>${esc(t)}</span>`).join('');
-}
+            const fmt = snap.format?.[day]?.[side] || 'Best Ball';
+            const teamEvent = TEAM_FORMATS.has(fmt);
+            const rs = snap.results?.[day]?.[side] || [];
 
-function renderLeaders(){
-  // Gross top 10
-  const rowsGross = players.map(p=>{
-    const r1=p.r1, r2=p.r2, r3=p.r3, r4=p.r4;
-    const gross = sum([r1,r2,r3,r4]);
-    return {p, gross, r1, r2, r3, r4, toPar: toParTotal(gross)};
-  }).filter(x=>Number.isFinite(x.gross))
-    .sort((a,b)=>a.gross-b.gross || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||''))
-    .slice(0,10);
+            rs.forEach(r=>{
+              if (teamEvent){
+                total += 1;
+                if (r==='ozark') oz += 1;
+                else if (r==='valley') va += 1;
+                else if (r==='tie'){ oz += .5; va += .5; }
+              } else {
+                const arr = Array.isArray(r)? r : [null,null];
+                arr.forEach(x=>{
+                  total += 1;
+                  if (x==='ozark') oz += 1;
+                  else if (x==='valley') va += 1;
+                  else if (x==='tie'){ oz += .5; va += .5; }
+                });
+              }
+            });
+          });
+        });
 
-  tblGross.innerHTML = rowsGross.map((row,i)=>{
-    const n = row.p.nickname ? ` <span style="color:#6b614f">(${esc(row.p.nickname)})</span>` : '';
-    return `<tr>
-      <td>${i+1}</td>
-      <td>${esc(row.p.firstName||'')} ${esc(row.p.lastName||'')}${n}</td>
-      <td>${esc(row.p.team||'')}</td>
-      <td class="num">${Number.isFinite(row.r1)?row.r1:''}</td>
-      <td class="num">${Number.isFinite(row.r2)?row.r2:''}</td>
-      <td class="num">${Number.isFinite(row.r3)?row.r3:''}</td>
-      <td class="num">${Number.isFinite(row.r4)?row.r4:''}</td>
-      <td class="num">${row.gross}</td>
-      <td class="num">${row.toPar}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="9" class="num" style="text-align:center;color:#6b614f">No scores yet.</td></tr>`;
+        return {oz, va, total};
+      }
 
-  // Net top 10
-  const rowsNet = players.map(p=>{
-    const gross = sum([p.r1,p.r2,p.r3,p.r4]);
-    const h = Number.isFinite(p.handicap) ? p.handicap : null;
-    const net = (Number.isFinite(gross) && h!=null) ? Math.max(0, gross - h) : null;
-    return {p, gross, net, h};
-  }).filter(x=>Number.isFinite(x.net))
-    .sort((a,b)=>a.net-b.net || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||''))
-    .slice(0,10);
+      function playerName(p){
+        if (!p) return '';
+        const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
+        return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
+      }
 
-  tblNet.innerHTML = rowsNet.map((row,i)=>{
-    return `<tr>
-      <td>${i+1}</td>
-      <td>${esc(row.p.firstName||'')} ${esc(row.p.lastName||'')}</td>
-      <td>${esc(row.p.team||'')}</td>
-      <td class="num">${row.gross}</td>
-      <td class="num">${Number.isFinite(row.h)?row.h:''}</td>
-      <td class="num">${row.net}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="6" class="num" style="text-align:center;color:#6b614f">No handicaps/scores to compute net.</td></tr>`;
+      function buildRowHTML(day, side, fmt, gIndex, r, snap){
+        const teamEvent = TEAM_FORMATS.has(fmt);
+        const dayLabel  = (day==='day1')?'Day 1':'Day 2';
+        const sideLabel = (side==='front')?'Front 9':'Back 9';
+        const groupNum  = gIndex+1;
 
-  // Round leaders (Top 5 across R1–R4)
-  const rounds = ['r1','r2','r3','r4'];
-  const body = rounds.map(r=>{
-    const list = players.filter(p=>Number.isFinite(p[r]))
-      .sort((a,b)=>a[r]-b[r] || (a.lastName||'').localeCompare(b.lastName||'') || (a.firstName||'').localeCompare(b.firstName||''))
-      .slice(0,5);
-    const rows = list.map((p,i)=>`<tr>
-      <td>${r.toUpperCase()} ${i===0?'<span class="badge" style="margin-left:8px">Leader</span>':''}</td>
-      <td>${esc(p.firstName||'')} ${esc(p.lastName||'')}</td>
-      <td class="num">${p[r]}</td>
-      <td class="num">${toParRound(p[r], r)}</td>
-    </tr>`).join('');
-    return rows || `<tr><td>${r.toUpperCase()}</td><td style="color:#6b614f">No scores</td><td class="num"></td><td class="num"></td></tr>`;
-  }).join('');
-  tblRounds.innerHTML = body;
+        if (teamEvent){
+          let resultText = '<span class="muted">No result</span>';
+          if (r==='ozark') resultText = `<span class="winner oz">Team Ozark</span>`;
+          else if (r==='valley') resultText = `<span class="winner va">Team Valley</span>`;
+          else if (r==='tie') resultText = `<span class="winner">Tie</span>`;
 
-  // Par badges
-  const pSet = [par.r1,par.r2,par.r3,par.r4].filter(n=>Number.isFinite(n));
-  grossParBadge.textContent = 'Par: ' + (pSet.length ? pSet.reduce((a,b)=>a+b,0) : '—');
-  rlParBadge.textContent = `Pars: R1 ${par.r1??'—'} • R2 ${par.r2??'—'} • R3 ${par.r3??'—'} • R4 ${par.r4??'—'}`;
-}
+          // show players (2v2) compact
+          const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
+          const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
+          const a = [g[0],g[1]].map(id=>byId.get(String(id))).filter(Boolean).map(playerName).join(' & ');
+          const b = [g[2],g[3]].map(id=>byId.get(String(id))).filter(Boolean).map(playerName).join(' & ');
+          const pairs = (a||b) ? `<div class="small muted">${a||'—'} <strong>vs</strong> ${b||'—'}</div>` : '';
 
-function renderAll(){
-  loadAll();
-  renderRyder();
-  renderLeaders();
-}
+          return `
+            <tr>
+              <td>${dayLabel}</td>
+              <td>${sideLabel}</td>
+              <td>${fmt}</td>
+              <td>${groupNum}</td>
+              <td>${resultText}${pairs}</td>
+            </tr>`;
+        } else {
+          // Singles: two matches per group
+          const arr = Array.isArray(r)? r : [null,null];
+          const labels = ['Match 1','Match 2'];
+          const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
+          const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
 
-/* ===== Controls ===== */
-scaleSel.addEventListener('change', ()=>{
-  document.documentElement.style.setProperty('--fs', scaleSel.value);
-});
-refreshSel.addEventListener('change', ()=>{
-  if(refreshTimer) clearInterval(refreshTimer);
-  const ms = Number(refreshSel.value||0);
-  if(ms>0){ refreshTimer = setInterval(renderAll, ms); }
-});
-btnFullscreen.addEventListener('click', ()=>{
-  if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{}); }
-  else { document.exitFullscreen().catch(()=>{}); }
-});
+          const mk = (matchIdx) => {
+            const A = byId.get(String(g[matchIdx*2]||''));   // 0 or 2
+            const B = byId.get(String(g[matchIdx*2+1]||'')); // 1 or 3
+            const vs = `<span class="small muted">${playerName(A)||'—'} <strong>vs</strong> ${playerName(B)||'—'}</span>`;
+            const res = arr[matchIdx];
+            let who = '<span class="muted small">No result</span>';
+            if (res==='ozark') who = `<span class="winner oz small">${TEAM_LABELS.ozark}</span>`;
+            else if (res==='valley') who = `<span class="winner va small">${TEAM_LABELS.valley}</span>`;
+            else if (res==='tie') who = `<span class="winner small">Tie</span>`;
+            return `<div>${labels[matchIdx]}: ${who}<br>${vs}</div>`;
+          };
 
-/* ===== Boot ===== */
-renderAll();
-if(Number(refreshSel.value)>0){ refreshTimer = setInterval(renderAll, Number(refreshSel.value)); }
-</script>
+          return `
+            <tr>
+              <td>${dayLabel}</td>
+              <td>${sideLabel}</td>
+              <td>${fmt}</td>
+              <td>${groupNum}</td>
+              <td>${mk(0)}${mk(1)}</td>
+            </tr>`;
+        }
+      }
+
+      function rebuildTable(snap){
+        const considerDay  = fDay.value;
+        const considerSide = fSide.value;
+        let rows = '';
+
+        ['day1','day2'].forEach(day=>{
+          if (considerDay!=='all' && considerDay!==day) return;
+          ['front','back'].forEach(side=>{
+            if (considerSide!=='all' && considerSide!==side) return;
+
+            const fmt = snap.format?.[day]?.[side] || 'Best Ball';
+            const rs  = snap.results?.[day]?.[side] || [];
+            for (let i=0;i<rs.length;i++){
+              rows += buildRowHTML(day, side, fmt, i, rs[i], snap);
+            }
+          });
+        });
+
+        tbody.innerHTML = rows || `<tr><td colspan="5" class="muted">No pairings/results yet.</td></tr>`;
+
+        const parts = [];
+        if (considerDay!=='all') parts.push(considerDay==='day1'?'Day 1':'Day 2');
+        if (considerSide!=='all') parts.push(considerSide==='front'?'Front 9':'Back 9');
+        note.textContent = parts.length ? `Showing ${parts.join(' • ')}` : 'Showing all rounds';
+      }
+
+      function renderTotals(snap){
+        const {oz, va, total} = tallyPoints(snap);
+        const ozR = Math.round(oz*10)/10, vaR = Math.round(va*10)/10;
+        elOz.textContent = ozR.toString();
+        elVa.textContent = vaR.toString();
+
+        const denom = total>0 ? total : 1;
+        const pctOz = clamp((oz/denom)*100, 0, 100);
+        bar.style.width = pctOz + '%';
+
+        // Event name badge
+        const evName = snap.eventName || 'Event';
+        evtBadge.textContent = evName;
+      }
+
+      function adoptShared(raw){
+        shared = raw; LAST_TS = raw.ts || Date.now();
+        renderAll();
+      }
+
+      function renderAll(){
+        if (!shared) return;
+        renderTotals(shared);
+        rebuildTable(shared);
+      }
+
+      function refreshFromStorage(){
+        try{
+          const raw = localStorage.getItem(SHARED_KEY);
+          if (!raw) return;
+          const snap = JSON.parse(raw);
+          if (!snap) return;
+          adoptShared(snap);
+        }catch(e){ console.warn('[leaderboard] parse error', e); }
+      }
+
+      // Boot
+      refreshFromStorage();
+
+      // React to scoreboard writes
+      window.addEventListener('storage', (e)=>{
+        if (e.key !== SHARED_KEY || !e.newValue) return;
+        let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
+        if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
+        adoptShared(inc);
+      });
+    })();
+  </script>
 </body>
 </html>
