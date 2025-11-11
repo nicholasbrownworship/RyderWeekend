@@ -59,7 +59,7 @@
 
     /* Config drawer */
     .drawer{margin:12px 0;border:1px solid rgba(0,0,0,.08);background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
-    .drawer-h{display:flex;align-items:center;justify-content:space-between;background:var(--green);color:#fff;padding:.6rem .8rem}
+    .drawer-h{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--green);color:#fff;padding:.6rem .8rem}
     .drawer-b{padding:.8rem}
     .grid{display:grid;gap:10px}
     .grid.cols-3{grid-template-columns:repeat(3,1fr)}
@@ -103,7 +103,7 @@
         <div class="logo">OI</div>
         <div>
           <div class="title">Ozark Invitational — Scorecard</div>
-          <div class="sub">Configurable holes · Matches your site palette</div>
+          <div class="sub">Configurable holes · Matches your site palette · Live pairings</div>
         </div>
       </div>
       <div class="actions">
@@ -116,9 +116,31 @@
     <section class="drawer" id="drawer" hidden>
       <div class="drawer-h">
         <strong>Setup</strong>
-        <small class="tiny">Paste hole data (Par / Yardage / Stroke Index)</small>
+        <small class="tiny">Paste hole data (Par / Yardage / Stroke Index) & choose which pairing to print</small>
       </div>
       <div class="drawer-b">
+        <!-- pairing pickers fed by bridge (defaults from URL) -->
+        <div class="grid cols-3" style="margin-bottom:8px">
+          <div>
+            <label class="tiny">Day</label>
+            <select id="selDay">
+              <option value="day1">Day 1</option>
+              <option value="day2">Day 2</option>
+            </select>
+          </div>
+          <div>
+            <label class="tiny">Side</label>
+            <select id="selSide">
+              <option value="front">Front 9</option>
+              <option value="back">Back 9</option>
+            </select>
+          </div>
+          <div>
+            <label class="tiny">Group #</label>
+            <select id="selGroup"><option value="1">1</option></select>
+          </div>
+        </div>
+
         <div class="grid cols-2">
           <div>
             <label class="tiny">Course name</label>
@@ -166,7 +188,7 @@
           </div>
         </div>
         <div class="actions" style="margin-top:10px">
-          <button class="btn" onclick="applySetup()">Apply</button>
+          <button class="btn" id="btnApply">Apply</button>
           <button class="btn ghost" onclick="toggleDrawer()">Close</button>
         </div>
       </div>
@@ -177,10 +199,10 @@
         <div class="gold-bar"></div>
         <div class="meta">
           <div class="field"><div class="label">Course</div><div id="metaCourse" class="value" contenteditable>Diamond Hills CC</div></div>
-          <div class="field"><div class="label">Date</div><div class="value" contenteditable>____ / ____ / 2026</div></div>
+          <div class="field"><div class="label">Date</div><div id="metaDate" class="value" contenteditable>____ / ____ / 2026</div></div>
           <div class="field"><div class="label">Tees</div><div id="metaTees" class="value" contenteditable>White</div></div>
           <div class="field"><div class="label">Format</div><div id="metaFormat" class="value" contenteditable>Best Ball</div></div>
-          <div class="field"><div class="label">Group #</div><div class="value" contenteditable>1</div></div>
+          <div class="field"><div class="label">Group #</div><div id="metaGroup" class="value" contenteditable>1</div></div>
           <div class="field"><div class="label">Marker</div><div class="value" contenteditable>____________</div></div>
         </div>
 
@@ -200,8 +222,8 @@
             <tr id="rowPar" class="row-label"><th>Par</th><td>—</td></tr>
             <tr id="rowYds" class="muted"><th>Yards</th><td>—</td></tr>
             <tr id="rowSI" class="muted"><th>Stroke Index</th><td>—</td></tr>
-            <tr class="p"><th class="col-name" contenteditable>Player 1 (Ozark)</th><td contenteditable class="hcp">0</td></tr>
-            <tr class="p"><th class="col-name" contenteditable>Player 2 (Valley)</th><td contenteditable class="hcp">0</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 1</th><td contenteditable class="hcp">0</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 2</th><td contenteditable class="hcp">0</td></tr>
             <tr class="p"><th class="col-name" contenteditable>Player 3</th><td contenteditable class="hcp">0</td></tr>
             <tr class="p"><th class="col-name" contenteditable>Player 4</th><td contenteditable class="hcp">0</td></tr>
           </tbody>
@@ -240,11 +262,13 @@
 
     // ----- Scorecard logic (unchanged) -----
     const card = document.getElementById('card');
+    const metaCourse = document.getElementById('metaCourse');
+    const metaTees   = document.getElementById('metaTees');
+    const metaFormat = document.getElementById('metaFormat');
+    const metaDate   = document.getElementById('metaDate');
+    const metaGroup  = document.getElementById('metaGroup');
 
-    function toggleDrawer(){
-      const d = document.getElementById('drawer');
-      d.hidden = !d.hidden;
-    }
+    function toggleDrawer(){ const d = document.getElementById('drawer'); d.hidden = !d.hidden; }
 
     // Build 18 scoring cells for template rows
     function ensureCells(tr){
@@ -257,9 +281,9 @@
       }
       // Label OUT/IN/TOT cells
       const tds = Array.from(tr.children);
-      const out = tds[2+9-1+1]; // after 9 holes
-      const inn = tds[2+9+9+1];
-      const tot = tds[2+9+9+2];
+      const out = tds[2+9];       // OUT summary cell index
+      const inn = tds[2+18+1];    // IN
+      const tot = tds[2+18+2];    // TOT
       if(out) out.classList.add('accent','sum-out');
       if(inn) inn.classList.add('accent','sum-in');
       if(tot) tot.classList.add('accent','sum-tot');
@@ -269,7 +293,6 @@
       const tr = document.getElementById(rowId);
       ensureCells(tr);
       const tds = Array.from(tr.children);
-      // clear existing per-hole, keep first two cells (label + dash)
       for(let i=0;i<18;i++){
         tds[2+i].textContent = (i<9?arrF[i]:arrB[i-9]) ?? '';
         tds[2+i].contentEditable = false;
@@ -277,8 +300,8 @@
       if(withTotals){
         const sumF = arrF.reduce((a,b)=>a+(+b||0),0);
         const sumB = arrB.reduce((a,b)=>a+(+b||0),0);
-        tds[2+9].textContent = sumF; // OUT
-        tds[2+18+1].textContent = sumB; // IN
+        tds[2+9].textContent = sumF;       // OUT
+        tds[2+18+1].textContent = sumB;    // IN
         tds[2+18+2].textContent = sumF+sumB; // TOT
       }
     }
@@ -297,6 +320,12 @@
         tds[2+18+1].textContent = in_||'';
         tds[2+18+2].textContent = (out+in_)||'';
       });
+    }
+
+    function parseCSV(str, len){
+      const arr = String(str||'').split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
+      while(arr.length < len) arr.push('');
+      return arr.slice(0,len);
     }
 
     function applySetup(){
@@ -318,17 +347,11 @@
 
       document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
       document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
-
-      toggleDrawer();
     }
 
-    function parseCSV(str, len){
-      const arr = str.split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
-      while(arr.length < len) arr.push('');
-      return arr.slice(0,len);
-    }
+    document.getElementById('btnApply').addEventListener('click', applySetup);
 
-    // Initial build
+    // Initial build of cells and baseline course values
     buildPlayerRows();
     applySetup();
 
@@ -336,6 +359,140 @@
     card.addEventListener('input', e=>{
       if(e.target.classList.contains('sc')) recalcPlayers();
     });
+
+    // ========= BRIDGE-LITE (adopt scoreboard pairings) =========
+    (function(){
+      const SHARED_KEY = "ozarkShared_v1";
+      let LAST_TS = 0;
+
+      function qs(name, fallback){
+        const u = new URL(location.href);
+        return u.searchParams.get(name) || fallback;
+      }
+
+      // Controls in drawer (for changing which pairing to view/print)
+      const selDay   = document.getElementById('selDay');
+      const selSide  = document.getElementById('selSide');
+      const selGroup = document.getElementById('selGroup');
+
+      // Default selection from URL (supports ?day=day1&side=front&group=1)
+      let current = {
+        day:  (qs('day','day1') === 'day2') ? 'day2' : 'day1',
+        side: (qs('side','front') === 'back') ? 'back' : 'front',
+        group: Math.max(1, parseInt(qs('group','1'), 10) || 1)
+      };
+      selDay.value = current.day;
+      selSide.value = current.side;
+
+      selDay.addEventListener('change', ()=>{ current.day = selDay.value; refreshFromShared(); });
+      selSide.addEventListener('change', ()=>{ current.side = selSide.value; refreshFromShared(); });
+      selGroup.addEventListener('change', ()=>{ current.group = parseInt(selGroup.value,10)||1; renderSelectedGroup(); });
+
+      // If user edits the Group # meta cell, respect it on blur
+      metaGroup.addEventListener('blur', ()=>{
+        const n = parseInt(metaGroup.textContent,10);
+        if (Number.isFinite(n) && n>0) {
+          current.group = n;
+          if (selGroup.value !== String(n)) selGroup.value = String(n);
+          renderSelectedGroup();
+        }
+      });
+
+      let shared = null; // latest snapshot
+
+      function adoptShared(raw){
+        if(!raw) return;
+        shared = raw;
+        LAST_TS = raw.ts || Date.now();
+
+        // Fill group count selector
+        try{
+          const list = (shared.groups?.[current.day]?.[current.side]) || [];
+          const count = Math.max(1, list.length || 1);
+          const opts = [];
+          for(let i=1;i<=count;i++) opts.push(`<option value="${i}">${i}</option>`);
+          selGroup.innerHTML = opts.join('');
+          if (current.group > count) current.group = count;
+          selGroup.value = String(current.group);
+        }catch{}
+
+        // Fill meta: Format + Date from selection
+        const fmt = (shared.format?.[current.day]?.[current.side]) || 'Best Ball';
+        metaFormat.textContent = fmt;
+
+        const dateStr = (shared.dates && shared.dates[current.day]) ? shared.dates[current.day] : metaDate.textContent;
+        if (dateStr) metaDate.textContent = dateStr;
+
+        renderSelectedGroup();
+      }
+
+      function renderSelectedGroup(){
+        if(!shared) return;
+        const gArr = shared.groups?.[current.day]?.[current.side];
+        if(!Array.isArray(gArr) || !gArr.length) {
+          // clear names if no data
+          writePlayersToCard([]);
+          return;
+        }
+        const idx = Math.max(0, Math.min(gArr.length-1, current.group-1));
+        const ids = Array.isArray(gArr[idx]) ? gArr[idx] : [];
+
+        // Resolve IDs to player objects
+        const byId = new Map((shared.players||[]).map(p=>[String(p.id), p]));
+        const players = ids.map(id => byId.get(String(id)) || null);
+
+        // Update Meta group #
+        metaGroup.textContent = String(idx+1);
+
+        writePlayersToCard(players);
+      }
+
+      function writePlayersToCard(players){
+        const rows = Array.from(card.querySelectorAll('tbody tr.p'));
+        for(let i=0;i<4;i++){
+          const r = rows[i];
+          const nameCell = r?.querySelector('.col-name');
+          const hcpCell  = r?.querySelector('.hcp');
+          const p = players[i] || null;
+
+          if (!nameCell || !hcpCell) continue;
+
+          if (p){
+            const teamShort = p.team === 'valley' ? 'VA' : 'OZ';
+            const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
+            nameCell.textContent = `${p.firstName || ''}${nick} ${p.lastName || ''} (${teamShort})`.replace(/\s+/g,' ').trim();
+            hcpCell.textContent = (Number.isFinite(p.handicap) ? p.handicap : '0');
+          } else {
+            nameCell.textContent = `Player ${i+1}`;
+            hcpCell.textContent = '0';
+          }
+        }
+      }
+
+      function refreshFromShared(){
+        try{
+          const raw = localStorage.getItem(SHARED_KEY);
+          if(!raw) return;
+          const snap = JSON.parse(raw);
+          if (!snap) return;
+          adoptShared(snap);
+        }catch(e){ console.warn('[scorecard bridge] parse error', e); }
+      }
+
+      // boot
+      refreshFromShared();
+
+      // react to scoreboard changes
+      window.addEventListener('storage', (e)=>{
+        if (e.key !== SHARED_KEY || !e.newValue) return;
+        let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
+        if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
+        adoptShared(inc);
+      });
+
+      // keep drawer selection in sync with URL if provided
+      // (no pushState changes; just initial read)
+    })();
   </script>
 </body>
 </html>
