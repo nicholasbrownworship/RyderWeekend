@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Players – Ozark Invitational</title>
+
+  <!-- Site-wide styles & scripts -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+
+  <style>
+    :root{
+      --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
+      --panel:#ffffff; --line:#e7e0d1; --radius:16px; --shadow:0 14px 38px rgba(0,0,0,.06);
+      --oz:#2ecc71; --va:#3498db; --muted:#6b7280; --ink:#1f2937;
+    }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+
+    .wrap{max-width:1100px;margin:88px auto 24px;padding:16px}
+
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--green);display:grid;place-items:center}
+    .logo img{display:block;height:100%;width:auto}
+    .title{font-weight:800;letter-spacing:-.01em}
+    .sub{opacity:.75;font-size:.95rem;margin-top:-2px}
+
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .input{padding:.55rem .7rem;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;min-width:220px}
+    .seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+    .seg button{padding:.45rem .8rem;border:0;background:transparent;cursor:pointer;font-weight:700}
+    .seg button[aria-pressed="true"]{background:var(--cream)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    @media (max-width: 1100px){ .grid{grid-template-columns:repeat(8,1fr)} }
+    @media (max-width: 720px){ .grid{grid-template-columns:repeat(4,1fr)} }
+
+    .card{grid-column:span 4;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;gap:12px;padding:12px;align-items:center}
+    .avatar{width:72px;height:72px;border-radius:12px;flex:none;position:relative;overflow:hidden;background:linear-gradient(135deg,#f3efe5,#e9e2cf);display:grid;place-items:center;border:1px solid var(--line)}
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .avatar .init{font-weight:800;color:#5a513f;font-size:1.1rem}
+
+    .meta{flex:1;min-width:0}
+    .name{font-weight:900;letter-spacing:.01em}
+    .nick{color:var(--muted);font-size:.9rem}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+    .chip{border:1px solid var(--line);border-radius:999px;padding:.2rem .55rem;background:#fff;font-size:.8rem}
+    .chip.oz{border-color:rgba(46,204,113,.45)}
+    .chip.va{border-color:rgba(52,152,219,.45)}
+
+    .act{display:flex;gap:8px;margin-left:auto}
+    .btn{background:var(--green);color:#fff;border:none;border-radius:10px;padding:.45rem .75rem;font-weight:700;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+
+    .empty{padding:16px;border:1px dashed var(--line);border-radius:12px;text-align:center;color:var(--muted);background:#fff}
+
+    /* Modal */
+    dialog.profile{border:1px solid var(--line);border-radius:16px;max-width:720px;width:clamp(320px, 90vw, 720px);padding:0;box-shadow:var(--shadow);background:#fff}
+    .p-head{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--line);align-items:center}
+    .p-head .avatar{width:84px;height:84px;border-radius:14px}
+    .p-title{font-weight:900}
+    .p-sub{color:var(--muted);font-size:.95rem;margin-top:2px}
+    .p-body{padding:14px;display:grid;gap:14px}
+    .p-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stat{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+    .stat h4{margin:.1rem 0 .4rem;font-size:.95rem}
+    .list{margin:0;padding-left:1.1rem}
+    .closebar{display:flex;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--line);background:#faf7ef}
+    .closebar .btn{background:#fff;color:var(--green);border:1px solid var(--green)}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div id="siteHeader"></div>
+  <script>
+    fetch("header.html").then(r=>r.text()).then(h=>{
+      document.getElementById("siteHeader").innerHTML = h;
+      const here = (location.pathname.split('/').pop()||'players.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a=>{
+        const t = (a.getAttribute('href')||'').split('#')[0]||'index.html';
+        if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
+      });
+    });
+  </script>
+
+  <div class="wrap">
+    <div class="hdr">
+      <div class="brand">
+        <div class="logo"><img src="images/logo.png" alt="Ozark Invitational logo" onerror="this.style.display='none'"/></div>
+        <div>
+          <div class="title">Players</div>
+          <div class="sub">Browse the roster, filter by team, view profiles & placements</div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input id="q" class="input" type="search" placeholder="Search by name or nickname…" />
+        <div class="seg" role="tablist" aria-label="Team filter">
+          <button class="tbtn" data-team="all" aria-pressed="true">All</button>
+          <button class="tbtn" data-team="ozark" aria-pressed="false">Ozark</button>
+          <button class="tbtn" data-team="valley" aria-pressed="false">Valley</button>
+        </div>
+        <div class="seg" role="tablist" aria-label="Sort">
+          <button class="sbtn" data-sort="name" aria-pressed="true">A→Z</button>
+          <button class="sbtn" data-sort="hcp" aria-pressed="false">Handicap</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" hidden>No players found.</div>
+  </div>
+
+  <!-- Profile Modal -->
+  <dialog id="profileDlg" class="profile">
+    <div class="p-head">
+      <div class="avatar">
+        <img id="pPhoto" alt="" onerror="this.style.display='none';document.getElementById('pInit').style.display='grid'">
+        <div id="pInit" class="init" style="display:none"></div>
+      </div>
+      <div>
+        <div id="pName" class="p-title"></div>
+        <div id="pSub" class="p-sub"></div>
+        <div class="chips" id="pChips"></div>
+      </div>
+    </div>
+    <div class="p-body">
+      <div class="p-row">
+        <div class="stat">
+          <h4>Contact</h4>
+          <ul class="list" id="pContact"></ul>
+        </div>
+        <div class="stat">
+          <h4>Handicap & Team</h4>
+          <ul class="list" id="pFacts"></ul>
+        </div>
+      </div>
+      <div class="stat">
+        <h4>Placements</h4>
+        <ul class="list" id="pPlaces"></ul>
+      </div>
+    </div>
+    <div class="closebar">
+      <button class="btn" id="pClose">Close</button>
+    </div>
+  </dialog>
+
+  <script>
+    // ---- Keys used around the site
+    const SHARED_KEY  = "ozarkShared_v1";
+    const STORAGE_KEY = "ozarkPairings_v3_twoDays";
+    const SIGNUPS_KEY = "ozarkSignups_v1";
+    const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
+    const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
+
+    // ---- State
+    let roster = [];
+    let snapshot = null;
+    let filters = { team:'all', q:'', sort:'name' };
+
+    // ---- Helpers
+    const byName = (a,b)=> (displayName(a).localeCompare(displayName(b), undefined, {sensitivity:'base'}));
+    const byHcp  = (a,b)=>{
+      const ha = Number.isFinite(a.handicap)?a.handicap:9999;
+      const hb = Number.isFinite(b.handicap)?b.handicap:9999;
+      return ha - hb || byName(a,b);
+    };
+
+    function displayName(p){
+      const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : "";
+      return `${p.firstName||""}${nick} ${p.lastName||""}`.replace(/\s+/g,' ').trim();
+    }
+    function initials(p){
+      const a = (p.firstName||"").trim()[0]||"";
+      const b = (p.lastName||"").trim()[0]||"";
+      return (a+b||"?").toUpperCase();
+    }
+    function loadShared(){
+      try{
+        const raw = localStorage.getItem(SHARED_KEY);
+        if (raw) snapshot = JSON.parse(raw);
+      }catch{}
+    }
+    function loadRoster(){
+      // Priority: shared snapshot -> saved state -> signups
+      if (snapshot && Array.isArray(snapshot.players)) {
+        roster = snapshot.players.slice();
+        return;
+      }
+      try{
+        const st = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        if (st && Array.isArray(st.players) && st.players.length){ roster = st.players; return; }
+      }catch{}
+      try{
+        const su = JSON.parse(localStorage.getItem(SIGNUPS_KEY)||'null');
+        if (Array.isArray(su) && su.length){
+          roster = su.map(p=>({
+            id: p.id || crypto.randomUUID?.() || Math.random().toString(36).slice(2,9),
+            firstName: p.firstName || (p.name||"").split(" ")[0] || "",
+            lastName:  p.lastName  || (p.name||"").split(" ").slice(1).join(" ") || "",
+            nickname:  p.nickname || "",
+            team: (p.team||"").toLowerCase().includes("val") ? "valley" : "ozark",
+            email: p.email||"", phone: p.phone||"",
+            handicap: Number.isFinite(+p.handicap) ? +p.handicap : null
+          }));
+        }
+      }catch{}
+    }
+
+    function applyFilters(){
+      const q = filters.q.toLowerCase();
+      let arr = roster
+        .filter(p => filters.team==='all' || p.team===filters.team)
+        .filter(p => displayName(p).toLowerCase().includes(q) || (p.email||'').toLowerCase().includes(q));
+      arr.sort(filters.sort==='hcp' ? byHcp : byName);
+      return arr;
+    }
+
+    function renderGrid(){
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+      const rows = applyFilters();
+      if (!rows.length){
+        grid.innerHTML = "";
+        empty.hidden = false;
+        return;
+      }
+      empty.hidden = true;
+
+      const byId = new Map(rows.map(p=>[String(p.id), p]));
+      grid.innerHTML = rows.map(p=>{
+        const chipTeam = `<span class="chip ${p.team==='ozark'?'oz':'va'}">${TEAM_LABELS[p.team]||''}</span>`;
+        const chipHcp  = Number.isFinite(p.handicap) ? `<span class="chip">HCP ${p.handicap}</span>` : '';
+        const safeId = String(p.id||'');
+        return `
+          <div class="card" data-id="${safeId}">
+            <div class="avatar">
+              <img src="images/players/${safeId}.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+              <div class="init" style="display:none">${initials(p)}</div>
+            </div>
+            <div class="meta">
+              <div class="name">${displayName(p)}</div>
+              ${p.nickname?`<div class="nick">“${p.nickname}”</div>`:''}
+              <div class="chips">${chipTeam}${chipHcp}</div>
+            </div>
+            <div class="act">
+              <button class="btn ghost" data-view="${safeId}">Profile</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Hook up buttons
+      grid.querySelectorAll('[data-view]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-view');
+          const p  = byId.get(id);
+          if (p) openProfile(p);
+        });
+      });
+      grid.querySelectorAll('.card').forEach(c=>{
+        c.addEventListener('click', (e)=>{
+          if (e.target.closest('[data-view]')) return;
+          const id = c.getAttribute('data-id');
+          const p  = byId.get(id);
+          if (p) openProfile(p);
+        });
+      });
+    }
+
+    function placementsFor(id){
+      const out = [];
+      const g = snapshot?.groups || {};
+      const fmt = snapshot?.format || {};
+      const days = ['day1','day2'];
+      const sides = ['front','back'];
+      days.forEach(d=>{
+        sides.forEach(s=>{
+          const groups = g?.[d]?.[s] || [];
+          const f = fmt?.[d]?.[s] || 'Best Ball';
+          groups.forEach((arr, gi)=>{
+            if ((arr||[]).some(x => String(x)===String(id))){
+              out.push(`${d==='day1'?'Day 1':'Day 2'} • ${s==='front'?'Front 9':'Back 9'} • ${f} — Group ${gi+1}`);
+            }
+          });
+        });
+      });
+      return out;
+    }
+
+    // ---- Profile modal
+    function openProfile(p){
+      const dlg = document.getElementById('profileDlg');
+      const pName = document.getElementById('pName');
+      const pSub  = document.getElementById('pSub');
+      const pChips= document.getElementById('pChips');
+      const pContact = document.getElementById('pContact');
+      const pFacts = document.getElementById('pFacts');
+      const pPlaces= document.getElementById('pPlaces');
+      const pPhoto = document.getElementById('pPhoto');
+      const pInit  = document.getElementById('pInit');
+
+      pName.textContent = displayName(p);
+      pSub.textContent  = p.nickname ? `“${p.nickname}”` : '';
+      pChips.innerHTML  = `
+        <span class="chip" style="border-color:${p.team==='ozark'?'rgba(46,204,113,.45)':'rgba(52,152,219,.45)'}">${TEAM_LABELS[p.team]||''}</span>
+        ${Number.isFinite(p.handicap)?`<span class="chip">Handicap ${p.handicap}</span>`:''}
+      `;
+
+      pContact.innerHTML = [
+        p.email ? `<li><a href="mailto:${p.email}">${p.email}</a></li>` : '',
+        p.phone ? `<li>${p.phone}</li>` : ''
+      ].join('') || `<li class="muted">No contact saved.</li>`;
+
+      pFacts.innerHTML = `
+        <li>Team: ${TEAM_LABELS[p.team]||''}</li>
+        <li>Handicap: ${Number.isFinite(p.handicap)?p.handicap:'—'}</li>
+      `;
+
+      const places = placementsFor(p.id);
+      pPlaces.innerHTML = places.length ? places.map(x=>`<li>${x}</li>`).join('') : `<li class="muted">Not placed yet.</li>`;
+
+      // photo (fallback to initials)
+      pPhoto.style.display = '';
+      pInit.style.display  = 'none';
+      pPhoto.src = `images/players/${p.id}.jpg`;
+      pPhoto.alt = `${displayName(p)} photo`;
+      pInit.textContent = initials(p);
+
+      dlg.showModal();
+    }
+
+    document.getElementById('pClose').addEventListener('click', ()=> document.getElementById('profileDlg').close());
+
+    // ---- Filters
+    document.getElementById('q').addEventListener('input', e=>{ filters.q = e.target.value; renderGrid(); });
+    document.querySelectorAll('.tbtn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('.tbtn').forEach(x=>x.setAttribute('aria-pressed','false'));
+        b.setAttribute('aria-pressed','true');
+        filters.team = b.dataset.team;
+        renderGrid();
+      });
+    });
+    document.querySelectorAll('.sbtn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('.sbtn').forEach(x=>x.setAttribute('aria-pressed','false'));
+        b.setAttribute('aria-pressed','true');
+        filters.sort = b.dataset.sort;
+        renderGrid();
+      });
+    });
+
+    // ---- Boot
+    loadShared();
+    loadRoster();
+    renderGrid();
+
+    // Live update if pairings change elsewhere (to keep placements fresh)
+    window.addEventListener('storage', (e)=>{
+      if (e.key===SHARED_KEY && e.newValue){
+        try{ snapshot = JSON.parse(e.newValue); }catch{}
+        renderGrid();
+      }
+    });
+  </script>
+</body>
+</html>
