@@ -3,1048 +3,345 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>4-Round Tournament Scoreboard + Ryder (Sectioned)</title>
+  <title>Scoreboard — Ozark Invitational</title>
   <style>
     :root{
       --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
-      --radius:14px; --shadow:0 10px 28px rgba(0,0,0,.08);
-      /* round accent colors */
-      --r1:#2a6f97; --r2:#7a3e9d; --r3:#b65e1d; --r4:#0a9396;
+      --radius:16px; --shadow:0 14px 36px rgba(0,0,0,.08);
+      --oz:#2ecc71; --va:#3498db;
+      --fs:1; /* UI scale */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
-    .wrap{max-width:1200px;margin:24px auto;padding:16px}
-    h1{margin:0 0 10px;font-weight:700;color:var(--green)}
-    .sub{color:#555;margin:0 0 18px}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif; line-height:1.5}
 
-    .panel{background:var(--cream);border:1px solid #e7e1d6;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .between{justify-content:space-between;align-items:center}
+    .wrap{max-width:1200px;margin:28px auto;padding:16px; transform:scale(var(--fs)); transform-origin: top center}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+    h1{margin:0;color:var(--green);letter-spacing:.02em}
+    .sub{margin:4px 0 0;color:#5b5b5b}
 
-    .btn{appearance:none;border:1px solid var(--green);background:var(--green);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
-    .btn.secondary{background:#fff;color:var(--green)}
-    .btn.ghost{background:transparent;border:1px dashed var(--green);color:var(--green)}
+    .panel{background:var(--cream);border:1px solid #e7e1d6;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .grid{display:grid;gap:14px}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-2{grid-template-columns:1.3fr .7fr}
+    @media (max-width:1100px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
+
+    .btn{appearance:none;border:1px solid var(--green);background:var(--green);color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn.ghost{background:#fff;color:var(--green)}
     .btn:disabled{opacity:.5;cursor:not-allowed}
-    .btn.small{padding:6px 10px;font-size:13px;border-radius:8px}
+    select,input[type="number"]{padding:8px 10px;border:1px solid #c9c3b8;border-radius:10px;background:#fff}
 
-    input[type="number"], input[type="text"], input[type="file"], select{padding:8px 10px;border:1px solid #c9c3b8;border-radius:10px;background:#fff}
-    input[type="number"]{width:80px}
-    select{min-width:160px}
+    /* Team score bar */
+    .scorebar{display:flex;gap:14px;align-items:center}
+    .bar{position:relative;height:22px;border:1px solid #d8d0c2;background:#fff;border-radius:999px;overflow:hidden;flex:1}
+    .fillA,.fillB{position:absolute;top:0;bottom:0}
+    .fillA{left:0;background:linear-gradient(90deg,var(--oz),#25a65b)}
+    .fillB{right:0;background:linear-gradient(90deg,#2a6ea8,var(--va))}
+    .ticks{display:flex;gap:8px;margin-top:6px;font-size:12px;color:#6b614f}
+    .kpi{display:flex;gap:8px;align-items:center;font-weight:800}
+    .pill{padding:4px 8px;border:1px solid #d8d0c2;border-radius:999px;background:#fff}
 
-    .drop{border:2px dashed #cbbfa9;border-radius:14px;padding:14px;text-align:center;color:#6b614f;background:#fff}
-    .drop.drag{border-color:var(--gold);background:#fff8ea}
-
-    .tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
-    .tab{padding:8px 12px;border:1px solid #d8d0c2;border-radius:999px;background:#fff;cursor:pointer;font-weight:600;color:#3a3a3a}
-    .tab.active{background:var(--green);border-color:var(--green);color:#fff}
-
-    table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden}
-    thead th{position:sticky;top:0;background:#f7f4ed;border-bottom:1px solid #e5ddcf;padding:10px;font-size:14px;text-align:left}
-    tbody td{border-bottom:1px solid #efe8db;padding:8px;vertical-align:middle}
+    /* Tables */
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
+    thead th{position:sticky;top:0;background:#f7f4ed;border-bottom:1px solid #e5ddcf;padding:10px;text-align:left;font-size:14px}
+    tbody td{padding:10px;border-bottom:1px solid #efe8db;vertical-align:middle}
     tbody tr:nth-child(odd){background:#faf7f1}
-    .num{text-align:right}
-    .rank{font-weight:700}
-    .hint{color:#6b614f;font-size:13px}
-    .notice{background:#fff3cd;border:1px solid #ffe69c;border-radius:10px;color:#604c00;padding:10px}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
 
-    /* Round sections */
-    .section{border-radius:16px; overflow:hidden; margin:18px 0; background:#fff}
-    .section .head{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 14px; color:#fff; font-weight:800;
-    }
-    .badge{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.2);font-weight:700}
-    .section .body{padding:12px;border:1px solid #eee}
+    .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .badge{padding:4px 10px;border-radius:999px;background:#fff;border:1px solid #d8d0c2;font-weight:800}
 
-    .section.r1{border:2px solid var(--r1)}
-    .section.r1 .head{background:linear-gradient(90deg, var(--r1), #1e4f6c)}
-    .section.r2{border:2px solid var(--r2)}
-    .section.r2 .head{background:linear-gradient(90deg, var(--r2), #542b71)}
-    .section.r3{border:2px solid var(--r3)}
-    .section.r3 .head{background:linear-gradient(90deg, var(--r3), #7e4016)}
-    .section.r4{border:2px solid var(--r4)}
-    .section.r4 .head{background:linear-gradient(90deg, var(--r4), #075e62)}
-
-    /* Score input controls */
-    .scorebox{display:flex;gap:6px;align-items:center}
-    .step{width:30px;height:30px;border-radius:8px;border:1px solid #c9c3b8;background:#fafafa;cursor:pointer;font-weight:900;display:grid;place-items:center}
-    .score-input{width:64px;text-align:center}
-
-    /* Clinch banner */
-    .banner{display:none; padding:12px 14px; border-radius:12px; font-weight:800; color:#0f5132; background:#d1e7dd; border:1px solid #badbcc; margin:12px 0}
+    /* Winner banner */
+    .banner{display:none;margin-top:10px;padding:12px;border-radius:12px;background:#d1e7dd;border:1px solid #badbcc;color:#0f5132;font-weight:900}
     .banner.show{display:block}
 
-    /* Ryder footer points */
-    .kpi{display:flex;gap:8px;align-items:center;font-weight:700}
-    .team-label{font-weight:700;color:var(--green-dark)}
-    .points{font-weight:800}
-
-    /* Quick keypad modal */
-    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.3); padding:20px}
-    .modal.show{display:flex}
-    .dialog{background:#fff; border-radius:14px; width:min(420px, 95vw); padding:16px; box-shadow:var(--shadow)}
-    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px}
-    .key{padding:14px; border-radius:12px; border:1px solid #ddd; background:#fafafa; font-size:18px; font-weight:800; cursor:pointer}
-    .dialog .row{justify-content:flex-end}
+    /* Ticker */
+    .ticker{overflow:hidden;white-space:nowrap;border-top:1px dashed #e0d8c8;color:#6b614f;padding-top:10px;font-size:14px}
+    .ticker span{margin-right:24px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>4-Round Tournament Scoreboard</h1>
-    <p class="sub">Now split into distinct sections per round. Inline +/- steppers and a keypad make score entry faster. The Ryder board tracks points per round and declares a winner the moment a team clinches a majority.</p>
-
-    <!-- Controls -->
-    <div class="panel">
+    <header>
+      <div>
+        <h1>Event Scoreboard</h1>
+        <div class="sub">Auto-syncs with your Leaderboard & Ryder pages (localStorage).</div>
+      </div>
       <div class="row">
-        <label class="kpi"><span>Course Par (optional):</span>
-          <input type="number" id="parR1" placeholder="R1" min="0"/>
-          <input type="number" id="parR2" placeholder="R2" min="0"/>
-          <input type="number" id="parR3" placeholder="R3" min="0"/>
-          <input type="number" id="parR4" placeholder="R4" min="0"/>
+        <button class="btn" id="btnFullscreen">Fullscreen</button>
+        <label class="pill">Refresh:
+          <select id="refreshRate">
+            <option value="0">Paused</option>
+            <option value="3000">3s</option>
+            <option value="5000" selected>5s</option>
+            <option value="10000">10s</option>
+          </select>
         </label>
-        <select id="sortBy">
-          <option value="total">Sort: Total (asc)</option>
-          <option value="r1">Sort: Round 1</option>
-          <option value="r2">Sort: Round 2</option>
-          <option value="r3">Sort: Round 3</option>
-          <option value="r4">Sort: Round 4</option>
-          <option value="name">Sort: Name (A→Z)</option>
-        </select>
-        <button class="btn" id="btnExportCSV" disabled>Export CSV</button>
-        <button class="btn secondary" id="btnExportJSON" disabled>Export JSON</button>
-        <button class="btn secondary" id="btnClear" disabled>Clear Board</button>
-      </div>
-    </div>
-
-    <!-- Import -->
-    <div class="panel">
-      <div class="row">
-        <input type="file" id="fileInput" accept=".csv,.tsv,.txt" />
-        <div class="drop" id="drop">Drop CSV/TSV here or click Choose File</div>
-      </div>
-      <p class="hint">
-        Headers (any order, case-insensitive; spaces/underscores OK):
-        <code>FirstName</code>, <code>LastName</code> (or <code>Name</code>), <code>Nickname</code>, <code>Team</code>, <code>Email</code>, <code>Phone</code>, <code>handicap</code>, plus optional <code>R1–R4</code>.
-      </p>
-      <div class="notice" id="sampleNote"></div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-view="overall">Overall</button>
-      <button class="tab" data-view="r1sec">R1 Section</button>
-      <button class="tab" data-view="r2sec">R2 Section</button>
-      <button class="tab" data-view="r3sec">R3 Section</button>
-      <button class="tab" data-view="r4sec">R4 Section</button>
-      <button class="tab" data-view="ryder">Ryder</button>
-    </div>
-
-    <!-- Overall table -->
-    <div class="panel" id="panelOverall">
-      <div style="overflow:auto;border-radius:14px">
-        <table id="board">
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div class="row between">
-        <span class="hint" id="countHint">0 players</span>
-        <span class="hint">Edits auto-save to your browser.</span>
-      </div>
-    </div>
-
-    <!-- Round Sections -->
-    <div id="sections"></div>
-
-    <!-- Ryder Board -->
-    <div class="panel" id="panelRyder" style="display:none">
-      <div id="winnerBanner" class="banner"></div>
-
-      <div class="row" style="align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-        <label>Team A:
-          <select id="ryTeamA"></select>
+        <label class="pill">Scale:
+          <select id="scaleSel">
+            <option value="0.9">90%</option>
+            <option value="1" selected>100%</option>
+            <option value="1.1">110%</option>
+            <option value="1.2">120%</option>
+          </select>
         </label>
-        <label>Team B:
-          <select id="ryTeamB"></select>
-        </label>
-        <span class="hint">Round formats:</span>
-        <label>R1:
-          <select class="ryFmt" data-round="r1"></select>
-        </label>
-        <label>R2:
-          <select class="ryFmt" data-round="r2"></select>
-        </label>
-        <label>R3:
-          <select class="ryFmt" data-round="r3"></select>
-        </label>
-        <label>R4:
-          <select class="ryFmt" data-round="r4"></select>
-        </label>
-        <button class="btn" id="ryBuild">Build Matches</button>
-        <button class="btn ghost" id="ryClear">Clear Matches</button>
+      </div>
+    </header>
+
+    <!-- Ryder Team vs Team -->
+    <section class="panel" id="ryderPanel">
+      <div class="title">
+        <div class="row">
+          <span class="badge">Ryder Points</span>
+          <span id="ryMeta" class="sub"></span>
+        </div>
+        <div id="winnerBanner" class="banner"></div>
       </div>
 
-      <!-- Per-round Ryder sections -->
-      <div id="ryderRounds"></div>
+      <div class="scorebar">
+        <div class="kpi" id="labelA"><span style="width:12px;height:12px;border-radius:50%;background:var(--oz);display:inline-block"></span><span>Team A</span><span id="ptsA">0</span></div>
+        <div class="bar">
+          <div class="fillA" id="fillA" style="width:0%"></div>
+          <div class="fillB" id="fillB" style="width:0%"></div>
+        </div>
+        <div class="kpi" id="labelB"><span style="width:12px;height:12px;border-radius:50%;background:var(--va);display:inline-block"></span><span>Team B</span><span id="ptsB">0</span></div>
+      </div>
+      <div class="ticks" id="ryTicks"></div>
+      <div class="ticker" id="ryTicker"></div>
+    </section>
 
-      <div class="row between" style="margin-top:8px">
-        <div class="kpi"><span class="team-label" id="teamAName">Team A</span> &nbsp; Points: <span class="points" id="teamAPoints">0</span></div>
-        <div class="kpi"><span class="team-label" id="teamBName">Team B</span> &nbsp; Points: <span class="points" id="teamBPoints">0</span></div>
+    <!-- Leader lists -->
+    <section class="grid cols-3" style="margin-top:14px">
+      <div class="panel">
+        <div class="title"><h3 style="margin:0">Top 10 — Gross</h3><span class="badge" id="grossParBadge">Par: —</span></div>
+        <div style="overflow:auto;border-radius:12px">
+          <table id="tblGross">
+            <thead><tr><th>#</th><th>Player</th><th>Team</th><th class="num">R1</th><th class="num">R2</th><th class="num">R3</th><th class="num">R4</th><th class="num">Gross</th><th class="num">±Par</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Quick keypad modal -->
-  <div class="modal" id="padModal" aria-hidden="true">
-    <div class="dialog">
-      <div class="row between">
-        <div><strong id="padLabel">Set Score</strong></div>
-        <button class="btn small secondary" id="padClose">Close</button>
+      <div class="panel">
+        <div class="title"><h3 style="margin:0">Top 10 — Net</h3><span class="badge">HCP Applied</span></div>
+        <div style="overflow:auto;border-radius:12px">
+          <table id="tblNet">
+            <thead><tr><th>#</th><th>Player</th><th>Team</th><th class="num">Gross</th><th class="num">HCP</th><th class="num">Net</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-      <input type="number" id="padInput" class="score-input" min="0" style="margin-top:8px" />
-      <div class="grid" id="padKeys"></div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn small" id="padApply">Apply</button>
+
+      <div class="panel">
+        <div class="title"><h3 style="margin:0">Round Leaders</h3><span class="badge" id="rlParBadge">Pars set per round</span></div>
+        <div style="overflow:auto;border-radius:12px">
+          <table id="tblRounds">
+            <thead><tr><th>Round</th><th>Leader</th><th class="num">Score</th><th class="num">±Par</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 
 <script>
-/* =========================
-   Utilities
-========================= */
-function escapeHtml(s){ return String(s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
-function sum(arr){ return arr.reduce((s,v)=>s+(Number.isFinite(v)?v:0),0); }
-
-/* =========================
-   CSV / TSV parser
-========================= */
-function parseCSV(text){
-  const firstLine = String(text).split(/\r?\n/)[0] || '';
-  const counts = { ',': (firstLine.match(/,/g)||[]).length,
-                   '\t': (firstLine.match(/\t/g)||[]).length,
-                   ';': (firstLine.match(/;/g)||[]).length };
-  let delim = ',';
-  if(counts['\t'] > counts[',']) delim = '\t'; else if(counts[';'] > counts[',']) delim = ';';
-
-  const rows=[]; let i=0, field='', row=[], inQuotes=false;
-  while(i<text.length){
-    const c=text[i++];
-    if(inQuotes){
-      if(c==='"'){ if(text[i]==='"'){ field+='"'; i++; } else inQuotes=false; }
-      else field+=c;
-    } else {
-      if(c==='"') inQuotes=true;
-      else if(c===delim){ row.push(field); field=''; }
-      else if(c==='\n' || c==='\r'){
-        if(field!=='' || row.length){ row.push(field); rows.push(row); row=[]; field=''; }
-        if(c==='\r' && text[i]==='\n') i++;
-      } else field+=c;
-    }
-  }
-  if(field!=='' || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-function toCSV(arr){
-  const esc = v=>{
-    if(v==null) return '';
-    const s=String(v);
-    return /[",\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
-  };
-  const headers=['id','FirstName','LastName','Nickname','Team','handicap','r1','r2','r3','r4'];
-  const lines=[headers.join(',')];
-  for(const p of arr){
-    lines.push([
-      p.id||'', p.firstName||'', p.lastName||'', p.nickname||'', p.team||'',
-      (Number.isFinite(p.handicap)?p.handicap:''), p.r1??'', p.r2??'', p.r3??'', p.r4??''
-    ].map(esc).join(','));
-  }
-  return lines.join('\n');
-}
-
-/* =========================
-   Storage Keys & State
-========================= */
+/* ===== Keys shared with leaderboard.html ===== */
 const LS_KEY = 'scoreboard_players_v8';
 const PAR_KEY = 'scoreboard_par_v1';
 const RYDER_KEY = 'scoreboard_ryder_v3';
 
-let players = []; // {id,firstName,lastName,name,nickname,team,email,phone,handicap,r1..r4}
-let view = 'overall';
-let sortBy = 'total';
+/* ===== State ===== */
+let players = [];
 let par = { r1:null, r2:null, r3:null, r4:null };
+let ryder = { teams:[], teamA:null, teamB:null, roundFormat:{r1:'Best Ball',r2:'Scramble',r3:'Alt Shot',r4:'Singles'}, matches:{r1:[],r2:[],r3:[],r4:[]} };
+let refreshTimer = null;
 
-// Ryder state
-const FORMATS = ['Singles','Best Ball','Scramble','Alt Shot','Shamble'];
-let ryder = {
-  teams: [],
-  teamA: null,
-  teamB: null,
-  roundFormat: { r1:'Best Ball', r2:'Scramble', r3:'Alt Shot', r4:'Singles' },
-  matches: { r1:[], r2:[], r3:[], r4:[] } // each: {id,format,ozarkIds[],valleyIds[],result:'A'|'B'|'H'|null}
-};
-
-/* =========================
-   Elements
-========================= */
-const thead = document.getElementById('thead');
-const tbody = document.getElementById('tbody');
-const fileInput = document.getElementById('fileInput');
-const drop = document.getElementById('drop');
-const sortSel = document.getElementById('sortBy');
-const countHint = document.getElementById('countHint');
-const btnExportCSV = document.getElementById('btnExportCSV');
-const btnExportJSON = document.getElementById('btnExportJSON');
-const btnClear = document.getElementById('btnClear');
-const sampleNote = document.getElementById('sampleNote');
-const sectionsEl = document.getElementById('sections');
-const panelOverall = document.getElementById('panelOverall');
-const panelRyder = document.getElementById('panelRyder');
-const tabsEl = document.getElementById('tabs');
-
-const teamANameEl = document.getElementById('teamAName');
-const teamBNameEl = document.getElementById('teamBName');
-const teamAPointsEl = document.getElementById('teamAPoints');
-const teamBPointsEl = document.getElementById('teamBPoints');
+/* ===== Elements ===== */
+const ptsA = document.getElementById('ptsA');
+const ptsB = document.getElementById('ptsB');
+const fillA = document.getElementById('fillA');
+const fillB = document.getElementById('fillB');
+const labelA = document.getElementById('labelA');
+const labelB = document.getElementById('labelB');
+const ryMeta = document.getElementById('ryMeta');
+const ryTicks = document.getElementById('ryTicks');
+const ryTicker = document.getElementById('ryTicker');
 const winnerBanner = document.getElementById('winnerBanner');
+const grossParBadge = document.getElementById('grossParBadge');
+const rlParBadge = document.getElementById('rlParBadge');
 
-/* =========================
-   Init
-========================= */
-(function init(){
-  try{ const raw = localStorage.getItem(LS_KEY); if(raw) players = JSON.parse(raw)||[]; }catch{}
+const tblGross = document.querySelector('#tblGross tbody');
+const tblNet   = document.querySelector('#tblNet tbody');
+const tblRounds= document.querySelector('#tblRounds tbody');
+
+const scaleSel = document.getElementById('scaleSel');
+const refreshSel = document.getElementById('refreshRate');
+const btnFullscreen = document.getElementById('btnFullscreen');
+
+/* ===== Utils ===== */
+const sum = arr => arr.reduce((s,v)=>s+(Number.isFinite(v)?v:0),0);
+const esc = s => String(s??'').replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function loadAll(){
+  try{ const raw = localStorage.getItem(LS_KEY); if(raw) players = JSON.parse(raw)||[]; else players = []; }catch{ players = []; }
   try{ const rp = localStorage.getItem(PAR_KEY); if(rp) par = {...par, ...(JSON.parse(rp)||{})}; }catch{}
   try{ const rr = localStorage.getItem(RYDER_KEY); if(rr) ryder = {...ryder, ...(JSON.parse(rr)||{})}; }catch{}
-
-  document.getElementById('parR1').value = par.r1 ?? '';
-  document.getElementById('parR2').value = par.r2 ?? '';
-  document.getElementById('parR3').value = par.r3 ?? '';
-  document.getElementById('parR4').value = par.r4 ?? '';
-
-  if(players.length===0){
-    sampleNote.innerHTML = `Example CSV/TSV (copy/paste):
-<pre style="white-space:pre-wrap;margin:8px 0;">FirstName,LastName,Nickname,Team,Email,Phone,handicap,R1,R2,R3,R4
-Nick,Brown,Frenzy,Ozark,nick@example.com,555-1234,12,77,76,75,74
-Long,Ball,,Valley,long@example.com,555-5678,10,80,,,
-</pre>`;
-  } else {
-    sampleNote.classList.add('hidden');
-  }
-
-  render();
-})();
-
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(players)); }
-function savePar(){ localStorage.setItem(PAR_KEY, JSON.stringify(par)); }
-function saveRyder(){ localStorage.setItem(RYDER_KEY, JSON.stringify(ryder)); }
-
-/* =========================
-   Tabs
-========================= */
-tabsEl.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.tab');
-  if(!btn) return;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  view = btn.dataset.view;
-  panelOverall.style.display = view==='overall' ? '' : 'none';
-  panelRyder.style.display = view==='ryder' ? '' : 'none';
-  sectionsEl.style.display = (view!=='overall' && view!=='ryder') ? '' : 'none';
-  render();
-});
-
-/* =========================
-   Import / DnD
-========================= */
-fileInput.addEventListener('change', handleFiles);
-function handleFiles(){ if(this.files && this.files[0]) readCSVFile(this.files[0]); }
-
-;['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('drag'); }));
-;['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('drag'); }));
-drop.addEventListener('drop', e=>{
-  const f = e.dataTransfer.files && e.dataTransfer.files[0];
-  if(f) readCSVFile(f);
-});
-drop.addEventListener('click', ()=>fileInput.click());
-
-function readCSVFile(file){
-  const reader = new FileReader();
-  reader.onload = () => {
-    let text = String(reader.result||'').replace(/^\uFEFF/, ''); // strip BOM
-    const rows = parseCSV(text);
-    if(rows.length===0) return;
-
-    const norm = s => String(s||'').replace(/^\uFEFF/, '').trim().toLowerCase().replace(/\s+/g,'').replace(/_/g,'');
-    const headers = rows[0].map(norm);
-    const find = (...cands)=>{ for(const c of cands){ const i=headers.indexOf(c); if(i>-1) return i; } return -1; };
-
-    const iId    = find('id');
-    const iFirst = find('firstname','first');
-    const iLast  = find('lastname','last');
-    const iName  = find('name','player');
-    const iNick  = find('nickname','nick','alias');
-    const iTeam  = find('team');
-    const iEmail = find('email');
-    const iPhone = find('phone','phonenumber');
-    const iHcap  = find('handicap','hcp','index');
-    const iR1 = find('r1','round1','day1');
-    const iR2 = find('r2','round2','day2');
-    const iR3 = find('r3','round3','day3');
-    const iR4 = find('r4','round4','day4');
-
-    const toNum = v => { const n = Number(String(v||'').trim()); return Number.isFinite(n) ? n : null; };
-    const get   = (row, i) => i>-1 ? row[i] : '';
-
-    const out = [];
-    for(let r=1; r<rows.length; r++){
-      const row = rows[r]; if(!row || row.length===0) continue;
-
-      const first = iFirst>-1 ? String(get(row,iFirst)).trim() : '';
-      const last  = iLast >-1 ? String(get(row,iLast)).trim()  : '';
-      let name    = iName >-1 ? String(get(row,iName)).trim() : `${first} ${last}`.trim();
-      let splitFirst = first, splitLast = last;
-      if(!first && !last && name){
-        const parts = name.split(/\s+/);
-        splitFirst = parts.shift() || '';
-        splitLast = parts.join(' ');
-      }
-      if(!(name || splitFirst || splitLast)) continue;
-
-      out.push({
-        id: (iId>-1 ? String(get(row,iId)).trim() : '') || String(r),
-        firstName: splitFirst,
-        lastName: splitLast,
-        name: name || `${splitFirst} ${splitLast}`.trim(),
-        nickname: String(get(row,iNick)).trim(),
-        team: String(get(row,iTeam)).trim(),
-        email: String(get(row,iEmail)).trim(),
-        phone: String(get(row,iPhone)).trim(),
-        handicap: toNum(get(row,iHcap)),
-        r1: iR1>-1 ? toNum(get(row,iR1)) : null,
-        r2: iR2>-1 ? toNum(get(row,iR2)) : null,
-        r3: iR3>-1 ? toNum(get(row,iR3)) : null,
-        r4: iR4>-1 ? toNum(get(row,iR4)) : null,
-      });
-    }
-
-    players = out; save();
-
-    // Init Ryder team list after import
-    const teams = Array.from(new Set(players.map(p=>p.team).filter(Boolean)));
-    ryder.teams = teams;
-    if(!ryder.teamA || !teams.includes(ryder.teamA)) ryder.teamA = teams[0] || 'Team A';
-    if(!ryder.teamB || !teams.includes(ryder.teamB)) ryder.teamB = teams[1] || (teams[0] ? 'Team B' : 'Team B');
-    saveRyder();
-
-    render();
-
-    btnExportCSV.disabled = btnExportJSON.disabled = btnClear.disabled = players.length===0;
-
-    if(players.length===0){
-      const firstLine = (text.split(/\r?\n/)[0] || '');
-      const counts = { ',': (firstLine.match(/,/g)||[]).length,
-                       '\t': (firstLine.match(/\t/g)||[]).length,
-                       ';': (firstLine.match(/;/g)||[]).length };
-      const delimName = counts['\t']>counts[','] ? 'Tab' : (counts[';']>counts[','] ? 'Semicolon' : 'Comma');
-      const hdrSeen = rows[0] ? rows[0].join(' | ') : '(none)';
-      sampleNote.classList.remove('hidden');
-      sampleNote.innerHTML = `No rows imported. Check your delimiter and headers.<br>
-      <strong>Detected delimiter:</strong> ${delimName}<br>
-      <strong>Headers seen:</strong> ${escapeHtml(hdrSeen)}<br>
-      Expected includes: FirstName/LastName (or Name), Nickname, Team, Email, Phone, handicap, and optional R1–R4.`;
-    } else {
-      sampleNote.classList.add('hidden');
-    }
-  };
-  reader.readAsText(file);
+}
+function toParRound(score, rkey){
+  if(!Number.isFinite(score) || !Number.isFinite(par[rkey])) return '';
+  const d = score - par[rkey];
+  return (d>0?'+':'') + d;
+}
+function toParTotal(total){
+  const vals=[par.r1,par.r2,par.r3,par.r4].filter(n=>Number.isFinite(n));
+  if(!vals.length) return '';
+  const pSum = vals.reduce((a,b)=>a+b,0);
+  const diff = total - pSum;
+  return (diff>0?'+':'') + diff;
 }
 
-/* =========================
-   Sorting & scoring
-========================= */
-sortSel.addEventListener('change', ()=>{ sortBy = sortSel.value; render(); });
-
-function sorter(a,b){
-  const tot = (p)=>[p.r1,p.r2,p.r3,p.r4].reduce((s,v)=>s+(Number.isFinite(v)?v:0),0);
-  const cmpName = (x,y)=>{
-    const xl=(x.lastName||'').toLowerCase(), yl=(y.lastName||'').toLowerCase();
-    if(xl!==yl) return xl<yl?-1:1;
-    const xf=(x.firstName||'').toLowerCase(), yf=(y.firstName||'').toLowerCase();
-    if(xf!==yf) return xf<yf?-1:1;
-    return 0;
-  };
-  if(sortBy==='name') return cmpName(a,b);
-  if(['r1','r2','r3','r4'].includes(sortBy)){
-    const k=sortBy; const av=a[k]??Infinity, bv=b[k]??Infinity;
-    return av-bv || cmpName(a,b);
-  }
-  return tot(a)-tot(b) || cmpName(a,b);
-}
-
-function calcToPar(p){
-  const rPar = [par.r1, par.r2, par.r3, par.r4];
-  const scores = [p.r1,p.r2,p.r3,p.r4];
-  let totalPar = 0, havePar=false;
-  for(let i=0;i<4;i++) if(Number.isFinite(rPar[i])){ totalPar += rPar[i]; havePar=true; }
-  const totalScore = sum(scores);
-  return havePar ? (totalScore - totalPar) : null;
-}
-function calcNetTotal(p, grossTotal){
-  const h = Number.isFinite(p.handicap) ? p.handicap : null;
-  if(!Number.isFinite(grossTotal) || h==null) return null;
-  return Math.max(0, grossTotal - h);
-}
-function fmtToPar(n){ if(n==null || !Number.isFinite(n)) return ''; return (n>0?'+':'')+n; }
-
-/* =========================
-   Render: OVERALL + Round Sections + Ryder
-========================= */
-function render(){
-  btnExportCSV.disabled = btnExportJSON.disabled = btnClear.disabled = players.length===0;
-
-  // OVERALL
-  if(view==='overall'){
-    const colsOverall = [
-      {key:'rank', label:'#'},
-      {key:'firstName', label:'First'},
-      {key:'lastName', label:'Last'},
-      {key:'team', label:'Team'},
-      {key:'handicap', label:'HCP'},
-      {key:'r1', label:'R1'},
-      {key:'r2', label:'R2'},
-      {key:'r3', label:'R3'},
-      {key:'r4', label:'R4'},
-      {key:'total', label:'Gross'},
-      {key:'netTotal', label:'Net'},
-      {key:'toPar', label:'± Par (Gross)'}
-    ];
-    thead.innerHTML = '<tr>'+colsOverall.map(c=>`<th>${c.label}</th>`).join('')+'</tr>';
-
-    const rows = [...players].sort(sorter).map((p)=>{
-      const total = sum([p.r1,p.r2,p.r3,p.r4]);
-      const net = calcNetTotal(p, total);
-      const toPar = calcToPar(p);
-      return {p, total, netTotal: net, toPar};
-    });
-
-    rows.sort((a,b)=>{
-      if(sortBy==='name') return (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||'');
-      if(['r1','r2','r3','r4'].includes(sortBy)){
-        const k=sortBy; return (a.p[k]??Infinity)-(b.p[k]??Infinity) || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||'');
-      }
-      return a.total-b.total || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||'');
-    });
-
-    let rank = 0, lastMetric = null, seen = 0;
-    const body = rows.map((row)=>{
-      const {p,total,netTotal,toPar} = row;
-      const metric = (sortBy==='name')
-        ? `${p.lastName||''},${p.firstName||''}`
-        : (['r1','r2','r3','r4'].includes(sortBy) ? (p[sortBy]??Infinity) : total);
-      seen++; if(metric!==lastMetric){ rank = seen; lastMetric = metric; }
-
-      const esc = (s)=>String(s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-      const firstCell = `${esc(p.firstName||'')}${p.nickname?` <span class="hint">(${esc(p.nickname)})</span>`:''}`;
-
-      const scoreCell = k=>{
-        const val = p[k] ?? '';
-        return `<div class="scorebox">
-          <button class="step" data-step="-1" data-id="${p.id}" data-key="${k}">−</button>
-          <input type="number" class="score-input score" data-id="${p.id}" data-key="${k}" value="${val}" min="0"/>
-          <button class="step" data-step="1" data-id="${p.id}" data-key="${k}">+</button>
-          <button class="btn small secondary open-pad" data-id="${p.id}" data-key="${k}">• • •</button>
-        </div>`;
-      };
-
-      return `<tr>
-        <td class="rank">${rank}</td>
-        <td>${firstCell}</td>
-        <td>${esc(p.lastName||'')}</td>
-        <td>${esc(p.team||'')}</td>
-        <td class="num">${Number.isFinite(p.handicap)?p.handicap:''}</td>
-        <td>${scoreCell('r1')}</td>
-        <td>${scoreCell('r2')}</td>
-        <td>${scoreCell('r3')}</td>
-        <td>${scoreCell('r4')}</td>
-        <td class="num">${Number.isFinite(total)?total:''}</td>
-        <td class="num">${Number.isFinite(netTotal)?netTotal:''}</td>
-        <td class="num">${fmtToPar(toPar)}</td>
-      </tr>`;
-    }).join('');
-
-    tbody.innerHTML = body;
-    bindScoreInputs();
-    countHint.textContent = `${players.length} player${players.length===1?'':'s'}`;
-  }
-
-  // ROUND SECTIONS (distinct colored blocks)
-  if(view!=='overall' && view!=='ryder'){
-    renderRoundSections();
-  }
-
-  // RYDER
-  if(view==='ryder'){
-    renderRyder();
-  }
-}
-
-/* =========================
-   Round Sections Renderer
-========================= */
-function renderRoundSections(){
-  const map = {
-    r1sec: { key:'r1', title:'Round 1', class:'r1' },
-    r2sec: { key:'r2', title:'Round 2', class:'r2' },
-    r3sec: { key:'r3', title:'Round 3', class:'r3' },
-    r4sec: { key:'r4', title:'Round 4', class:'r4' },
-  };
-  const cfg = map[view];
-  if(!cfg){ sectionsEl.innerHTML=''; return; }
-
-  // Build a single section for the chosen round
-  const rows = [...players].sort((a,b)=>{
-    const av = a[cfg.key]??Infinity, bv=b[cfg.key]??Infinity;
-    if(av!==bv) return av-bv;
-    const al=(a.lastName||'').localeCompare(b.lastName||'');
-    if(al!==0) return al;
-    return (a.firstName||'').localeCompare(b.firstName||'');
-  });
-
-  const parVal = par[cfg.key] ?? '';
-  const toParCell = p=>{
-    const score = p[cfg.key];
-    if(!Number.isFinite(score) || !Number.isFinite(par[cfg.key])) return '';
-    const d = score - par[cfg.key];
-    return (d>0?'+':'') + d;
-  };
-
-  const body = rows.map((p,i)=>{
-    const esc = s=>escapeHtml(s||'');
-    const val = p[cfg.key] ?? '';
-    return `<tr>
-      <td class="num">${i+1}</td>
-      <td>${esc(p.firstName)} ${esc(p.nickname?`(${p.nickname})`:'')}</td>
-      <td>${esc(p.lastName)}</td>
-      <td>${esc(p.team)}</td>
-      <td class="num">${Number.isFinite(p.handicap)?p.handicap:''}</td>
-      <td>
-        <div class="scorebox">
-          <button class="step" data-step="-1" data-id="${p.id}" data-key="${cfg.key}">−</button>
-          <input type="number" class="score-input score" data-id="${p.id}" data-key="${cfg.key}" value="${val}" min="0"/>
-          <button class="step" data-step="1" data-id="${p.id}" data-key="${cfg.key}">+</button>
-          <button class="btn small secondary open-pad" data-id="${p.id}" data-key="${cfg.key}">• • •</button>
-        </div>
-      </td>
-      <td class="num">${toParCell(p)}</td>
-    </tr>`;
-  }).join('');
-
-  sectionsEl.innerHTML = `
-    <div class="section ${cfg.class}">
-      <div class="head">
-        <div>${cfg.title} <span class="badge">Par: ${parVal===''?'—':parVal}</span></div>
-        <div class="hint">Tip: Use the − / + buttons or tap ••• for a quick keypad.</div>
-      </div>
-      <div class="body">
-        <div style="overflow:auto;border-radius:14px">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:56px">#</th>
-                <th>First</th>
-                <th>Last</th>
-                <th>Team</th>
-                <th>HCP</th>
-                <th>${cfg.title} Score</th>
-                <th>± Par</th>
-              </tr>
-            </thead>
-            <tbody>${body || `<tr><td colspan="7" class="hint">No players loaded.</td></tr>`}</tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  `;
-
-  bindScoreInputs();
-}
-
-/* =========================
-   Bind score inputs (steppers + keypad)
-========================= */
-function bindScoreInputs(){
-  // direct typing
-  document.querySelectorAll('input.score-input.score').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
-      const id = inp.dataset.id, key = inp.dataset.key;
-      const v = inp.value.trim();
-      const num = v===''? null : Number(v);
-      const p = players.find(x=>String(x.id)===String(id));
-      if(!p) return;
-      p[key] = Number.isFinite(num)? num : null;
-      save();
-      // refresh par-related computed cells without nuking focus
-      if(view==='overall'){ render(); }
-      else if(view!=='ryder'){ renderRoundSections(); }
-    });
-  });
-
-  // step buttons
-  document.querySelectorAll('.step').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id, key = btn.dataset.key, step = Number(btn.dataset.step||0);
-      const p = players.find(x=>String(x.id)===String(id)); if(!p) return;
-      let cur = Number.isFinite(p[key]) ? p[key] : 0;
-      cur = Math.max(0, cur + step);
-      p[key] = cur;
-      save(); render();
-    });
-  });
-
-  // keypad openers
-  document.querySelectorAll('.open-pad').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      openPad(b.dataset.id, b.dataset.key);
-    });
-  });
-}
-
-/* =========================
-   Keypad Modal
-========================= */
-const padModal = document.getElementById('padModal');
-const padInput = document.getElementById('padInput');
-const padLabel = document.getElementById('padLabel');
-const padKeys = document.getElementById('padKeys');
-const padClose = document.getElementById('padClose');
-const padApply = document.getElementById('padApply');
-let padState = {id:null, key:null};
-
-function openPad(id,key){
-  const p = players.find(x=>String(x.id)===String(id));
-  if(!p) return;
-  padState = {id,key};
-  padLabel.textContent = `Set ${key.toUpperCase()} for ${p.firstName||''} ${p.lastName||''}`;
-  padInput.value = Number.isFinite(p[key]) ? p[key] : '';
-  // build keypad: 3x4 plus Clear
-  const nums = [3,4,5,6,7,8,9,10,11,12,13,14,15];
-  padKeys.innerHTML = nums.map(n=>`<button class="key" data-val="${n}">${n}</button>`).join('')+
-                      `<button class="key" data-val="clear">Clear</button>`;
-  padModal.classList.add('show');
-  padModal.setAttribute('aria-hidden','false');
-}
-function closePad(){
-  padModal.classList.remove('show');
-  padModal.setAttribute('aria-hidden','true');
-  padState = {id:null,key:null};
-}
-padClose.addEventListener('click', closePad);
-padModal.addEventListener('click', (e)=>{ if(e.target===padModal) closePad(); });
-padKeys.addEventListener('click', (e)=>{
-  const k = e.target.closest('.key'); if(!k) return;
-  const v = k.dataset.val;
-  if(v==='clear') { padInput.value=''; return; }
-  padInput.value = Number(v);
-});
-padApply.addEventListener('click', ()=>{
-  if(!padState.id) return;
-  const p = players.find(x=>String(x.id)===String(padState.id));
-  const val = padInput.value.trim()===''? null : Number(padInput.value);
-  p[padState.key] = Number.isFinite(val) ? val : null;
-  save(); render(); closePad();
-});
-
-/* =========================
-   RYDER VIEW (per-round sections)
-========================= */
-const ryTeamA = document.getElementById('ryTeamA');
-const ryTeamB = document.getElementById('ryTeamB');
-const ryderRoundsEl = document.getElementById('ryderRounds');
-
+/* ===== Renderers ===== */
 function renderRyder(){
-  // Build team options
-  const teams = ryder.teams.length ? ryder.teams : Array.from(new Set(players.map(p=>p.team).filter(Boolean)));
-  if(teams.length && (!ryder.teams.length)) { ryder.teams = teams; saveRyder(); }
-  if(!ryder.teamA || !teams.includes(ryder.teamA)) ryder.teamA = teams[0] || 'Team A';
-  if(!ryder.teamB || !teams.includes(ryder.teamB)) ryder.teamB = teams[1] || (teams[0] ? 'Team B' : 'Team B');
-
-  ryTeamA.innerHTML = teams.map(t=>`<option ${t===ryder.teamA?'selected':''}>${escapeHtml(t)}</option>`).join('');
-  ryTeamB.innerHTML = teams.map(t=>`<option ${t===ryder.teamB?'selected':''}>${escapeHtml(t)}</option>`).join('');
-
-  teamANameEl.textContent = ryder.teamA;
-  teamBNameEl.textContent = ryder.teamB;
-
-  // Format pickers
-  document.querySelectorAll('.ryFmt').forEach(sel=>{
-    const r = sel.dataset.round;
-    sel.innerHTML = FORMATS.map(f=>`<option ${ryder.roundFormat[r]===f?'selected':''}>${f}</option>`).join('');
+  // Compute points
+  let A=0,B=0, created=0;
+  const tickMsgs = [];
+  const teamA = ryder.teamA || 'Team A';
+  const teamB = ryder.teamB || 'Team B';
+  (['r1','r2','r3','r4']).forEach(r=>{
+    (ryder.matches[r]||[]).forEach(m=>{
+      created += 1;
+      if(m.result==='A'){ A+=1; tickMsgs.push(`${teamA} win (${r.toUpperCase()})`); }
+      else if(m.result==='B'){ B+=1; tickMsgs.push(`${teamB} win (${r.toUpperCase()})`); }
+      else if(m.result==='H'){ A+=.5; B+=.5; tickMsgs.push(`Half point each (${r.toUpperCase()})`); }
+    });
   });
 
-  // Sections per round
-  const roundMeta = [
-    {r:'r1', title:'Round 1', cls:'r1'},
-    {r:'r2', title:'Round 2', cls:'r2'},
-    {r:'r3', title:'Round 3', cls:'r3'},
-    {r:'r4', title:'Round 4', cls:'r4'},
-  ];
+  ptsA.textContent = A;
+  ptsB.textContent = B;
+  labelA.querySelector('span + span').textContent = teamA;
+  labelB.querySelector('span + span').textContent = teamB;
 
-  const teamAPlayers = players.filter(p=>p.team===ryder.teamA);
-  const teamBPlayers = players.filter(p=>p.team===ryder.teamB);
+  const totalPts = Math.max(1, created); // avoid /0
+  const aPct = Math.min(100, (A/totalPts)*100);
+  const bPct = Math.min(100, (B/totalPts)*100);
+  fillA.style.width = aPct + '%';
+  fillB.style.width = bPct + '%';
 
-  const roundHtml = roundMeta.map(({r,title,cls})=>{
-    const fmt = ryder.roundFormat[r] || 'Singles';
-    const matches = ryder.matches[r]||[];
-    const size = (fmt==='Singles')?1:2;
+  ryMeta.textContent = created ? `Matches created: ${created} • Majority to clinch: ${Math.floor(created/2)+1}` : 'No matches created yet';
+  ryTicks.innerHTML = created ? Array.from({length:created}, (_,i)=>`<span>•</span>`).join('') : '';
 
-    const selectFor = (list, selectedId, mid, side, slot) => {
-      const opts = ['<option value="">—</option>'].concat(list.map(p=>{
-        const label = `${escapeHtml(p.firstName||'')} ${escapeHtml(p.lastName||'')}`.trim();
-        const sel = String(selectedId||'')===String(p.id) ? ' selected':'';
-        return `<option value="${p.id}"${sel}>${label}</option>`;
-      }));
-      return `<select class="ryPick" data-mid="${mid}" data-side="${side}" data-slot="${slot}">${opts.join('')}</select>`;
-    };
-
-    const rows = matches.map((m, idx)=>{
-      const aSelects = Array.from({length:size}).map((_,i)=>selectFor(teamAPlayers, (m.ozarkIds||[])[i]||'', m.id, 'A', i)).join('<br/>');
-      const bSelects = Array.from({length:size}).map((_,i)=>selectFor(teamBPlayers, (m.valleyIds||[])[i]||'', m.id, 'B', i)).join('<br/>');
-      const res = `
-        <select class="ryRes" data-mid="${m.id}">
-          <option value="">—</option>
-          <option value="A" ${m.result==='A'?'selected':''}>${escapeHtml(ryder.teamA)} Win (1)</option>
-          <option value="B" ${m.result==='B'?'selected':''}>${escapeHtml(ryder.teamB)} Win (1)</option>
-          <option value="H" ${m.result==='H'?'selected':''}>Half (0.5/0.5)</option>
-        </select>
-      `;
-      return `<tr>
-        <td class="num">${idx+1}</td>
-        <td>${aSelects}</td>
-        <td>${bSelects}</td>
-        <td>
-          <select class="ryFmtRow" data-mid="${m.id}">
-            ${FORMATS.map(f=>`<option ${ (m.format||fmt)===f?'selected':'' }>${f}</option>`).join('')}
-          </select>
-        </td>
-        <td>${res}</td>
-      </tr>`;
-    }).join('');
-
-    const header = `
-      <div class="section ${cls}">
-        <div class="head">
-          <div>${title} <span class="badge">${fmt}</span></div>
-          <div class="row">
-            <button class="btn small ghost rebuild" data-round="${r}">Rebuild Pairs</button>
-            <button class="btn small secondary clear-round" data-round="${r}">Clear</button>
-          </div>
-        </div>
-        <div class="body">
-          <div style="overflow:auto;border-radius:14px">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:56px">#</th>
-                  <th>${escapeHtml(ryder.teamA)}</th>
-                  <th>${escapeHtml(ryder.teamB)}</th>
-                  <th>Format</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody>${rows || `<tr><td colspan="5" class="hint">No matches yet. Use “Build Matches” above or “Rebuild Pairs”.</td></tr>`}</tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-    return header;
-  }).join('');
-
-  ryderRoundsEl.innerHTML = roundHtml;
-
-  // Bind controls (top)
-  ryTeamA.onchange = ()=>{ ryder.teamA = ryTeamA.value; saveRyder(); renderRyder(); };
-  ryTeamB.onchange = ()=>{ ryder.teamB = ryTeamB.value; saveRyder(); renderRyder(); };
-  document.querySelectorAll('.ryFmt').forEach(sel=>{
-    sel.onchange = ()=>{ ryder.roundFormat[sel.dataset.round] = sel.value; saveRyder(); renderRyder(); };
-  });
-  document.getElementById('ryBuild').onclick = ()=>{
-    const A = players.filter(p=>p.team===ryder.teamA);
-    const B = players.filter(p=>p.team===ryder.teamB);
-    buildMatchesAllRounds(A,B);
-    saveRyder(); renderRyder();
-  };
-  document.getElementById('ryClear').onclick = ()=>{
-    ryder.matches = {r1:[],r2:[],r3:[],r4:[]}; saveRyder(); renderRyder();
-  };
-
-  // Bind per-round rebuild/clear
-  document.querySelectorAll('.rebuild').forEach(b=>{
-    b.onclick = ()=>{
-      const r = b.dataset.round;
-      const A = players.filter(p=>p.team===ryder.teamA);
-      const B = players.filter(p=>p.team===ryder.teamB);
-      ryder.matches[r] = makePairsForFormat(A,B, ryder.roundFormat[r]).map(m=>({...m, format:ryder.roundFormat[r]}));
-      saveRyder(); renderRyder();
-    };
-  });
-  document.querySelectorAll('.clear-round').forEach(b=>{
-    b.onclick = ()=>{ ryder.matches[b.dataset.round] = []; saveRyder(); renderRyder(); };
-  });
-
-  // Bind selects & results
-  document.querySelectorAll('.ryFmtRow').forEach(sel=>{
-    sel.onchange = ()=>{
-      const mid = sel.dataset.mid;
-      for(const r of ['r1','r2','r3','r4']){
-        const m = ryder.matches[r].find(x=>String(x.id)===String(mid));
-        if(m){ m.format = sel.value; break; }
-      }
-      saveRyder(); updateRyderPointsAndBanner();
-    };
-  });
-
-  document.querySelectorAll('.ryPick').forEach(sel=>{
-    sel.onchange = ()=>{
-      const mid = sel.dataset.mid, side = sel.dataset.side, slot = Number(sel.dataset.slot);
-      for(const r of ['r1','r2','r3','r4']){
-        const m = ryder.matches[r].find(x=>String(x.id)===String(mid));
-        if(m){
-          const key = (side==='A' ? 'ozarkIds' : 'valleyIds');
-          const arr = Array.isArray(m[key]) ? [...m[key]] : [];
-          arr[slot] = sel.value || null;
-
-          // simple same-side de-dupe
-          const cleaned = [];
-          for(const id of arr){
-            if(!id){ cleaned.push(null); continue; }
-            if(!cleaned.includes(id)) cleaned.push(id); else cleaned.push(null);
-          }
-          m[key] = cleaned.filter(Boolean);
-          break;
-        }
-      }
-      saveRyder();
-    };
-  });
-
-  document.querySelectorAll('.ryRes').forEach(sel=>{
-    sel.onchange = ()=>{
-      const mid = sel.dataset.mid;
-      for(const r of ['r1','r2','r3','r4']){
-        const m = ryder.matches[r].find(x=>String(x.id)===String(mid));
-        if(m){ m.result = sel.value || null; break; }
-      }
-      saveRyder(); updateRyderPointsAndBanner();
-    };
-  });
-
-  updateRyderPointsAndBanner();
-}
-
-function buildMatchesAllRounds(A,B){
-  for(const r of ['r1','r2','r3','r4']){
-    const fmt = ryder.roundFormat[r] || 'Singles';
-    ryder.matches[r] = makePairsForFormat(A,B,fmt).map(m=>({...m, format:fmt}));
-  }
-}
-
-function makePairsForFormat(A,B,fmt){
-  const size = (fmt==='Singles')?1:2;
-  const minGroups = Math.min(Math.floor(A.length/size), Math.floor(B.length/size));
-  const matches = [];
-  let aIdx=0, bIdx=0, idSeed=1;
-  const As = A.slice().sort(()=>Math.random()-0.5);
-  const Bs = B.slice().sort(()=>Math.random()-0.5);
-  for(let g=0; g<minGroups; g++){
-    const aIds = As.slice(aIdx, aIdx+size).map(p=>String(p.id)); aIdx += size;
-    const bIds = Bs.slice(bIdx, bIdx+size).map(p=>String(p.id)); bIdx += size;
-    matches.push({ id: `m${Date.now()}_${Math.random().toString(36).slice(2)}_${idSeed++}`, ozarkIds:aIds, valleyIds:bIds, result:null });
-  }
-  return matches;
-}
-
-function updateRyderPointsAndBanner(){
-  let A=0, B=0, totalPoints=0;
-  for(const r of ['r1','r2','r3','r4']){
-    for(const m of (ryder.matches[r]||[])){
-      if(m.result==='A'){ A+=1; totalPoints+=1; }
-      else if(m.result==='B'){ B+=1; totalPoints+=1; }
-      else if(m.result==='H'){ A+=0.5; B+=0.5; totalPoints+=1; } // half still counts as 1 total point split
-    }
-  }
-  teamAPointsEl.textContent = A;
-  teamBPointsEl.textContent = B;
-
-  // Clinch logic: first to strictly exceed half of available points (counting created matches, regardless of decided/undecided)
-  const createdMatches = ['r1','r2','r3','r4'].reduce((n,r)=>n + (ryder.matches[r]?.length||0), 0);
-  const availablePoints = createdMatches * 1; // 1 point per match total
-  const majority = availablePoints/2;
-  const remaining = availablePoints - (A+B);
-
+  // Winner / clinch
+  const majority = created/2;
   let msg = '';
-  if(createdMatches===0){
-    winnerBanner.classList.remove('show');
-    winnerBanner.textContent = '';
-  } else if (A > majority){
-    msg = `${ryder.teamA} have clinched! (${A} – ${B})`;
-  } else if (B > majority){
-    msg = `${ryder.teamB} have clinched! (${B} – ${A})`;
-  } else if (remaining>0){
-    // Show path to clinch
-    const needA = Math.max(0, Math.ceil(majority + 0.0001 - A + 0.5)); // #wins needed (ignoring halves)
-    const needB = Math.max(0, Math.ceil(majority + 0.0001 - B + 0.5));
-    msg = `First to ${Math.floor(majority)+1} points clinches. ${ryder.teamA} need ~${needA}, ${ryder.teamB} need ~${needB}.`;
+  if(created===0){
+    msg = '';
+  } else if (A>majority){
+    msg = `${teamA} have clinched! (${A} – ${B})`;
+  } else if (B>majority){
+    msg = `${teamB} have clinched! (${B} – ${A})`;
   } else {
-    // all decided, tie or winner by exact half (shouldn't happen with whole points unless all halves)
-    if (A===B) msg = `All square at ${A} – ${B}.`;
-    else msg = `${A>B?ryder.teamA:ryder.teamB} win ${Math.max(A,B)} – ${Math.min(A,B)}.`;
+    const needA = Math.max(0, Math.floor(majority+1 - A));
+    const needB = Math.max(0, Math.floor(majority+1 - B));
+    msg = `First to ${Math.floor(majority)+1} points clinches • ${teamA} need ~${needA}, ${teamB} need ~${needB}`;
   }
+  if(msg){ winnerBanner.textContent = msg; winnerBanner.classList.add('show'); }
+  else { winnerBanner.textContent = ''; winnerBanner.classList.remove('show'); }
 
-  if(msg){
-    winnerBanner.textContent = msg;
-    winnerBanner.classList.add('show');
-  } else {
-    winnerBanner.classList.remove('show');
-  }
+  // Ticker
+  ryTicker.innerHTML = tickMsgs.slice(-12).map(t=>`<span>${esc(t)}</span>`).join('');
 }
 
-/* =========================
-   Exports & Clear
-========================= */
-btnExportCSV.addEventListener('click', ()=>{
-  const csv = toCSV(players);
-  downloadFile('scoreboard_updated.csv', csv, 'text/csv');
-});
-btnExportJSON.addEventListener('click', ()=>{
-  const json = JSON.stringify({ players, par, ryder }, null, 2);
-  downloadFile('scoreboard_updated.json', json, 'application/json');
-});
-btnClear.addEventListener('click', ()=>{
-  if(!confirm('Clear all loaded players, pars, and ryder matches?')) return;
-  players = []; par = {r1:null,r2:null,r3:null,r4:null};
-  ryder = {teams:[],teamA:null,teamB:null,roundFormat:{r1:'Best Ball',r2:'Scramble',r3:'Alt Shot',r4:'Singles'},matches:{r1:[],r2:[],r3:[],r4:[]}};
-  localStorage.removeItem(LS_KEY); localStorage.removeItem(PAR_KEY); localStorage.removeItem(RYDER_KEY);
-  render();
-});
+function renderLeaders(){
+  // Gross top 10
+  const rowsGross = players.map(p=>{
+    const r1=p.r1, r2=p.r2, r3=p.r3, r4=p.r4;
+    const gross = sum([r1,r2,r3,r4]);
+    return {p, gross, r1, r2, r3, r4, toPar: toParTotal(gross)};
+  }).filter(x=>Number.isFinite(x.gross))
+    .sort((a,b)=>a.gross-b.gross || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||''))
+    .slice(0,10);
 
-function downloadFile(name, content, mime){
-  const blob = new Blob([content], {type:mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=name; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  tblGross.innerHTML = rowsGross.map((row,i)=>{
+    const n = row.p.nickname ? ` <span style="color:#6b614f">(${esc(row.p.nickname)})</span>` : '';
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${esc(row.p.firstName||'')} ${esc(row.p.lastName||'')}${n}</td>
+      <td>${esc(row.p.team||'')}</td>
+      <td class="num">${Number.isFinite(row.r1)?row.r1:''}</td>
+      <td class="num">${Number.isFinite(row.r2)?row.r2:''}</td>
+      <td class="num">${Number.isFinite(row.r3)?row.r3:''}</td>
+      <td class="num">${Number.isFinite(row.r4)?row.r4:''}</td>
+      <td class="num">${row.gross}</td>
+      <td class="num">${row.toPar}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="9" class="num" style="text-align:center;color:#6b614f">No scores yet.</td></tr>`;
+
+  // Net top 10
+  const rowsNet = players.map(p=>{
+    const gross = sum([p.r1,p.r2,p.r3,p.r4]);
+    const h = Number.isFinite(p.handicap) ? p.handicap : null;
+    const net = (Number.isFinite(gross) && h!=null) ? Math.max(0, gross - h) : null;
+    return {p, gross, net, h};
+  }).filter(x=>Number.isFinite(x.net))
+    .sort((a,b)=>a.net-b.net || (a.p.lastName||'').localeCompare(b.p.lastName||'') || (a.p.firstName||'').localeCompare(b.p.firstName||''))
+    .slice(0,10);
+
+  tblNet.innerHTML = rowsNet.map((row,i)=>{
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${esc(row.p.firstName||'')} ${esc(row.p.lastName||'')}</td>
+      <td>${esc(row.p.team||'')}</td>
+      <td class="num">${row.gross}</td>
+      <td class="num">${Number.isFinite(row.h)?row.h:''}</td>
+      <td class="num">${row.net}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="6" class="num" style="text-align:center;color:#6b614f">No handicaps/scores to compute net.</td></tr>`;
+
+  // Round leaders (Top 5 across R1–R4)
+  const rounds = ['r1','r2','r3','r4'];
+  const body = rounds.map(r=>{
+    const list = players.filter(p=>Number.isFinite(p[r]))
+      .sort((a,b)=>a[r]-b[r] || (a.lastName||'').localeCompare(b.lastName||'') || (a.firstName||'').localeCompare(b.firstName||''))
+      .slice(0,5);
+    const rows = list.map((p,i)=>`<tr>
+      <td>${r.toUpperCase()} ${i===0?'<span class="badge" style="margin-left:8px">Leader</span>':''}</td>
+      <td>${esc(p.firstName||'')} ${esc(p.lastName||'')}</td>
+      <td class="num">${p[r]}</td>
+      <td class="num">${toParRound(p[r], r)}</td>
+    </tr>`).join('');
+    return rows || `<tr><td>${r.toUpperCase()}</td><td style="color:#6b614f">No scores</td><td class="num"></td><td class="num"></td></tr>`;
+  }).join('');
+  tblRounds.innerHTML = body;
+
+  // Par badges
+  const pSet = [par.r1,par.r2,par.r3,par.r4].filter(n=>Number.isFinite(n));
+  grossParBadge.textContent = 'Par: ' + (pSet.length ? pSet.reduce((a,b)=>a+b,0) : '—');
+  rlParBadge.textContent = `Pars: R1 ${par.r1??'—'} • R2 ${par.r2??'—'} • R3 ${par.r3??'—'} • R4 ${par.r4??'—'}`;
 }
 
-/* =========================
-   Par inputs binding
-========================= */
-['parR1','parR2','parR3','parR4'].forEach((id, idx)=>{
-  const k = 'r'+(idx+1);
-  document.getElementById(id).addEventListener('input', (e)=>{
-    const v = e.target.value === '' ? null : Number(e.target.value);
-    par[k] = Number.isFinite(v) ? v : null; savePar(); render();
-  });
+function renderAll(){
+  loadAll();
+  renderRyder();
+  renderLeaders();
+}
+
+/* ===== Controls ===== */
+scaleSel.addEventListener('change', ()=>{
+  document.documentElement.style.setProperty('--fs', scaleSel.value);
 });
+refreshSel.addEventListener('change', ()=>{
+  if(refreshTimer) clearInterval(refreshTimer);
+  const ms = Number(refreshSel.value||0);
+  if(ms>0){ refreshTimer = setInterval(renderAll, ms); }
+});
+btnFullscreen.addEventListener('click', ()=>{
+  if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{}); }
+  else { document.exitFullscreen().catch(()=>{}); }
+});
+
+/* ===== Boot ===== */
+renderAll();
+if(Number(refreshSel.value)>0){ refreshTimer = setInterval(renderAll, Number(refreshSel.value)); }
 </script>
 </body>
 </html>
