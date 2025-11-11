@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ozark Invitational – Scorecard (Configurable)</title>
+  <style>
+    :root{
+      --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
+      --radius:14px; --shadow:0 14px 38px rgba(0,0,0,.06);
+    }
+    @page { size: Letter portrait; margin: .5in; }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+
+    .wrap{max-width:900px;margin:20px auto;padding:12px}
+
+    /* Header */
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:40px;height:40px;border-radius:999px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}
+    .title{font-weight:800;letter-spacing:-.01em}
+    .sub{opacity:.7;font-size:.9rem;margin-top:-2px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:var(--green);color:#fff;border:none;border-radius:999px;padding:.5rem 1rem;font-weight:700;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+
+    /* Sheet */
+    .sheet{position:relative;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .sheet::before{content:"";position:absolute;inset:0;opacity:.07;pointer-events:none;background:url("images/ozark-logo.png") no-repeat 50% 52%/420px}
+    .sheet-inner{position:relative;z-index:1;padding:12px}
+    .gold-bar{height:3px;background:linear-gradient(90deg,rgba(209,161,75,.9),rgba(36,79,60,.35));border-radius:3px;margin:.25rem 0 .5rem}
+
+    /* Meta */
+    .meta{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:.4rem 0 .6rem}
+    .field{border:1px solid rgba(36,79,60,.18);border-radius:10px;padding:.35rem .5rem;background:#fff}
+    .label{font-size:.67rem;letter-spacing:.08em;text-transform:uppercase;color:var(--green);opacity:.85}
+    .value[contenteditable]{font-weight:700;outline:none;border-bottom:1px dashed rgba(36,79,60,.35)}
+
+    /* Table */
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid rgba(0,0,0,.12);padding:.32rem .28rem;font-size:.9rem;text-align:center}
+    thead th{background:#f7f4ec;color:#2b2b2b;font-weight:800}
+    .col-hole{width:34px}
+    .col-name{text-align:left;width:24%}
+    .muted{opacity:.7}
+    .row-label{background:#fcfaf6;color:var(--green);font-weight:800}
+    .accent{background:rgba(209,161,75,.12);font-weight:800}
+
+    .note{border:1px dashed rgba(36,79,60,.35);border-radius:10px;padding:.5rem .6rem;margin-top:.6rem}
+    .note h4{margin:.1rem 0 .2rem;font-size:.85rem;color:var(--green)}
+    .tiny{font-size:.75rem;opacity:.85}
+
+    /* Config drawer */
+    .drawer{margin:12px 0;border:1px solid rgba(0,0,0,.08);background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+    .drawer-h{display:flex;align-items:center;justify-content:space-between;background:var(--green);color:#fff;padding:.6rem .8rem}
+    .drawer-b{padding:.8rem}
+    .grid{display:grid;gap:10px}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    textarea, input[type="text"], select{width:100%;padding:.6rem .7rem;border:1px solid rgba(0,0,0,.15);border-radius:8px;background:#fff;font:inherit}
+    textarea{min-height:120px;resize:vertical}
+
+    @media print{
+      .drawer,.actions{display:none}
+      .wrap{max-width:none;padding:0}
+      .sheet{box-shadow:none;border:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hdr">
+      <div class="brand">
+        <div class="logo">OI</div>
+        <div>
+          <div class="title">Ozark Invitational — Scorecard</div>
+          <div class="sub">Configurable holes · Matches your site palette</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="window.print()">Print</button>
+        <button class="btn ghost" onclick="toggleDrawer()">Setup</button>
+      </div>
+    </div>
+
+    <!-- CONFIG DRAWER: paste your real hole data here once and it fills the card -->
+    <section class="drawer" id="drawer" hidden>
+      <div class="drawer-h">
+        <strong>Setup</strong>
+        <small class="tiny">Paste hole data (Par / Yardage / Stroke Index)</small>
+      </div>
+      <div class="drawer-b">
+        <div class="grid cols-2">
+          <div>
+            <label class="tiny">Course name</label>
+            <input id="courseName" type="text" placeholder="e.g., Diamond Hills CC" value="Diamond Hills CC" />
+          </div>
+          <div>
+            <label class="tiny">Tees</label>
+            <input id="tees" type="text" placeholder="e.g., White" value="White" />
+          </div>
+        </div>
+        <div class="grid cols-3" style="margin-top:8px">
+          <div>
+            <label class="tiny">Front 9 – Par (comma)</label>
+            <input id="parF" type="text" value="4,5,3,4,4,3,5,4,4" />
+          </div>
+          <div>
+            <label class="tiny">Front 9 – Yardage (comma)</label>
+            <input id="ydF" type="text" value="370,505,160,385,410,175,520,355,390" />
+          </div>
+          <div>
+            <label class="tiny">Front 9 – SI (1–18, comma)</label>
+            <input id="siF" type="text" value="9,5,17,1,13,15,7,3,11" />
+          </div>
+          <div>
+            <label class="tiny">Back 9 – Par (comma)</label>
+            <input id="parB" type="text" value="4,4,5,3,4,4,5,3,4" />
+          </div>
+          <div>
+            <label class="tiny">Back 9 – Yardage (comma)</label>
+            <input id="ydB" type="text" value="380,360,520,150,405,395,535,165,410" />
+          </div>
+          <div>
+            <label class="tiny">Back 9 – SI (1–18, comma)</label>
+            <input id="siB" type="text" value="8,6,12,18,2,10,4,16,14" />
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:8px">
+          <div>
+            <label class="tiny">Show yardage row?</label>
+            <select id="showYds"><option value="yes" selected>Yes</option><option value="no">No</option></select>
+          </div>
+          <div>
+            <label class="tiny">Scoring</label>
+            <select id="scoring"><option value="stroke" selected>Stroke</option><option value="best">Team Best (per hole)</option></select>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn" onclick="applySetup()">Apply</button>
+          <button class="btn ghost" onclick="toggleDrawer()">Close</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet">
+      <div class="sheet-inner">
+        <div class="gold-bar"></div>
+        <div class="meta">
+          <div class="field"><div class="label">Course</div><div id="metaCourse" class="value" contenteditable>Diamond Hills CC</div></div>
+          <div class="field"><div class="label">Date</div><div class="value" contenteditable>____ / ____ / 2026</div></div>
+          <div class="field"><div class="label">Tees</div><div id="metaTees" class="value" contenteditable>White</div></div>
+          <div class="field"><div class="label">Format</div><div id="metaFormat" class="value" contenteditable>Best Ball</div></div>
+          <div class="field"><div class="label">Group #</div><div class="value" contenteditable>1</div></div>
+          <div class="field"><div class="label">Marker</div><div class="value" contenteditable>____________</div></div>
+        </div>
+
+        <table id="card">
+          <thead>
+            <tr>
+              <th class="col-name">Player</th>
+              <th>HCP</th>
+              <th class="col-hole">1</th><th class="col-hole">2</th><th class="col-hole">3</th><th class="col-hole">4</th><th class="col-hole">5</th><th class="col-hole">6</th><th class="col-hole">7</th><th class="col-hole">8</th><th class="col-hole">9</th>
+              <th class="accent">OUT</th>
+              <th class="col-hole">10</th><th class="col-hole">11</th><th class="col-hole">12</th><th class="col-hole">13</th><th class="col-hole">14</th><th class="col-hole">15</th><th class="col-hole">16</th><th class="col-hole">17</th><th class="col-hole">18</th>
+              <th class="accent">IN</th>
+              <th class="accent">TOT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="rowPar" class="row-label"><th>Par</th><td>—</td></tr>
+            <tr id="rowYds" class="muted"><th>Yards</th><td>—</td></tr>
+            <tr id="rowSI" class="muted"><th>Stroke Index</th><td>—</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 1 (Ozark)</th><td contenteditable class="hcp">0</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 2 (Valley)</th><td contenteditable class="hcp">0</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 3</th><td contenteditable class="hcp">0</td></tr>
+            <tr class="p"><th class="col-name" contenteditable>Player 4</th><td contenteditable class="hcp">0</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <h4>Notes</h4>
+          <p class="tiny">Use the <strong>Setup</strong> panel to paste exact Par / Yardage / Stroke Index for your course. Circle birdies • Square bogeys • “✓” for concessions.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const card = document.getElementById('card');
+
+    function toggleDrawer(){
+      const d = document.getElementById('drawer');
+      d.hidden = !d.hidden;
+    }
+
+    // Build 18 scoring cells for template rows
+    function ensureCells(tr){
+      const needed = 18 + 3; // 18 holes + OUT + IN + TOT (we already have 2 cells at start: name + hcp)
+      while(tr.children.length < (2 + needed)){
+        const td = document.createElement('td');
+        td.contentEditable = true;
+        td.className = 'sc';
+        tr.appendChild(td);
+      }
+      // Label OUT/IN/TOT cells
+      const tds = Array.from(tr.children);
+      const out = tds[2+9-1+1]; // after 9 holes
+      const inn = tds[2+9+9+1];
+      const tot = tds[2+9+9+2];
+      if(out) out.classList.add('accent','sum-out');
+      if(inn) inn.classList.add('accent','sum-in');
+      if(tot) tot.classList.add('accent','sum-tot');
+    }
+
+    function fillRow(rowId, arrF, arrB, withTotals){
+      const tr = document.getElementById(rowId);
+      ensureCells(tr);
+      const tds = Array.from(tr.children);
+      // clear existing per-hole, keep first two cells (label + dash)
+      for(let i=0;i<18;i++){
+        tds[2+i].textContent = (i<9?arrF[i]:arrB[i-9]) ?? '';
+        tds[2+i].contentEditable = false;
+      }
+      if(withTotals){
+        const sumF = arrF.reduce((a,b)=>a+(+b||0),0);
+        const sumB = arrB.reduce((a,b)=>a+(+b||0),0);
+        tds[2+9].textContent = sumF; // OUT
+        tds[2+18+1].textContent = sumB; // IN
+        tds[2+18+2].textContent = sumF+sumB; // TOT
+      }
+    }
+
+    function buildPlayerRows(){
+      card.querySelectorAll('tbody tr.p').forEach(tr=>ensureCells(tr));
+    }
+
+    function recalcPlayers(){
+      card.querySelectorAll('tbody tr.p').forEach(tr=>{
+        const tds = Array.from(tr.children);
+        let out=0,in_=0;
+        for(let i=0;i<9;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) out+=v; }
+        for(let i=9;i<18;i++){ const v = parseInt(tds[2+i].textContent,10); if(!isNaN(v)) in_+=v; }
+        tds[2+9].textContent = out||'';
+        tds[2+18+1].textContent = in_||'';
+        tds[2+18+2].textContent = (out+in_)||'';
+      });
+    }
+
+    function applySetup(){
+      const parF = parseCSV(document.getElementById('parF').value,9);
+      const parB = parseCSV(document.getElementById('parB').value,9);
+      const ydF  = parseCSV(document.getElementById('ydF').value,9);
+      const ydB  = parseCSV(document.getElementById('ydB').value,9);
+      const siF  = parseCSV(document.getElementById('siF').value,9);
+      const siB  = parseCSV(document.getElementById('siB').value,9);
+
+      fillRow('rowPar', parF, parB, true);
+      fillRow('rowSI', siF,  siB,  false);
+      if(document.getElementById('showYds').value === 'yes'){
+        document.getElementById('rowYds').style.display='table-row';
+        fillRow('rowYds', ydF, ydB, true);
+      } else {
+        document.getElementById('rowYds').style.display='none';
+      }
+
+      document.getElementById('metaCourse').textContent = document.getElementById('courseName').value || '—';
+      document.getElementById('metaTees').textContent   = document.getElementById('tees').value || '—';
+
+      toggleDrawer();
+    }
+
+    function parseCSV(str, len){
+      const arr = str.split(/\s*,\s*/).map(s=>s.trim()).filter(s=>s.length);
+      while(arr.length < len) arr.push('');
+      return arr.slice(0,len);
+    }
+
+    // Initial build
+    buildPlayerRows();
+    applySetup();
+
+    // Live totals as you type
+    card.addEventListener('input', e=>{
+      if(e.target.classList.contains('sc')) recalcPlayers();
+    });
+  </script>
+</body>
+</html>
