@@ -322,7 +322,7 @@
     })();
   </script>
 
-  <!-- Your existing scoreboard app script (unchanged) -->
+  <!-- Your existing scoreboard app script (with shared bridge added) -->
   <script>
     /*********************************
      *  0) DATA & STORAGE LAYER
@@ -359,8 +359,71 @@
     };
 
     function uid(){ return Math.random().toString(36).slice(2,9) }
-    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) }
     function load(){ try{ const r = localStorage.getItem(STORAGE_KEY); if(r){ state = JSON.parse(r); } }catch{} }
+
+    /* ===== Shared Bridge (broadcast to all pages) ===== */
+    const SHARED_KEY = "ozarkShared_v1";
+    let   LAST_SHARED_TS = 0;
+
+    function snapshotForShare(s){
+      return {
+        version: 3,
+        ts: Date.now(),
+        eventName: s.eventName,
+        dates: { ...s.dates },
+        format: {
+          day1: { ...s.format.day1 },
+          day2: { ...s.format.day2 }
+        },
+        numGroups: s.numGroups,
+        groups: {
+          day1: { front: s.groups.day1.front, back: s.groups.day1.back },
+          day2: { front: s.groups.day2.front, back: s.groups.day2.back }
+        },
+        results: {
+          day1: { front: s.results.day1.front, back: s.results.day1.back },
+          day2: { front: s.results.day2.front, back: s.results.day2.back }
+        },
+        players: (s.players||[]).map(p => ({ ...p }))
+      };
+    }
+
+    function pushShared(reason = ""){
+      try{
+        const payload = snapshotForShare(state);
+        localStorage.setItem(SHARED_KEY, JSON.stringify(payload));
+      }catch(e){
+        console.warn("[shared] push failed:", e);
+      }
+    }
+
+    /* save now also broadcasts to SHARED_KEY */
+    function save(){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }catch(e){ console.warn("local save failed:", e); }
+      pushShared("save");
+    }
+
+    /* Listen for updates from other tabs/pages (read + adopt) */
+    window.addEventListener("storage", (e) => {
+      if (e.key !== SHARED_KEY || !e.newValue) return;
+      let incoming;
+      try { incoming = JSON.parse(e.newValue); } catch { return; }
+      if (!incoming || !incoming.ts || incoming.ts <= LAST_SHARED_TS) return;
+      LAST_SHARED_TS = incoming.ts;
+
+      state.eventName   = incoming.eventName   ?? state.eventName;
+      state.dates       = incoming.dates       ?? state.dates;
+      state.format      = incoming.format      ?? state.format;
+      state.numGroups   = incoming.numGroups   ?? state.numGroups;
+      state.groups      = incoming.groups      ?? state.groups;
+      state.results     = incoming.results     ?? state.results;
+      state.players     = Array.isArray(incoming.players) ? incoming.players : state.players;
+
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch{}
+      renderAll();
+    });
 
     function sanitizeGroups() {
       if (!state.groups || typeof state.groups !== 'object') {
@@ -730,9 +793,6 @@
       state.numGroups = Math.max(1, Math.min(12, Number(e.target.value)||1));
       initGroupsIfNeeded(); renderAll(); save();
     });
-
-    const elTabs   = document.getElementById('tabs'); // already declared above; safe rebind in this scope
-    const elDayTabs= document.getElementById('dayTabs');
 
     elDayTabs.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab'); if(!t) return;
@@ -1566,6 +1626,7 @@
       sanitizeGroups();
       initGroupsIfNeeded();
       renderAll();
+      pushShared("boot"); // prime other pages with current snapshot
     } catch (e) {
       console.error('[boot] initial render failed:', e);
     }
