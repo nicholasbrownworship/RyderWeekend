@@ -13,8 +13,12 @@
     :root{
       --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
       --panel:#ffffff; --line:#e7e0d1;
-      --radius:14px; --shadow:0 14px 38px rgba(0,0,0,.06);
-      --oz:#2ecc71; --va:#3498db;
+      --radius:16px; --shadow:0 14px 38px rgba(0,0,0,.06);
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --oz:#2ecc71;  /* Ozark */
+      --va:#3498db;  /* Valley */
+      --win:#10b981; --tie:#f59e0b; --lose:#ef4444;
     }
 
     html,body{height:100%}
@@ -22,7 +26,7 @@
 
     .wrap{max-width:1100px;margin:88px auto 20px;padding:12px}
 
-    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
     .brand{display:flex;align-items:center;gap:10px}
     .logo{width:40px;height:40px;border-radius:999px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}
     .title{font-weight:800;letter-spacing:-.01em}
@@ -31,43 +35,106 @@
     .btn{background:var(--green);color:#fff;border:none;border-radius:999px;padding:.5rem 1rem;font-weight:700;cursor:pointer}
     .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
 
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
     .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff}
     .card .body{padding:12px 14px}
 
-    .totals{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+    /* ===== Scoreboard header ===== */
+    .totals{
+      display:grid;grid-template-columns:1fr minmax(220px, 380px) 1fr;gap:14px;align-items:center
+    }
     .teamBox{display:flex;flex-direction:column;gap:6px}
-    .teamName{font-weight:800;letter-spacing:.02em}
-    .teamScore{font-size:2rem;font-weight:900}
-    .bar{height:14px;background:#eee;border-radius:999px;overflow:hidden;border:1px solid #ddd}
+    .teamName{font-weight:800;letter-spacing:.02em;color:var(--ink);display:flex;align-items:center;gap:8px}
+    .teamScore{font-size:2.25rem;font-weight:900;line-height:1}
+    .dot{display:inline-block;width:12px;height:12px;border-radius:50%}
+    .dot.oz{background:var(--oz)} .dot.va{background:var(--va)}
+
+    .scorebar{
+      border:1px solid #e5dfd0;border-radius:14px;padding:10px;background:linear-gradient(180deg,#fff, #fbfaf6);
+      display:grid;gap:8px
+    }
+    .bar{height:16px;background:#eee;border-radius:999px;overflow:hidden;border:1px solid #ddd;position:relative}
     .bar > div{height:100%}
+    .scoreMeta{display:flex;align-items:center;justify-content:space-between;font-size:.85rem;color:var(--muted)}
+    .crown{border:1px solid var(--line);background:#fff3d1;color:#7a5b00;border-radius:999px;padding:.2rem .6rem;font-size:.8rem;font-weight:700}
 
     .filters{display:flex;gap:8px;flex-wrap:wrap}
     select{padding:.5rem .7rem;border:1px solid #d9d2c4;border-radius:10px;background:#fff;font:inherit}
-
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{border-bottom:1px solid #ece6d6;padding:.55rem .6rem;font-size:.95rem;text-align:left}
-    .table thead th{background:#f7f4ec;font-weight:800}
-    .muted{opacity:.7}
-
     .badge{border:1px solid #d9d2c4;border-radius:999px;padding:.2rem .5rem;background:#fff;font-size:.75rem}
-    .pill{border:1px solid #d9d2c4;border-radius:999px;padding:.15rem .5rem;background:#fff;font-size:.75rem}
 
-    .winner{font-weight:800}
-    .oz{color:var(--green-dark)}
-    .va{color:#1b4d80}
-    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-    .dot.oz{background:var(--oz)}
-    .dot.va{background:var(--va)}
-
-    .small{font-size:.85rem}
-
-    @media print{
-      .topbar, .actions, .filters{display:none}
-      .wrap{max-width:none;margin:0;padding:0}
-      .card{box-shadow:none;border:1px solid #bbb;border-radius:10px}
-      .card .head{background:#fff;border-bottom:1px solid #ddd}
+    /* ===== Match grid ===== */
+    .matches-head{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px
     }
+    .note{font-size:.85rem;color:var(--muted)}
+
+    .match-grid{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 1024px){ .match-grid{ grid-template-columns: repeat(8,1fr); } }
+    @media (max-width: 720px){  .match-grid{ grid-template-columns: repeat(4,1fr); } }
+
+    .match-card{
+      grid-column: span 6;
+      background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;
+      position:relative;
+    }
+    @media (max-width: 720px){ .match-card{ grid-column: span 4; } }
+
+    .ribbon{
+      position:absolute; inset:auto 0 0 auto; transform:translateY(50%) rotate(-45deg);
+      background:var(--gold); color:#fff; font-weight:800; font-size:.72rem; letter-spacing:.04em;
+      padding:.2rem .6rem; box-shadow:0 6px 14px rgba(0,0,0,.12);
+      display:none; /* only show when decided */
+    }
+    .match-card.win-oz .ribbon{ display:block; background:var(--oz) }
+    .match-card.win-va .ribbon{ display:block; background:var(--va) }
+    .match-card.tie   .ribbon{ display:block; background:var(--tie) }
+
+    .mc-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px dashed #e9e2d2; padding:10px 12px; background:#fff;
+    }
+    .roundTag{
+      font-weight:800;color:var(--ink);
+      display:flex;flex-wrap:wrap;gap:8px;align-items:center
+    }
+    .tag{border:1px solid #eadfca;background:#fff;border-radius:999px;padding:.15rem .55rem;font-size:.78rem}
+    .fmt{font-weight:800}
+
+    .mc-body{ padding:12px }
+    .teams{
+      display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center
+    }
+    .pair{
+      display:flex;flex-direction:column;gap:6px
+    }
+    .name{font-weight:700}
+    .name.small{font-size:.92rem}
+    .teamChip{
+      display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:.12rem .5rem;font-size:.75rem;border:1px solid #e8e1d2;background:#fff
+    }
+    .teamChip.oz{ border-color: rgba(46,204,113,.35) }
+    .teamChip.va{ border-color: rgba(52,152,219,.35) }
+
+    .vs{
+      font-weight:800;color:#8b8b8b;letter-spacing:.06em
+    }
+    .scorePill{
+      display:inline-flex;gap:6px;align-items:center;font-weight:800;border-radius:999px;padding:.15rem .5rem;font-size:.8rem;border:1px solid #ece6d6;background:#f9f7f0
+    }
+    .scorePill.win{ border-color: rgba(16,185,129,.35); background:#f0fcf6 }
+    .scorePill.tie{ border-color: rgba(245,158,11,.35); background:#fff8ec }
+    .scorePill.partial{ border-color:#e6e0d2; background:#fff }
+
+    .singles{
+      margin-top:8px; border-top:1px dashed #eee; padding-top:8px; display:grid; gap:8px
+    }
+    .singles .row{ display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center }
+
+    .empty{padding:16px;border:1px dashed #e5dfd0;border-radius:12px;text-align:center;color:var(--muted);background:#fff}
   </style>
 </head>
 <body>
@@ -135,8 +202,13 @@
             <div class="teamScore" id="scoreOz">0</div>
           </div>
 
-          <div class="bar" aria-label="Match progress">
-            <div id="barFill" style="width:50%; background:linear-gradient(90deg, var(--oz), var(--va));"></div>
+          <div class="scorebar" aria-label="Match progress">
+            <div class="bar"><div id="barFill" style="width:50%; background:linear-gradient(90deg, var(--oz), var(--va));"></div></div>
+            <div class="scoreMeta">
+              <span class="small" id="scoreMetaLeft">Round points</span>
+              <span class="crown" id="crownTag" hidden>Currently Leading</span>
+              <span class="small" id="scoreMetaRight">Higher bar = Ozark</span>
+            </div>
           </div>
 
           <div class="teamBox" style="align-items:end;text-align:right">
@@ -144,33 +216,18 @@
             <div class="teamScore" id="scoreVa">0</div>
           </div>
         </div>
-        <div class="small muted" style="margin-top:8px">
-          <span class="pill">Team formats: 1 pt</span>
-          <span class="pill">Singles matches: 1 pt each</span>
-          <span class="pill">Tie: 0.5 / 0.5</span>
-        </div>
       </div>
     </section>
 
-    <!-- Results table -->
+    <!-- Match cards -->
     <section class="card">
-      <div class="head">
+      <div class="head matches-head">
         <strong>Round Results</strong>
-        <span class="small muted" id="filterNote"></span>
+        <span class="note" id="filterNote"></span>
       </div>
       <div class="body">
-        <table class="table" id="tbl">
-          <thead>
-            <tr>
-              <th style="width:110px">Day</th>
-              <th style="width:110px">Side</th>
-              <th style="width:140px">Format</th>
-              <th style="width:70px">Group</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
+        <div id="matchGrid" class="match-grid"></div>
+        <div id="emptyState" class="empty" hidden>No pairings/scores yet.</div>
       </div>
     </section>
   </div>
@@ -198,7 +255,7 @@
       });
     })();
 
-    // ============== LEADERBOARD (reads saved 9-hole scores) ==============
+    // ============== LEADERBOARD (pretty cards; same logic as before) ==============
     (function(){
       const SHARED_KEY = "ozarkShared_v1";
       const SCORE_NS   = "ozarkScores9_v1"; // keys: ozarkScores9_v1:<day>:<side>:<group>
@@ -215,7 +272,9 @@
       const elOz   = document.getElementById('scoreOz');
       const elVa   = document.getElementById('scoreVa');
       const bar    = document.getElementById('barFill');
-      const tbody  = document.getElementById('tbody');
+      const crown  = document.getElementById('crownTag');
+      const grid   = document.getElementById('matchGrid');
+      const empty  = document.getElementById('emptyState');
       const note   = document.getElementById('filterNote');
       const evtBadge = document.getElementById('eventNameBadge');
 
@@ -224,7 +283,6 @@
       fDay.addEventListener('change', renderAll);
       fSide.addEventListener('change', renderAll);
 
-      // --- helpers for reading saved card data
       function storageKey(day, side, group){ return `${SCORE_NS}:${day}:${side}:${group}`; }
       function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch{ return null; } }
 
@@ -249,33 +307,28 @@
         return { p0:get(0), p1:get(1), p2:get(2), p3:get(3) };
       }
 
-      // Decide winners and points for a group
-      // For team formats: slots [0,1]=Ozark vs [2,3]=Valley (lower total wins 1 pt)
-      // For singles: (0 vs 1) and (2 vs 3), each worth 1 pt
       function evaluateGroup(day, side, fmt, gIndex){
         const teamEvent = TEAM_FORMATS.has(fmt);
-        const totals = readGroupTotals(day, side, gIndex+1); // group numbers are 1-based in keys
-        const out = { teamEvent, results: [], pointsOz:0, pointsVa:0 };
+        const totals = readGroupTotals(day, side, gIndex+1); // 1-based group in storage keys
+        const out = { teamEvent, results: [], pointsOz:0, pointsVa:0, totals };
 
         if (teamEvent){
-          const oz = (totals.p0 ?? null) + (totals.p1 ?? null);
-          const va = (totals.p2 ?? null) + (totals.p3 ?? null);
-
+          const oz = (Number.isFinite(totals.p0)?totals.p0:0) + (Number.isFinite(totals.p1)?totals.p1:0);
+          const va = (Number.isFinite(totals.p2)?totals.p2:0) + (Number.isFinite(totals.p3)?totals.p3:0);
           const validOz = Number.isFinite(totals.p0) || Number.isFinite(totals.p1);
           const validVa = Number.isFinite(totals.p2) || Number.isFinite(totals.p3);
 
-          if (Number.isFinite(oz) && Number.isFinite(va)){
+          if (validOz && validVa && Number.isFinite(oz) && Number.isFinite(va)){
             if (oz < va){ out.results = ['ozark', oz, va]; out.pointsOz += 1; }
             else if (va < oz){ out.results = ['valley', oz, va]; out.pointsVa += 1; }
             else { out.results = ['tie', oz, va]; out.pointsOz += .5; out.pointsVa += .5; }
           } else {
-            out.results = [null, Number.isFinite(oz)?oz:null, Number.isFinite(va)?va:null];
+            out.results = [null, validOz?oz:null, validVa?va:null];
           }
           return out;
         } else {
-          // singles two matches
-          const m1 = { a: totals.p0, b: totals.p1 }; // match 1: slots 0 vs 1
-          const m2 = { a: totals.p2, b: totals.p3 }; // match 2: slots 2 vs 3
+          const m1 = { a: totals.p0, b: totals.p1 }; // 0 vs 1
+          const m2 = { a: totals.p2, b: totals.p3 }; // 2 vs 3
           const evalMatch = ({a,b})=>{
             if (Number.isFinite(a) && Number.isFinite(b)){
               if (a<b){ out.pointsOz+=1; return 'ozark'; }
@@ -284,7 +337,7 @@
             }
             return null;
           };
-          out.results = [evalMatch(m1), evalMatch(m2), m1, m2]; // include raw totals for display
+          out.results = [evalMatch(m1), evalMatch(m2), m1, m2];
           return out;
         }
       }
@@ -297,72 +350,106 @@
         return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
       }
 
-      function buildRowHTML(day, side, fmt, gIndex, snap){
+      // ---- Card rendering
+      function cardForTeam(day, side, fmt, gIndex, snap){
         const teamEvent = TEAM_FORMATS.has(fmt);
         const dayLabel  = (day==='day1')?'Day 1':'Day 2';
         const sideLabel = (side==='front')?'Front 9':'Back 9';
         const groupNum  = gIndex+1;
-
         const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
         const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
         const names = g.map(id=>byId.get(String(id)));
 
         const res = evaluateGroup(day, side, fmt, gIndex);
 
+        // team chips
+        const chipOz = `<span class="teamChip oz"><span class="dot oz"></span>Ozark</span>`;
+        const chipVa = `<span class="teamChip va"><span class="dot va"></span>Valley</span>`;
+
+        // header tags
+        const roundTag = `
+          <div class="roundTag">
+            <span class="tag">${dayLabel}</span>
+            <span class="tag">${sideLabel}</span>
+            <span class="tag fmt">${fmt}</span>
+            <span class="tag">Group ${groupNum}</span>
+          </div>
+        `;
+
         if (teamEvent){
-          const a = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ');
-          const b = [names[2],names[3]].filter(Boolean).map(playerName).join(' & ');
+          const ozNames = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ') || '—';
+          const vaNames = [names[2],names[3]].filter(Boolean).map(playerName).join(' & ') || '—';
 
           const [winner, ozTot, vaTot] = res.results;
-          let line = `<span class="muted">Awaiting scores</span>`;
-          if (winner){
-            const scoreTxt = Number.isFinite(ozTot) && Number.isFinite(vaTot) ? ` <span class="small muted">(${ozTot} vs ${vaTot})</span>` : '';
-            if (winner==='ozark') line = `<span class="winner oz">Team Ozark</span>${scoreTxt}`;
-            else if (winner==='valley') line = `<span class="winner va">Team Valley</span>${scoreTxt}`;
-            else line = `<span class="winner">Tie</span>${scoreTxt}`;
-          } else if (Number.isFinite(ozTot) || Number.isFinite(vaTot)){
-            const scoreTxt = ` <span class="small muted">(${Number.isFinite(ozTot)?ozTot:'—'} vs ${Number.isFinite(vaTot)?vaTot:'—'})</span>`;
-            line = `<span class="muted">Partial</span>${scoreTxt}`;
-          }
 
-          const pairs = (a||b) ? `<div class="small muted">${a||'—'} <strong>vs</strong> ${b||'—'}</div>` : '';
+          let cardClass = '';
+          let pillClass = 'scorePill partial';
+          let pillText  = 'Awaiting scores';
+          if (winner === 'ozark'){ cardClass='win-oz'; pillClass='scorePill win'; pillText=`${ozTot} – ${vaTot}`; }
+          else if (winner === 'valley'){ cardClass='win-va'; pillClass='scorePill win'; pillText=`${vaTot} – ${ozTot}`; }
+          else if (winner === 'tie'){ cardClass='tie'; pillClass='scorePill tie'; pillText=`${ozTot} – ${vaTot} (Tie)`; }
+          else if (Number.isFinite(ozTot) || Number.isFinite(vaTot)){ pillText=`${Number.isFinite(ozTot)?ozTot:'—'} – ${Number.isFinite(vaTot)?vaTot:'—'}`; }
+
           return `
-            <tr>
-              <td>${dayLabel}</td>
-              <td>${sideLabel}</td>
-              <td>${fmt}</td>
-              <td>${groupNum}</td>
-              <td>${line}${pairs}</td>
-            </tr>`;
+            <div class="match-card ${cardClass}">
+              <div class="ribbon">${winner==='ozark'?'Ozark':winner==='valley'?'Valley':winner==='tie'?'Tie':''}</div>
+              <div class="mc-head">${roundTag}<span class="${pillClass}">${pillText}</span></div>
+              <div class="mc-body">
+                <div class="teams">
+                  <div class="pair">
+                    <div class="name">${ozNames}</div>
+                    ${chipOz}
+                  </div>
+                  <div class="vs">VS</div>
+                  <div class="pair" style="text-align:right; align-items:flex-end">
+                    <div class="name">${vaNames}</div>
+                    ${chipVa}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
         } else {
-          // singles: two matches with totals if available
-          const m1Names = `<span class="small muted">${playerName(names[0])||'—'} <strong>vs</strong> ${playerName(names[1])||'—'}</span>`;
-          const m2Names = `<span class="small muted">${playerName(names[2])||'—'} <strong>vs</strong> ${playerName(names[3])||'—'}</span>`;
+          // singles: two rows
           const [r1, r2, m1, m2] = res.results;
-
-          const mk = (lab, r, m) => {
-            let who = '<span class="muted small">Awaiting scores</span>';
-            if (r==='ozark') who = `<span class="winner oz small">${TEAM_LABELS.ozark}</span>`;
-            else if (r==='valley') who = `<span class="winner va small">${TEAM_LABELS.valley}</span>`;
-            else if (r==='tie') who = `<span class="winner small">Tie</span>`;
-            const score = (Number.isFinite(m?.a) || Number.isFinite(m?.b))
-              ? ` <span class="small muted">(${Number.isFinite(m?.a)?m.a:'—'} vs ${Number.isFinite(m?.b)?m.b:'—'})</span>`
-              : '';
-            return `<div>${lab}: ${who}${score}</div>`;
+          const mkRow = (A,B,r,m) => {
+            const pill =
+              r==='ozark' ? `<span class="scorePill win">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'}</span>` :
+              r==='valley'? `<span class="scorePill win">${Number.isFinite(m?.b)?m.b:'—'} – ${Number.isFinite(m?.a)?m.a:'—'}</span>` :
+              r==='tie'   ? `<span class="scorePill tie">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'} (Tie)</span>` :
+                            `<span class="scorePill partial">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'}</span>`;
+            return `
+              <div class="row">
+                <div class="pair">
+                  <div class="name small">${playerName(A)||'—'}</div>
+                  ${chipOz}
+                </div>
+                <div class="vs">${pill}</div>
+                <div class="pair" style="text-align:right; align-items:flex-end">
+                  <div class="name small">${playerName(B)||'—'}</div>
+                  ${chipVa}
+                </div>
+              </div>`;
           };
 
+          // decide card class by sum of points
+          let cls='';
+          if (res.pointsOz > res.pointsVa) cls='win-oz';
+          else if (res.pointsVa > res.pointsOz) cls='win-va';
+          else if (res.pointsOz === res.pointsVa && (r1||r2)) cls='tie';
+
           return `
-            <tr>
-              <td>${dayLabel}</td>
-              <td>${sideLabel}</td>
-              <td>${fmt}</td>
-              <td>${groupNum}</td>
-              <td>
-                ${mk('Match 1', r1, m1)}<br>${m1Names}
-                <br>
-                ${mk('Match 2', r2, m2)}<br>${m2Names}
-              </td>
-            </tr>`;
+            <div class="match-card ${cls}">
+              <div class="ribbon">${cls==='win-oz'?'Ozark':cls==='win-va'?'Valley':cls==='tie'?'Tie':''}</div>
+              <div class="mc-head">${roundTag}<span class="tag">Singles</span></div>
+              <div class="mc-body">
+                <div class="singles">
+                  ${mkRow(names[0], names[1], r1, m1)}
+                  ${mkRow(names[2], names[3], r2, m2)}
+                </div>
+              </div>
+            </div>
+          `;
         }
       }
 
@@ -390,7 +477,6 @@
                   va += ev.pointsVa;
                 }
               } else {
-                // two singles; count only matches that have a decision
                 const [r1, r2] = ev.results;
                 if (r1){ total += 1; oz += (r1==='ozark'?1:(r1==='tie'?.5:0)); va += (r1==='valley'?1:(r1==='tie'?.5:0)); }
                 if (r2){ total += 1; oz += (r2==='ozark'?1:(r2==='tie'?.5:0)); va += (r2==='valley'?1:(r2==='tie'?.5:0)); }
@@ -401,10 +487,17 @@
         return { oz, va, total };
       }
 
-      function rebuildTable(snap){
+      function rebuildGrid(snap){
         const considerDay  = fDay.value;
         const considerSide = fSide.value;
-        let rows = '';
+
+        const parts = [];
+        if (considerDay!=='all') parts.push(considerDay==='day1'?'Day 1':'Day 2');
+        if (considerSide!=='all') parts.push(considerSide==='front'?'Front 9':'Back 9');
+        note.textContent = parts.length ? `Showing ${parts.join(' • ')}` : 'Showing all rounds';
+
+        let html = '';
+        let count = 0;
 
         ['day1','day2'].forEach(day=>{
           if (considerDay!=='all' && considerDay!==day) return;
@@ -414,17 +507,14 @@
             const fmt = snap.format?.[day]?.[side] || 'Best Ball';
             const groups = snap.groups?.[day]?.[side] || [];
             for (let i=0;i<groups.length;i++){
-              rows += buildRowHTML(day, side, fmt, i, snap);
+              html += cardForTeam(day, side, fmt, i, snap);
+              count++;
             }
           });
         });
 
-        tbody.innerHTML = rows || `<tr><td colspan="5" class="muted">No pairings/scores yet.</td></tr>`;
-
-        const parts = [];
-        if (considerDay!=='all') parts.push(considerDay==='day1'?'Day 1':'Day 2');
-        if (considerSide!=='all') parts.push(considerSide==='front'?'Front 9':'Back 9');
-        note.textContent = parts.length ? `Showing ${parts.join(' • ')}` : 'Showing all rounds';
+        grid.innerHTML = html;
+        empty.hidden = count>0;
       }
 
       function renderTotals(snap){
@@ -434,8 +524,11 @@
         elVa.textContent = vaR.toString();
 
         const denom = total>0 ? total : 1;
-        const pctOz = Math.max(0, Math.min(100, (oz/denom)*100));
+        const pctOz = clamp((oz/denom)*100, 0, 100);
         bar.style.width = pctOz + '%';
+
+        crown.hidden = !(oz>va || va>oz);
+        crown.textContent = (oz>va) ? "Ozark Leading" : (va>oz) ? "Valley Leading" : "Currently Tied";
 
         // Event name badge
         const evName = snap.eventName || 'Event';
@@ -450,7 +543,7 @@
       function renderAll(){
         if (!shared) return;
         renderTotals(shared);
-        rebuildTable(shared);
+        rebuildGrid(shared);
       }
 
       function refreshFromStorage(){
@@ -466,23 +559,20 @@
       // Boot
       refreshFromStorage();
 
-      // React to scoreboard writes (pairings/format/metadata)
+      // React to changes
       window.addEventListener('storage', (e)=>{
-        // Pairings/format changes
         if (e.key === SHARED_KEY && e.newValue){
           let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
           if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
           adoptShared(inc);
           return;
         }
-        // Score changes: any key that starts with ozarkScores9_v1:
         if (e.key && e.key.startsWith(`${SCORE_NS}:`)){
-          // Re-render using current shared snapshot
           renderAll();
         }
       });
 
-      // Also poll once in case scores already exist (simple micro-tick)
+      // Ensure first paint
       setTimeout(renderAll, 0);
     })();
   </script>
