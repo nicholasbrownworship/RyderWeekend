@@ -14,34 +14,20 @@
   <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#244f3c">
-  <link rel="preload" as="image" href="images/ozark-logo.png" />
+  <!-- Preload the logo used by header.html -->
+  <link rel="preload" as="image" href="images/logo.png" />
 
   <!-- App script -->
   <script src="script.js" defer></script>
 </head>
 <body id="top">
-  <!-- TOP BAR -->
+  <!-- SHARED TOP BAR (loaded once; remove any extra nav/toggle elsewhere) -->
   <div id="siteHeader"></div>
-<script>
-  fetch("header.html")
-    .then(res => res.text())
-    .then(html => { document.getElementById("siteHeader").innerHTML = html; });
-</script>
-
-
-    <!-- NEW: cross-page hub nav -->
-    <nav class="nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a href="scorecard.html">Scorecard</a>
-      <a href="scoreboard.html">Scoreboard</a>
-      <a href="leaderboard.html">Leaderboard</a>
-      <a href="index.html#teams">Players</a>
-      <a href="index.html#sponsors">Sponsors</a>
-      <a href="index.html#signup" class="btn-nav">Sign Up</a>
-    </nav>
-
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
-  </header>
+  <script>
+    fetch("header.html")
+      .then(res => res.text())
+      .then(html => { document.getElementById("siteHeader").innerHTML = html; });
+  </script>
 
   <!-- HERO -->
   <section class="hero pro-hero" id="top-hero">
@@ -322,30 +308,9 @@
     </div>
   </dialog>
 
-  <!-- Tiny inline helpers (safe alongside script.js) -->
+  <!-- Inline helpers (safe alongside script.js) -->
   <script>
-    // 1) Mobile menu toggle (no-op if styles hide/show via CSS)
-    (function () {
-      const btn = document.getElementById('navToggle');
-      const nav = document.querySelector('.nav');
-      if (!btn || !nav) return;
-      btn.addEventListener('click', () => {
-        const open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        nav.classList.toggle('open', !open);
-      });
-    })();
-
-    // 2) Active tab highlight across pages (GitHub Pages-safe)
-    (function(){
-      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-      document.querySelectorAll('.nav a').forEach(a => {
-        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
-        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
-      });
-    })();
-
-    // 3) Simple schedule tab switcher (if your script.js doesn't already handle it)
+    // Simple schedule tab switcher (if your script.js doesn't already handle it)
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
       const days = Array.from(document.querySelectorAll('.schedule-day'));
