@@ -8,7 +8,7 @@
   <!-- Shared site styles & scripts (topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
   <script src="script.js" defer></script>
-  <script src="autopair.js" defer></script>
+  <!-- autopair loads once at the end; removed duplicate here -->
 
   <style>
     :root{
@@ -16,6 +16,9 @@
       --text:#e7f2f3; --hint:#99a4a6; --danger:#ff6b6b; --ok:#63e6be; --gold:#f1c40f;
       --card:#0f1415; --ink:#0b0f0d; --line:#223033; --shadow:rgba(0,0,0,.35);
       --ui-scale:.8; /* 80% on-screen scale */
+
+      /* light theme tokens (used by contrast patch when bg is cream) */
+      --green:#244f3c; --green-dark:#163023; --cream:#f5f0e6;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -109,7 +112,7 @@
     .rbtn{border:1px solid var(--line);background:#101718;color:#bfe7ea;padding:4px 8px;border-radius:999px;font-size:12px;cursor:pointer}
     .rbtn:hover{filter:brightness(1.08)}
     .rbtn.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
-    .rlabel{font-size:12px;color:#a7b1b2;margin-right:4px}
+    .rlabel{font-size:12px;color:var(--hint);margin-right:4px}
     .sep{height:1px;background:#223033;opacity:.5;margin:6px 0}
     #winnerBadge{
       background: linear-gradient(180deg,#17393d,#102526);
@@ -121,6 +124,44 @@
       font-weight: 700;
       color: #c9fbff;
       text-align: center;
+    }
+
+    /* ============================
+       SCOREBOARD-ONLY CONTRAST PATCH
+       (applies safely on cream OR dark bg)
+       ============================ */
+    .panel .head{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)),
+        linear-gradient(180deg, var(--cream, #0c1111), #ece5d6);
+      border-bottom: 1px solid #cfc6af;
+      color: var(--green-dark, #cfe6e8);
+      font-weight: 800;
+    }
+    @media (prefers-color-scheme: dark) {
+      .panel .head{
+        background:#0c1111;
+        border-bottom:1px solid var(--line);
+        color:#cfe6e8;
+      }
+    }
+    .list th{
+      background: linear-gradient(180deg, #fbf8ef 0%, #ece5d6 100%);
+      color: var(--green-dark, #163023);
+      border-bottom: 1px solid #cfc6af;
+      font-weight: 800;
+    }
+    .subheads span{
+      border:1px solid #c8bda3;
+      background:#fffef8;
+      color: var(--green-dark, #163023);
+    }
+    .card h3{
+      background: linear-gradient(180deg, #fbf8ef, #efe7d5);
+      border: 1px solid #cfc6af;
+      color: var(--green-dark, #163023);
+      border-radius: 10px;
+      padding: 6px 8px;
     }
   </style>
 </head>
@@ -323,7 +364,7 @@
     })();
   </script>
 
-  <!-- Your existing scoreboard app script (with shared bridge added) -->
+  <!-- ===== SCOREBOARD APP + SHARED BRIDGE (FULL) ===== -->
   <script>
     /*********************************
      *  0) DATA & STORAGE LAYER
