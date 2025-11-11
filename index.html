@@ -9,7 +9,7 @@
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Icons / app-like touches -->
+  <!-- Icons / PWA touches -->
   <link rel="icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
@@ -29,14 +29,18 @@
         <span class="subtitle">Family Golf Tournament</span>
       </div>
     </div>
-    <nav class="nav">
-      <a href="#top">Home</a>
-      <a href="#about">Event</a>
-      <a href="#schedule">Schedule</a>
-      <a href="#teams">Players</a>
-      <a href="#sponsors">Sponsors</a>
-      <a href="#signup" class="btn-nav">Sign Up</a>
+
+    <!-- NEW: cross-page hub nav -->
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="scorecard.html">Scorecard</a>
+      <a href="scoreboard.html">Scoreboard</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="index.html#teams">Players</a>
+      <a href="index.html#sponsors">Sponsors</a>
+      <a href="index.html#signup" class="btn-nav">Sign Up</a>
     </nav>
+
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
   </header>
 
@@ -62,7 +66,7 @@
           </div>
           <div class="pill">
             <span class="pill-label">Entry</span>
-            <span class="pill-value">$125 (lunch incl.)</span>
+            <span class="pill-value">$150 (lunch incl.)</span>
           </div>
         </div>
         <div class="hero-actions">
@@ -71,6 +75,7 @@
         </div>
         <p class="hero-footnote">Spots limited to family & invited guests • Captains announced closer to event.</p>
       </div>
+
       <div class="hero-right">
         <div class="hero-card">
           <h2>Event Snapshot</h2>
@@ -93,6 +98,7 @@
         <h2>About the Tournament</h2>
         <p>One weekend every year where everybody shows up, plays, and has a story to tell until next spring.</p>
       </div>
+
       <div class="info-row">
         <article class="info-card">
           <h3>Date & Location</h3>
@@ -103,6 +109,7 @@
             <li>Diamond Hills Country Club, Diamond City, AR</li>
           </ul>
         </article>
+
         <article class="info-card">
           <h3>Format</h3>
           <p class="muted">Ryder Cup inspired.</p>
@@ -113,6 +120,7 @@
             <li>Most points wins the Invitational</li>
           </ul>
         </article>
+
         <article class="info-card">
           <h3>Cost & Inclusions</h3>
           <p class="muted">Straightforward pricing.</p>
@@ -132,13 +140,15 @@
         <h2>Weekend Schedule</h2>
         <p>Tap a day to see what we’re playing.</p>
       </div>
+
       <div class="tabs tabs-centered">
         <button class="tab-btn active" data-day="day1">Day 1 • Saturday</button>
         <button class="tab-btn" data-day="day2">Day 2 • Sunday</button>
       </div>
+
       <div class="schedule-cols">
         <!-- DAY 1 -->
-        <div class="schedule-day active" id="day1">
+        <div class="schedule-day active" id="day1" role="tabpanel" aria-labelledby="day1-tab">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
             <h3>Check-in & Range</h3>
@@ -160,8 +170,9 @@
             <p>Included. Scores posted to main board.</p>
           </div>
         </div>
+
         <!-- DAY 2 -->
-        <div class="schedule-day" id="day2">
+        <div class="schedule-day" id="day2" role="tabpanel" aria-labelledby="day2-tab" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
             <h3>Warm-up & Singles Pairings</h3>
@@ -186,7 +197,7 @@
       </div>
     </section>
 
-    <!-- PLAYERS (Wheel) -->
+    <!-- PLAYERS -->
     <section id="teams" class="section">
       <div class="section-head center">
         <h2>Players</h2>
@@ -194,9 +205,9 @@
       </div>
 
       <div class="team-toggle">
-        <button class="team-btn active" data-team="all">All Players</button>
-        <button class="team-btn" data-team="ozark">Team Ozark</button>
-        <button class="team-btn" data-team="valley">Team Valley</button>
+        <button class="team-btn active" data-team="all" aria-pressed="true">All Players</button>
+        <button class="team-btn" data-team="ozark" aria-pressed="false">Team Ozark</button>
+        <button class="team-btn" data-team="valley" aria-pressed="false">Team Valley</button>
 
         <div class="admin-bar">
           <button id="viewPoolBtn" class="btn btn-admin" type="button">Admin: View Player Pool</button>
@@ -311,5 +322,49 @@
       <div id="signupTable" class="pool-table"></div>
     </div>
   </dialog>
+
+  <!-- Tiny inline helpers (safe alongside script.js) -->
+  <script>
+    // 1) Mobile menu toggle (no-op if styles hide/show via CSS)
+    (function () {
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        nav.classList.toggle('open', !open);
+      });
+    })();
+
+    // 2) Active tab highlight across pages (GitHub Pages-safe)
+    (function(){
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+    })();
+
+    // 3) Simple schedule tab switcher (if your script.js doesn't already handle it)
+    (function () {
+      const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+      const days = Array.from(document.querySelectorAll('.schedule-day'));
+      if (!buttons.length || !days.length) return;
+
+      function show(id) {
+        days.forEach(d => {
+          const active = d.id === id;
+          d.classList.toggle('active', active);
+          d.toggleAttribute('hidden', !active);
+        });
+        buttons.forEach(b => b.classList.toggle('active', b.dataset.day === id));
+      }
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => show(btn.dataset.day));
+      });
+    })();
+  </script>
 </body>
 </html>
