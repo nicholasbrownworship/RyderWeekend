@@ -1,0 +1,41 @@
+<!-- header.html -->
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <img src="./images/logo.png" alt="Ozark Invitational" class="brand-img" />
+  </a>
+
+  <nav class="nav" aria-label="Primary">
+    <a href="index.html">Home</a>
+    <a href="scorecard.html">Scorecard</a>
+    <a href="scoreboard.html">Scoreboard</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="index.html#teams">Players</a>
+    <a href="index.html#sponsors">Sponsors</a>
+    <a href="index.html#signup" class="btn-nav">Sign Up</a>
+  </nav>
+
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+
+  <script>
+    // Highlight current page link
+    (function(){
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+    })();
+
+    // Mobile menu toggle
+    (function(){
+      const btn = document.getElementById('navToggle');
+      const nav = document.querySelector('.nav');
+      if(!btn || !nav) return;
+      btn.addEventListener('click', ()=>{
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        nav.classList.toggle('open', !open);
+      });
+    })();
+  </script>
+</header>
