@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scoreboard – Ozark Invitational</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Shared site styles (topbar, buttons, etc.) -->
+  <!-- Shared site styles & scripts (topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
 
   <style>
@@ -35,9 +35,7 @@
        SCOREBOARD-ONLY TOPBAR OVERRIDE
        =============================== */
     .topbar{
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+      position: sticky; top: 0; z-index: 1000;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)) ,
         linear-gradient(180deg, var(--green-dark), #0f2a20);
@@ -45,16 +43,21 @@
       border-bottom: 1px solid rgba(0,0,0,.35);
       box-shadow: 0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
       backdrop-filter: saturate(120%);
+      display:flex; align-items:center; gap:16px; padding:10px 14px;
     }
-    .topbar .logo-circle{
-      background: linear-gradient(180deg,#0e2018,#0b1612);
-      color: var(--cream);
+    .logo-wrap{display:flex;gap:10px;align-items:center}
+    .logo-circle{
+      width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
+      background: linear-gradient(180deg,#0e2018,#0b1612); color: var(--cream);
       border: 1px solid rgba(255,255,255,.15);
       box-shadow: 0 3px 10px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.03);
+      font-weight:800; letter-spacing:.04em;
     }
-    .topbar .logo-text .title{ color: var(--cream); font-weight: 800; letter-spacing:.02em; }
-    .topbar .logo-text .subtitle{ color: #d9efe5; opacity:.9; }
+    .logo-text{display:flex;flex-direction:column}
+    .logo-text .title{ color: var(--cream); font-weight: 800; letter-spacing:.02em; }
+    .logo-text .subtitle{ color: #d9efe5; opacity:.9; font-size:12px }
 
+    .nav{display:flex;gap:6px;margin-left:auto;margin-right:10px}
     .topbar .nav a{
       color: var(--cream);
       opacity: .95;
@@ -78,29 +81,26 @@
       box-shadow: 0 6px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.05);
       color:#e7fff5;
     }
-    .topbar .btn-nav{
-      background: linear-gradient(180deg,#d1a14b,#b98832);
+    .btn-nav{
+      background: linear-gradient(180deg,#d1a14b,#b98832) !important;
       color:#1a1407 !important;
-      font-weight:900;
+      font-weight:900 !important;
       border:1px solid #8f6a29 !important;
       box-shadow: 0 8px 20px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.18);
-    }
-    .topbar .btn-nav:hover,
-    .topbar .btn-nav:focus{
-      filter: brightness(1.05);
-      transform: translateY(-1px);
     }
     .nav-toggle{
       color: var(--cream);
       background: transparent;
       border: 1px solid rgba(255,255,255,.25);
       border-radius: 10px;
+      padding:.4rem .6rem;
     }
 
-    /* Mobile drawer (if your styles.css uses .nav.open) */
     .nav.open{
+      position:fixed;left:0;right:0;top:56px;padding:10px;
       background: linear-gradient(180deg, var(--green-dark), #0f2a20);
       border-top: 1px solid rgba(255,255,255,.15);
+      display:grid; gap:8px;
     }
 
     /* ===== App layout ===== */
@@ -114,7 +114,7 @@
       .app{transform:none!important;width:100%!important;height:auto!important;padding:0!important;margin-top:0!important}
     }
 
-    header{grid-column:1/-1;background:linear-gradient(180deg,#0e1516,#0a0e0f);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:0 6px 20px var(--shadow);display:flex;align-items:center;gap:12px}
+    header.apphead{grid-column:1/-1;background:linear-gradient(180deg,#0e1516,#0a0e0f);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:0 6px 20px var(--shadow);display:flex;align-items:center;gap:12px}
     h1{margin:0;font-size:20px;letter-spacing:.3px}
     .badge{padding:.2rem .5rem;border:1px solid var(--line);border-radius:999px;color:var(--accent-2);font-size:12px}
 
@@ -133,18 +133,22 @@
     .btn.primary{background:#17393d;border-color:#2a6f77;color:#c9fbff}
     .btn.warn{background:#3d1717;border-color:#772a2a;color:#ffd6d6}
 
+    /* Player Pool & cards */
     .pool{display:flex;flex-direction:column;gap:10px}
     .pool-controls{display:flex;gap:8px;flex-wrap:wrap}
     .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#101717;color:#bfe7ea;font-size:12px;cursor:pointer;user-select:none}
     .pill.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
     .players{display:grid;grid-template-columns:1fr;gap:6px;min-height:80px}
-    .player{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);padding:8px;border-radius:12px;cursor:grab}
+    .player{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);padding:8px;border-radius:12px;cursor:grab}
     .player:active{cursor:grabbing}
+    .player .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#203134;color:#bfe7ea;font-weight:800;font-size:12px}
+    .player .av img{width:100%;height:100%;object-fit:cover;display:block}
     .dot{width:10px;height:10px;border-radius:50%}
     .dot.ozark{background:#2ecc71}
     .dot.valley{background:#3498db}
     .meta{font-size:12px;color:#a7b1b2}
 
+    /* Builder grid & slots */
     .builder-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
     .tabs{display:flex;gap:6px}
     .tabs.segment{background:#0e1415;padding:4px;border:1px solid var(--line);border-radius:999px}
@@ -160,9 +164,11 @@
     .slots.team{grid-template-columns:1fr 1fr}
     .slots.team .col{display:grid;grid-template-columns:1fr;gap:6px}
     .slots.singles{grid-template-columns:repeat(2,1fr)}
-    .slot{background:#0b1011;border:1px dashed #2a3a3d;border-radius:10px;min-height:36px;display:flex;align-items:center;justify-content:center;padding:6px;color:#789195}
+    .slot{background:#0b1011;border:1px dashed #2a3a3d;border-radius:10px;min-height:42px;display:flex;align-items:center;gap:8px;padding:6px;color:#b8ced1}
     .slot.filled{border-style:solid;border-color:#335a60;background:#0f191a;color:#d9f8fb}
     .slot.dragover{outline:2px dashed var(--accent);outline-offset:2px}
+    .slot .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#26383b;color:#cfe6e8;font-weight:800;font-size:12px;flex:0 0 auto}
+    .slot .av img{width:100%;height:100%;object-fit:cover;display:block}
 
     .legend{display:flex;gap:10px;align-items:center;font-size:12px;color:#a7b1b2}
     .legend .swatch{width:10px;height:10px;border-radius:50%}
@@ -175,14 +181,14 @@
 
     @media print{
       body{background:#fff;color:#000}
-      .topbar, header,.panel:not(.printable){display:none}
+      .topbar, header.apphead,.panel:not(.printable){display:none}
       .printable{display:block;border:none;box-shadow:none}
     }
 
     body, table { font-variant-numeric: tabular-nums; }
-    header { border-radius: 16px; border-top: 2px solid #2b3b3e; box-shadow: 0 12px 40px var(--shadow), inset 0 1px 0 #1a2324; }
-    header h1 { letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
-    header .badge { background: linear-gradient(180deg,#0f1718,#0a0e10); border-color:#2a3b3e; color:#cfe6e8; box-shadow: inset 0 0 0 1px #0a0e10, 0 6px 18px rgba(0,0,0,.35); }
+    header.apphead { border-radius: 16px; border-top: 2px solid #2b3b3e; box-shadow: 0 12px 40px var(--shadow), inset 0 1px 0 #1a2324; }
+    header.apphead h1 { letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+    header.apphead .badge { background: linear-gradient(180deg,#0f1718,#0a0e10); border-color:#2a3b3e; color:#cfe6e8; box-shadow: inset 0 0 0 1px #0a0e10, 0 6px 18px rgba(0,0,0,.35); }
     .list tbody tr:nth-child(odd){ background: linear-gradient(180deg, #0b1112, #0a0f10); }
     .list tbody tr:hover{ background:#101a1b; }
     .list td:nth-child(3), .list td:nth-child(4), .list td:nth-child(5), .list td:nth-child(6){ text-align:center; font-weight:700; }
@@ -192,7 +198,7 @@
     .rbtn{border:1px solid var(--line);background:#101718;color:#bfe7ea;padding:4px 8px;border-radius:999px;font-size:12px;cursor:pointer}
     .rbtn:hover{filter:brightness(1.08)}
     .rbtn.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
-    .rlabel{font-size:12px;color:#a7b1b2;margin-right:4px}
+    .rlabel{font-size:12px;color:var(--hint);margin-right:4px}
     .sep{height:1px;background:#223033;opacity:.5;margin:6px 0}
     #winnerBadge{
       background: linear-gradient(180deg,#17393d,#102526);
@@ -231,7 +237,7 @@
   </header>
 
   <div class="app">
-    <header>
+    <header class="apphead">
       <h1>Ozark Pairings Builder</h1>
       <span class="badge">Captain pairing cards &amp; printable sheets</span>
       <div style="margin-left:auto" class="row">
@@ -406,36 +412,22 @@
     })();
   </script>
 
-  <!-- ===== SCOREBOARD APP (FULL SCRIPT WITH AVATARS & CSV PHOTO) ===== -->
+  <!-- ===== SCOREBOARD APP + SHARED BRIDGE (FULL, with AVATARS) ===== -->
   <script>
-    /* The entire app script is the same one I just provided, verbatim.
-       Pasting it again here for a single self-contained file. */
-
     /*********************************
-     *  0) DATA / CONSTANTS / STORAGE
+     *  0) DATA & STORAGE LAYER
      *********************************/
     const SIGNUPS_KEY = "ozarkSignups_v1";
     const STORAGE_KEY = "ozarkPairings_v3_twoDays";
     const SHARED_KEY  = "ozarkShared_v1";
-
     const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
     const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
+    const WIN_THRESHOLD = 15.5; // clinch threshold for 24-player format
+    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // expose for autopair.js
 
-    const WIN_THRESHOLD = 15.5;
-    window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
-    const PLAYER_PHOTO_BASE_PATH = "images/players/";
-
-    const elPlayers      = document.getElementById('players');
-    const elTeamFilters  = document.getElementById('teamFilters');
-    const elSearch       = document.getElementById('search');
-    const elGrid         = document.getElementById('grid');
-    const elTabs         = document.getElementById('tabs');
-    const elDayTabs      = document.getElementById('dayTabs');
-    const elFormat       = document.getElementById('formatSelect');
-    const elAssignTable  = document.getElementById('assignmentTable');
-    const elAlerts       = document.getElementById('alerts');
-    const elPrintArea    = document.getElementById('printArea');
-    const elPrintContent = document.getElementById('printContent');
+    // ==== Avatar / Photo config ====
+    const PHOTO_BASE = "images/players/"; // default folder
+    const DEFAULT_EXT_ORDER = ["png","jpg","jpeg","webp"]; // try order
 
     let state = {
       players: [],
@@ -452,6 +444,7 @@
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
       },
+      // results: team -> "ozark"/"valley"/"tie"/null; singles -> [res1,res2]
       results: {
         day1: { front: [], back: [] },
         day2: { front: [], back: [] }
@@ -460,31 +453,11 @@
       winAnnounced: null
     };
 
+    function uid(){ return Math.random().toString(36).slice(2,9) }
+    function load(){ try{ const r = localStorage.getItem(STORAGE_KEY); if(r){ state = JSON.parse(r); } }catch{} }
+
+    /* ===== Shared Bridge (broadcast to all pages) ===== */
     let LAST_SHARED_TS = 0;
-
-    function uid(){ return Math.random().toString(36).slice(2,9); }
-    function playerDisplayName(p){
-      const nick = p.nickname && p.nickname.trim()?.length ? ` “${p.nickname}”` : '';
-      return `${p.firstName}${nick} ${p.lastName}`.replace(/\s+/g,' ').trim();
-    }
-    function slugify(first, last){
-      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
-      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-");
-      return [f,l].filter(Boolean).join("-");
-    }
-    function photoURL(p){
-      const raw = String(p?.photo||"").trim();
-      if (!raw) return null;
-      if (/^https?:\/\//i.test(raw) || raw.startsWith("/") || raw.startsWith("./")) return raw;
-      return PLAYER_PHOTO_BASE_PATH + raw.replace(/^images\/players\//i,"");
-    }
-
-    function load(){
-      try{
-        const r = localStorage.getItem(STORAGE_KEY);
-        if (r) state = JSON.parse(r);
-      }catch{}
-    }
     function snapshotForShare(s){
       return {
         version: 3,
@@ -508,23 +481,17 @@
       };
     }
     function pushShared(){
-      try{
-        localStorage.setItem(SHARED_KEY, JSON.stringify(snapshotForShare(state)));
-      }catch(e){ console.warn("[shared] push failed:", e); }
+      try{ localStorage.setItem(SHARED_KEY, JSON.stringify(snapshotForShare(state))); }catch(e){ console.warn("[shared] push failed:", e); }
     }
     function save(){
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }catch(e){ console.warn("local save failed:", e); }
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.warn("local save failed:", e); }
       pushShared();
     }
     window.addEventListener("storage", (e) => {
       if (e.key !== SHARED_KEY || !e.newValue) return;
-      let incoming;
-      try { incoming = JSON.parse(e.newValue); } catch { return; }
+      let incoming; try { incoming = JSON.parse(e.newValue); } catch { return; }
       if (!incoming || !incoming.ts || incoming.ts <= LAST_SHARED_TS) return;
       LAST_SHARED_TS = incoming.ts;
-
       state.eventName   = incoming.eventName   ?? state.eventName;
       state.dates       = incoming.dates       ?? state.dates;
       state.format      = incoming.format      ?? state.format;
@@ -532,42 +499,153 @@
       state.groups      = incoming.groups      ?? state.groups;
       state.results     = incoming.results     ?? state.results;
       state.players     = Array.isArray(incoming.players) ? incoming.players : state.players;
-
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch{}
       renderAll();
     });
+
+    function sanitizeGroups() {
+      if (!state.groups || typeof state.groups !== 'object') {
+        state.groups = { day1: { front: [], back: [] }, day2: { front: [], back: [] } };
+      }
+      if (!state.groups.day1 || typeof state.groups.day1 !== 'object') state.groups.day1 = { front: [], back: [] };
+      if (!state.groups.day2 || typeof state.groups.day2 !== 'object') state.groups.day2 = { front: [], back: [] };
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          if (!Array.isArray(state.groups[day][side])) state.groups[day][side] = [];
+        });
+      });
+      if (!state.results || typeof state.results !== 'object') {
+        state.results = { day1:{front:[],back:[]}, day2:{front:[],back:[]} };
+      }
+    }
+
+    // Always 4 slots per group so Singles can show two 1v1 matches
+    function desiredGroupSize(fmt){ return 4; }
+    window.desiredGroupSize = desiredGroupSize;
 
     function loadPlayersFromPreviousSite(){
       try{
         const raw = localStorage.getItem(SIGNUPS_KEY);
         if(!raw) return [];
         const arr = JSON.parse(raw);
-        return (arr||[]).map((p)=> normalizePlayer({
+        return (arr||[]).map((p)=>({
           id: p.id || uid(),
           firstName: p.firstName || (p.name?.split(" ")[0]||""),
-          lastName : p.lastName  || (p.name?.split(" ").slice(1).join(" ")||""),
-          nickname : p.nickname || "",
-          team     : (p.team||"").toLowerCase().includes("valley") ? "valley" : "ozark",
-          email    : p.email||"",
-          phone    : p.phone||"",
-          handicap : p.handicap,
-          photo    : p.photo || ""
+          lastName: p.lastName || (p.name?.split(" ").slice(1).join(" ")||""),
+          nickname: p.nickname || "",
+          team: (p.team||"").toLowerCase().includes("valley")?"valley":"ozark",
+          email: p.email||"",
+          phone: p.phone||"",
+          handicap: Number.isFinite(Number(p.handicap)) ? Number(p.handicap) : null,
+          photo: p.photo || p.photourl || p.image || "" // carry over if present
         }));
       }catch{ return [] }
     }
+
     function ensurePlayers(){
       if(state.players && state.players.length) return;
       const prior = loadPlayersFromPreviousSite();
       if(prior.length){ state.players = prior; return; }
       state.players = [
         {id:uid(), firstName:"Nick",   lastName:"Brown", nickname:"Frenzy",   team:"ozark",  handicap: 10.2, photo:"nick-brown.png"},
-        {id:uid(), firstName:"Chris",  lastName:"B.",    nickname:"CB",       team:"ozark",  handicap: 15.0, photo:""},
-        {id:uid(), firstName:"Alex",   lastName:"M.",    nickname:"",         team:"valley", handicap: 12.7, photo:""},
-        {id:uid(), firstName:"Jordan", lastName:"S.",    nickname:"J-Smooth", team:"valley", handicap: 18.4, photo:""}
+        {id:uid(), firstName:"Chris",  lastName:"B.",    nickname:"CB",       team:"ozark",  handicap: 15.0, photo:"chris-b..png"},
+        {id:uid(), firstName:"Alex",   lastName:"M.",    nickname:"",         team:"valley", handicap: 12.7, photo:"alex-m..png"},
+        {id:uid(), firstName:"Jordan", lastName:"S.",    nickname:"J-Smooth", team:"valley", handicap: 18.4, photo:"jordan-s..png"}
       ];
     }
-    function normalizePlayer(objIn){
-      const obj = {...objIn};
+
+    /* ======= Avatar helpers ======= */
+    function slugify(first, last){
+      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      return [f,l].filter(Boolean).join("-");
+    }
+    function normalizePhotoValue(v){
+      if (!v) return "";
+      let s = String(v).trim();
+      if (!s) return "";
+      // Strip leading slashes
+      s = s.replace(/^\/+/, "");
+      // If user pasted absolute URL, use as-is
+      if (/^https?:\/\//i.test(s)) return s;
+      // If they included "images/players/", keep it (we'll join carefully)
+      return s;
+    }
+    function buildCandidatePhotoURLs(p){
+      const explicit = normalizePhotoValue(p.photo || p.photourl || p.image || "");
+      if (explicit) {
+        // If relative and not starting with our base, join
+        if (!/^https?:\/\//i.test(explicit) && !explicit.startsWith(PHOTO_BASE)) {
+          return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit.replace(/^\/+/,"")];
+        }
+        return [explicit];
+      }
+      const slug = slugify(p.firstName, p.lastName);
+      if (!slug) return [];
+      return DEFAULT_EXT_ORDER.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
+    }
+    // image cache: id -> resolved URL or "" (none)
+    const AVATAR_CACHE = new Map();
+
+    function makeAvatarEl(p, size=28){
+      const wrap = document.createElement('div');
+      wrap.className = 'av';
+      wrap.style.width = wrap.style.height = size + "px";
+      // If cached
+      if (AVATAR_CACHE.has(p.id)) {
+        const url = AVATAR_CACHE.get(p.id);
+        if (url) {
+          const img = document.createElement('img');
+          img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
+          img.src = url;
+          wrap.appendChild(img);
+        } else {
+          wrap.textContent = (p.firstName?.[0]||"").toUpperCase() + (p.lastName?.[0]||"").toUpperCase();
+        }
+        return wrap;
+      }
+
+      const initials = ((p.firstName?.[0]||"") + (p.lastName?.[0]||"")).toUpperCase() || "??";
+      wrap.textContent = initials;
+
+      const candidates = buildCandidatePhotoURLs(p);
+      if (!candidates.length) {
+        AVATAR_CACHE.set(p.id, ""); // none
+        return wrap;
+      }
+
+      // Try sequentially: png -> jpg -> jpeg -> webp, or explicit one
+      let idx = 0;
+      const tryNext = () => {
+        if (idx >= candidates.length) {
+          AVATAR_CACHE.set(p.id, ""); // none worked
+          return;
+        }
+        const url = candidates[idx++];
+        const test = new Image();
+        test.decoding = "async";
+        test.loading = "lazy";
+        test.onload = () => {
+          wrap.innerHTML = "";
+          const img = document.createElement('img');
+          img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
+          img.src = url;
+          wrap.appendChild(img);
+          AVATAR_CACHE.set(p.id, url);
+        };
+        test.onerror = tryNext;
+        test.src = url;
+      };
+      tryNext();
+
+      return wrap;
+    }
+
+    /* === normalizer used by merge/imports (includes handicap + photo) === */
+    function normalizePlayer(p){
+      const obj = {...p};
+
+      // names
       let first = obj.firstName || obj.First || obj.firstname || "";
       let last  = obj.lastName  || obj.Last  || obj.lastname  || "";
       if ((!first || !last) && obj.name) {
@@ -575,26 +653,35 @@
         first = first || parts[0] || "";
         last  = last  || parts.slice(1).join(" ") || "";
       }
+
+      // nickname
       const nickname = obj.nickname || obj.Nickname || obj.nick || "";
+
+      // team
       let teamRaw = obj.team || obj.Team || "";
       let team = "ozark";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("val")) team = "valley";
       if (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("oz")) team = "ozark";
+
+      // contact
       const email = obj.email || obj.Email || "";
       const phone = obj.phone || obj.Phone || "";
-      const hRaw = obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
+
+      // handicap (accepts: handicap, hcp, hi, index)
+      const hRaw =
+        obj.handicap ?? obj.Handicap ?? obj.hcp ?? obj.HCP ?? obj.Hi ?? obj.hi ?? obj.index ?? obj.Index ?? "";
       let handicap = null;
       if (hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== "") {
         const cleaned = String(hRaw).replace(/[^\d.\-]/g, "");
         const num = Number(cleaned);
         handicap = Number.isFinite(num) ? num : null;
       }
-      let photo = obj.photo || obj.Photo || obj.image || obj.Image || "";
-      if (!photo) {
-        const slug = slugify(first, last);
-        if (slug) photo = `${slug}.png`;
-      }
+
+      // photo (accepts several headers)
+      const photo = normalizePhotoValue(obj.photo || obj.Photo || obj.photourl || obj.PhotoURL || obj.image || obj.Image || "");
+
       const id = obj.id || uid();
+
       return {
         id,
         firstName: String(first||"").trim(),
@@ -608,25 +695,17 @@
       };
     }
 
-    function sanitizeGroups() {
-      if (!state.groups || typeof state.groups !== 'object') {
-        state.groups = { day1: { front: [], back: [] }, day2: { front: [], back: [] } };
-      }
-      for (const d of ['day1','day2']){
-        if (!state.groups[d] || typeof state.groups[d] !== 'object') state.groups[d] = { front: [], back: [] };
-        for (const s of ['front','back']){
-          if (!Array.isArray(state.groups[d][s])) state.groups[d][s] = [];
-        }
-      }
-      if (!state.results || typeof state.results !== 'object') {
-        state.results = { day1:{front:[],back:[]}, day2:{front:[],back:[]} };
-      }
-    }
-    function desiredGroupSize(fmt){ return 4; }
+    /*********************************
+     *  1) RENDER: PLAYER POOL
+     *********************************/
+    const elPlayers = document.getElementById('players');
+    const elTeamFilters = document.getElementById('teamFilters');
+    const elSearch = document.getElementById('search');
 
     function renderTeamFilters(){
       elTeamFilters.innerHTML = '';
-      ['all','ozark','valley'].forEach(t=>{
+      const teams = ['all','ozark','valley'];
+      teams.forEach(t=>{
         const b = document.createElement('div');
         b.className = 'pill' + (state.filters.team===t?' active':'');
         b.textContent = t==='all'? 'All' : TEAM_LABELS[t];
@@ -634,6 +713,13 @@
         elTeamFilters.appendChild(b);
       });
     }
+
+    function playerDisplayName(p){
+      const nick = p.nickname && p.nickname.trim()?.length ? `"${p.nickname}" `:'';
+      return `${p.firstName} ${nick}${p.lastName}`.replace(/\s+/g,' ').trim();
+    }
+
+    /* remove player helper (cleans from all groups + roster) */
     function removePlayerEverywhere(playerId){
       ['day1','day2'].forEach(day=>{
         ['front','back'].forEach(side=>{
@@ -646,9 +732,11 @@
         });
       });
       state.players = (state.players || []).filter(p => p.id !== playerId);
+      AVATAR_CACHE.delete(playerId);
       save();
       renderAll();
     }
+
     function mergePlayers(existing, incoming){
       const byKey = x=> (x.firstName+'|'+x.lastName+'|'+(x.email||'')).toLowerCase();
       const map = new Map((existing||[]).map(p=>[byKey(p), p]));
@@ -659,6 +747,7 @@
       });
       return Array.from(map.values());
     }
+
     function renderPlayers(){
       const q = (state.filters.q||'').toLowerCase();
       const team = state.filters.team;
@@ -676,27 +765,38 @@
           card.draggable = true;
           card.dataset.id = p.id;
 
-          const hcpStr = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : ``;
-          const url = photoURL(p);
+          const av = makeAvatarEl(p, 28);
 
-          card.innerHTML = `
-            <div class="avatar" style="width:28px;height:28px;border-radius:50%;overflow:hidden;border:1px solid var(--line);background:#223033;display:flex;align-items:center;justify-content:center">
-              ${url ? `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"/>`
-                    : `<div class="dot ${p.team}" style="width:10px;height:10px;border-radius:50%;background:${TEAM_COLORS[p.team]}"></div>`}
-            </div>
-            <div>
-              <div>${playerDisplayName(p)}</div>
-              <div class="meta">${TEAM_LABELS[p.team]}${hcpStr}</div>
-            </div>
-            <button class="btn warn btnDel" title="Remove player"
-              style="margin-left:auto;font-size:11px;line-height:1;padding:4px 8px;border-radius:8px">×</button>
-          `;
+          const hcpStr = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : ``;
+
+          const info = document.createElement('div');
+          const nameEl = document.createElement('div');
+          nameEl.textContent = playerDisplayName(p);
+          const metaEl = document.createElement('div');
+          metaEl.className = 'meta';
+          metaEl.textContent = `${TEAM_LABELS[p.team]}${hcpStr}`;
+          info.appendChild(nameEl);
+          info.appendChild(metaEl);
+
+          const dot = document.createElement('div');
+          dot.className = 'dot '+p.team;
+          dot.style.background = TEAM_COLORS[p.team];
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn warn btnDel';
+          delBtn.title = 'Remove player';
+          delBtn.style.cssText = 'margin-left:auto;font-size:11px;line-height:1;padding:4px 8px;border-radius:8px';
+          delBtn.textContent = '×';
+
+          card.appendChild(av);
+          card.appendChild(info);
+          card.appendChild(dot);
+          card.appendChild(delBtn);
 
           if(used.has(p.id)) card.style.opacity = .45;
 
           card.addEventListener('dragstart', onDragPlayer);
-
-          card.querySelector('.btnDel').addEventListener('click', (e)=>{
+          delBtn.addEventListener('click', (e)=>{
             e.stopPropagation();
             e.preventDefault();
             const name = playerDisplayName(p);
@@ -708,12 +808,15 @@
           elPlayers.appendChild(card);
         });
     }
+
     elSearch.addEventListener('input', (e)=>{ state.filters.q = e.target.value; renderPlayers(); });
+
     document.getElementById('btnReloadPool').addEventListener('click', ()=>{
       const fromOld = loadPlayersFromPreviousSite();
       if(fromOld.length){ state.players = mergePlayers(state.players, fromOld); save(); renderAll(); alert('Loaded players from previous site signups.'); }
-      else alert('No signups found under key '+SIGNUPS_KEY+'. Add players manually or use Import CSV.');
+      else alert('No signups found under key '+SIGNUPS_KEY+'. Add players manually or use an Import button.');
     });
+
     document.getElementById('btnAddManual').addEventListener('click', ()=>{
       const firstName = prompt('First name?'); if(!firstName) return;
       const lastName = prompt('Last name?')||'';
@@ -723,9 +826,21 @@
       const hNum = Number(String(hStr).replace(/[^\d.\-]/g,''));
       const handicap = Number.isFinite(hNum) ? hNum : null;
 
-      state.players.push(normalizePlayer({id:uid(), firstName, lastName, nickname, team, handicap}));
+      // Optional: ask for photo filename (relative to images/players)
+      const photo = (prompt('Photo filename (optional) e.g. nick-brown.png')||'').trim();
+
+      const p = {id:uid(), firstName, lastName, nickname, team, handicap, photo};
+      state.players.push(p);
       save(); renderAll();
     });
+
+    /*********************************
+     *  2) BUILDER GRID (Per Day + Side)
+     *********************************/
+    const elGrid   = document.getElementById('grid');
+    const elTabs   = document.getElementById('tabs');
+    const elDayTabs= document.getElementById('dayTabs');
+    const elFormat = document.getElementById('formatSelect');
 
     function initGroupsIfNeeded(){
       ['day1','day2'].forEach(day=>{
@@ -746,8 +861,9 @@
           if(!Array.isArray(state.results[day][side])) state.results[day][side] = [];
           while(state.results[day][side].length < state.numGroups) state.results[day][side].push(null);
           state.results[day][side] = state.results[day][side].slice(0, state.numGroups);
-          const isTeam = window.TEAM_FORMATS.has(fmt);
+
           state.results[day][side] = state.results[day][side].map((r)=>{
+            const isTeam = window.TEAM_FORMATS.has(fmt);
             if (isTeam) return (typeof r === 'string' || r===null) ? r : null;
             return Array.isArray(r) ? [r[0] ?? null, r[1] ?? null] : [null, null];
           });
@@ -764,18 +880,21 @@
       s.dataset.pos = pos;
 
       const p = playerId ? findPlayer(playerId) : null;
-      if (p) {
-        const hcp = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : '';
-        const url = photoURL(p);
-        s.innerHTML = `
-          <div style="display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
-            <div class="avatar" style="width:22px;height:22px;border-radius:50%;overflow:hidden;border:1px solid #2a3a3d;background:#223033">
-              ${url ? `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"/>` : ''}
-            </div>
-            <span>${playerDisplayName(p)}${hcp}</span>
-          </div>`;
+
+      const av = makeAvatarEl(p || {firstName:'',lastName:''}, 28);
+      if (playerId && p) {
+        const label = document.createElement('div');
+        label.textContent = (()=> {
+          const hcp = (p.handicap!==null && p.handicap!==undefined) ? ` • HCP ${p.handicap}` : '';
+          return playerDisplayName(p) + hcp;
+        })();
+        s.appendChild(av);
+        s.appendChild(label);
       } else {
-        s.textContent = 'Drop player here';
+        const placeholder = document.createElement('div');
+        placeholder.textContent = 'Drop player here';
+        s.appendChild(av);
+        s.appendChild(placeholder);
       }
 
       s.addEventListener('dragover', e=>{ e.preventDefault(); s.classList.add('dragover'); });
@@ -863,6 +982,7 @@
     }
     function findPlayer(id){ return state.players.find(p=>p.id===id) }
 
+    // Controls
     document.getElementById('eventName').addEventListener('input', e=>{ state.eventName = e.target.value; save(); });
     document.getElementById('eventDate1').addEventListener('input', e=>{ state.dates.day1 = e.target.value; save(); });
     document.getElementById('eventDate2').addEventListener('input', e=>{ state.dates.day2 = e.target.value; save(); });
@@ -870,7 +990,6 @@
       state.numGroups = Math.max(1, Math.min(12, Number(e.target.value)||1));
       initGroupsIfNeeded(); renderAll(); save();
     });
-
     elDayTabs.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab'); if(!t) return;
       document.querySelectorAll('#dayTabs .tab').forEach(x=>x.classList.remove('active'));
@@ -878,14 +997,12 @@
       state.currentDay = t.dataset.day;
       save(); renderAll();
     });
-
     elTabs.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab'); if(!t) return;
       document.querySelectorAll('#tabs .tab').forEach(x=>x.classList.remove('active'));
       t.classList.add('active');
       state.side = t.dataset.side; save(); renderAll();
     });
-
     elFormat.addEventListener('change', (e)=>{
       state.format[state.currentDay][state.side] = e.target.value;
       const gs = desiredGroupSize(e.target.value);
@@ -898,7 +1015,6 @@
       initGroupsIfNeeded();
       save(); renderAll();
     });
-
     document.getElementById('btnClearSide').addEventListener('click', ()=>{
       const day = state.currentDay, side = state.side;
       if(confirm(`Clear all groups on ${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}?`)){
@@ -910,6 +1026,617 @@
       }
     });
 
+    /*********************************
+     *  3) SUMMARY & VALIDATION
+     *********************************/
+    const elAlerts = document.getElementById('alerts');
+    const elAssignTable = document.getElementById('assignmentTable');
+
+    function renderAssignmentsTable(){
+      sanitizeGroups();
+
+      const used = {
+        day1: { front:new Map(), back:new Map() },
+        day2: { front:new Map(), back:new Map() },
+      };
+      const gf = a => Array.isArray(a) ? a : [];
+
+      gf(state.groups.day1.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.front.set(pid, i+1) }));
+      gf(state.groups.day1.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.back .set(pid, i+1) }));
+      gf(state.groups.day2.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.front.set(pid, i+1) }));
+      gf(state.groups.day2.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.back .set(pid, i+1) }));
+
+      const rows = state.players.map(p=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${playerDisplayName(p)}</td><td>${TEAM_LABELS[p.team]}</td>`+
+          `<td>${(p.handicap!==null && p.handicap!==undefined) ? p.handicap : ''}</td>`+
+          `<td>${used.day1.front.get(p.id)||''}</td>`+
+          `<td>${used.day1.back.get(p.id)||''}</td>`+
+          `<td>${used.day2.front.get(p.id)||''}</td>`+
+          `<td>${used.day2.back.get(p.id)||''}</td>`;
+        return tr;
+      });
+      elAssignTable.innerHTML = ''; rows.forEach(r=> elAssignTable.appendChild(r));
+
+      const problems = [];
+
+      ['day1','day2'].forEach(day=>{
+        const label = day==='day1'?'Day 1':'Day 2';
+        state.players.forEach(p=>{
+          if(!used[day].front.has(p.id)) problems.push(`${label} Front: ${playerDisplayName(p)} not placed`);
+          if(!used[day].back.has(p.id))  problems.push(`${label} Back: ${playerDisplayName(p)} not placed`);
+        });
+      });
+
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          const fmt = state.format[day][side];
+          const isTeam = window.TEAM_FORMATS.has(fmt);
+          gf(state.groups[day][side]).forEach((g,i)=>{
+            const players = gf(g).filter(Boolean).map(findPlayer);
+            if(isTeam){
+              if(players.length>0){
+                const oz = players.filter(p=>p.team==='ozark').length;
+                const va = players.filter(p=>p.team==='valley').length;
+                if(players.length !== 4) problems.push(`${printSide(day,side)} Group ${i+1}: incomplete (needs 4 players: 2v2)`);
+                else if(!(oz===2 && va===2)) problems.push(`${printSide(day,side)} Group ${i+1}: must be 2 OZ + 2 VA (now ${oz}/${va})`);
+              }
+            }else{
+              const pairIdx = [[0,1],[2,3]];
+              pairIdx.forEach((pair, pi)=>{
+                const ids = pair.map(pos => (Array.isArray(g)?g[pos]:null)).filter(Boolean);
+                if (ids.length === 0) return;
+                if (ids.length !== 2) {
+                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: needs exactly 2 players (1v1).`);
+                  return;
+                }
+                const pA = findPlayer(ids[0]), pB = findPlayer(ids[1]);
+                if (!pA || !pB || pA.team === pB.team) {
+                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: must be OZ vs VA.`);
+                }
+              });
+            }
+          });
+        });
+      });
+
+      elAlerts.innerHTML = problems.length
+        ? `<div class="card" style="border-color:#4d2626;background:#171112"><strong style="color:#ffb3b3">Needs attention</strong><ul style="margin:.3rem 0 .2rem .9rem">${problems.map(p=>`<li>${p}</li>`).join('')}</ul></div>`
+        : `<div class="card" style="border-color:#244a3c;background:#0f1513"><strong style="color:#b9fbd2">Looks good</strong><div>Everyone is placed with correct pair sizes on both days.</div></div>`;
+    }
+
+    function printSide(day,side){
+      return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
+    }
+
+    document.getElementById('pillOnce').addEventListener('click', ()=> alert('One placement per player per side per day is enforced when you drop a player again.'));
+    document.getElementById('pillBalance').addEventListener('click', ()=> alert('Team events require 2v2 (2 Ozark + 2 Valley). Singles requires 1v1.'));
+
+    /*********************************
+     *  4) PRINT / EXPORT
+     *********************************/
+    const elPrintArea = document.getElementById('printArea');
+    const elPrintContent = document.getElementById('printContent');
+    elPrintArea.style.pointerEvents = 'none';
+
+    document.getElementById('btnPrint').addEventListener('click', () => {
+      ensurePrintOverrides();
+      buildPrintPages();
+
+      document.documentElement.setAttribute('data-printing', '1');
+      elPrintArea.style.display = 'block';
+      elPrintArea.style.pointerEvents = 'auto';
+
+      const endOnce = (() => {
+        let done = false;
+        return () => {
+          if (done) return;
+          done = true;
+          document.documentElement.removeAttribute('data-printing');
+          elPrintArea.style.display = 'none';
+          elPrintArea.style.pointerEvents = 'none';
+          elPrintContent.innerHTML = '';
+          window.removeEventListener('afterprint', endOnce);
+          if (mm && mm.removeEventListener) mm.removeEventListener('change', onMM);
+          if (mm && mm.removeListener) mm.removeListener(onMM);
+          window.removeEventListener('focus', onFocus);
+        };
+      })();
+
+      const onMM = (e) => { if (!e.matches) endOnce(); };
+      const onFocus = () => { setTimeout(endOnce, 150); };
+
+      window.addEventListener('afterprint', endOnce, { once: true });
+      const mm = window.matchMedia && window.matchMedia('print');
+      if (mm && mm.addEventListener) mm.addEventListener('change', onMM);
+      else if (mm && mm.addListener) mm.addListener(onMM);
+      window.addEventListener('focus', onFocus, { once: true });
+
+      setTimeout(endOnce, 8000);
+      window.print();
+    });
+
+    function ensurePrintOverrides(){
+      if (document.getElementById('printOverridesScoped')) return;
+      const style = document.createElement('style');
+      style.id = 'printOverridesScoped';
+      style.textContent = `
+        @media print {
+          html[data-printing="1"] .app { display:block !important; padding:0 !important; }
+          html[data-printing="1"] header,
+          html[data-printing="1"] .panel:not(.printable) { display:none !important; }
+          html[data-printing="1"] .printable {
+            display:block !important; width:100% !important; border:none !important;
+            box-shadow:none !important; padding:0 !important; margin:0 !important; background:#fff !important;
+          }
+          html[data-printing="1"] body { background:#fff !important; color:#000 !important; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    function buildPrintPages(){
+      const css = `
+        <style>
+          @page { size: Letter portrait; margin: 0.35in; }
+          * { box-sizing: border-box; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+          .page { page-break-after: always; width:100%; }
+          .page:last-child { page-break-after: auto; }
+
+          .title { margin:0 0 10px; font-size:22px; font-weight:800; }
+          .day-header { font-size:16px; font-weight:700; margin:0 0 10px; }
+
+          .sheet {
+            border:1px solid #888; margin:10px 0 14px; padding:10px; border-radius:8px;
+            page-break-inside: avoid; background:#fff; width:100%;
+          }
+          .sheet h2 { margin:0 0 8px 0; font-size:15px; }
+
+          table.print { width:100%; border-collapse:collapse; table-layout:auto; font-size:12px; }
+          .print th, .print td { border:1px solid #999; padding:7px 8px; vertical-align:top; overflow-wrap:anywhere; }
+          .print th { text-align:left; background:#f5f5f5; font-weight:700; }
+
+          .col-num { min-width:36px; text-align:center; }
+          .col-format { min-width:110px; }
+          .col-players { width:auto; }
+
+          .muted { color:#555; }
+          .match-line { margin:2px 0; }
+          .vs { font-weight:700; padding:0 4px; }
+
+          .side-wrap { page-break-inside: avoid; }
+        </style>`;
+
+      const mkNameTag = (pid) => {
+        if (!pid) return '';
+        const p = findPlayer(pid);
+        if (!p) return '';
+        const h = (p.handicap!==null && p.handicap!==undefined) ? `, HCP ${p.handicap}` : '';
+        return `${playerDisplayName(p)} <span class="muted">(${p.team==='ozark'?'OZ':'VA'}${h})</span>`;
+      };
+
+      const sideBlock = (day, side) => {
+        const fmt = state.format[day][side];
+        const isTeam = window.TEAM_FORMATS.has(fmt);
+
+        const rows = (state.groups[day][side] || []).map((g,i) => {
+          if (isTeam) {
+            const a = (g.slice(0,2)||[]).filter(Boolean).map(mkNameTag).join('<br/>') || '&nbsp;';
+            const b = (g.slice(2,4)||[]).filter(Boolean).map(mkNameTag).join('<br/>') || '&nbsp;';
+            return `
+              <tr>
+                <td class="col-num">${i+1}</td>
+                <td class="col-format">${fmt}</td>
+                <td class="col-players">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div style="border:1px solid #bbb;padding:6px;border-radius:6px"><strong>Team A</strong><br/>${a}</div>
+                    <div style="border:1px solid #bbb;padding:6px;border-radius:6px"><strong>Team B</strong><br/>${b}</div>
+                  </div>
+                </td>
+              </tr>`;
+          } else {
+            const a1 = mkNameTag(g[0]), b1 = mkNameTag(g[1]);
+            const a2 = mkNameTag(g[2]), b2 = mkNameTag(g[3]);
+            const line1 = (a1 || b1) ? `<div class="match-line">Match 1: ${a1 || '&nbsp;'} <span class="vs">vs</span> ${b1 || '&nbsp;'}</div>` : '';
+            const line2 = (a2 || b2) ? `<div class="match-line">Match 2: ${a2 || '&nbsp;'} <span class="vs">vs</span> ${b2 || '&nbsp;'}</div>` : '';
+            const names = (line1 + line2) || '&nbsp;';
+            return `
+              <tr>
+                <td class="col-num">${i+1}</td>
+                <td class="col-format">${fmt}</td>
+                <td class="col-players">${names}</td>
+              </tr>`;
+          }
+        }).join('');
+
+        const sideLabel = side === 'front' ? 'Front 9' : 'Back 9';
+        return `
+          <div class="sheet side-wrap">
+            <h2>${sideLabel} • ${fmt}</h2>
+            <table class="print">
+              <thead>
+                <tr>
+                  <th class="col-num">#</th>
+                  <th class="col-format">Format</th>
+                  <th class="col-players">Players</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      };
+
+      const dayPage = (day) => {
+        const date = state.dates[day] || '';
+        const dayTitle = (day==='day1' ? 'Day 1' : 'Day 2') + (date ? ` • ${date}` : '');
+        return `
+          <div class="page">
+            <div class="title">${state.eventName}</div>
+            <div class="day-header">${dayTitle}</div>
+            ${sideBlock(day, 'front')}
+            ${sideBlock(day, 'back')}
+          </div>`;
+      };
+
+      elPrintContent.innerHTML = css + dayPage('day1') + dayPage('day2');
+    }
+
+    /* ---- JSON export ---- */
+    document.getElementById('btnExport').addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ozark_pairings_twodays.json';
+      a.click();
+    });
+
+    /*********************************
+     *  8) IMPORTS (CSV) — supports handicap + photo
+     *********************************/
+    function pickFile(accept, multiple=false){
+      return new Promise((resolve)=>{
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = accept;
+        inp.multiple = !!multiple;
+        inp.style.display = 'none';
+        document.body.appendChild(inp);
+        inp.addEventListener('change', ()=> resolve(Array.from(inp.files||[])));
+        inp.click();
+        setTimeout(()=> document.body.removeChild(inp), 0);
+      });
+    }
+
+    function parseCSV(text){
+      const rows = [];
+      let row = [], field = '', inQuotes = false;
+      for (let i=0;i<text.length;i++){
+        const c = text[i];
+        if (c === '"'){
+          if (inQuotes && text[i+1] === '"'){ field += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes){
+          row.push(field); field = '';
+        } else if ((c === '\n' || c === '\r') && !inQuotes){
+          if (field.length || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
+          if (c === '\r' && text[i+1] === '\n') i++;
+        } else {
+          field += c;
+        }
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    function csvToObjects(csvText){
+      const rows = parseCSV(csvText);
+      if (!rows.length) return [];
+      const header = rows[0].map(h => String(h||'').trim());
+      const out = [];
+      for (let i=1;i<rows.length;i++){
+        const obj = {};
+        const r = rows[i];
+        header.forEach((h,idx)=> { obj[h] = r[idx] ?? ''; });
+        out.push(obj);
+      }
+      return out;
+    }
+
+    document.getElementById('btnImportCSV').addEventListener('click', async ()=>{
+      const files = await pickFile('.csv');
+      if (!files.length) return;
+      const file = files[0];
+      const text = await file.text();
+
+      let objs = csvToObjects(text);
+      if (!objs.length) { alert('CSV appears empty.'); return; }
+
+      const mapped = objs.map(o=>{
+        const map = {}; Object.keys(o).forEach(k => map[k.trim().toLowerCase()] = o[k]);
+        const candidate = {
+          id       : map.id || '',
+          firstName: map.firstname || map.first || '',
+          lastName : map.lastname  || map.last  || '',
+          nickname : map.nickname  || map.nick  || '',
+          team     : map.team      || '',
+          email    : map.email     || '',
+          phone    : map.phone     || '',
+          name     : map.name      || '',
+          handicap : map.handicap || map.hcp || map.hi || map.index || '',
+          photo    : map.photo || map.photourl || map.image || ''
+        };
+        return normalizePlayer(candidate);
+      });
+
+      state.players = mergePlayers(state.players || [], mapped);
+      // purge avatar cache of any conflicting ids so new photos load
+      mapped.forEach(p => AVATAR_CACHE.delete(p.id));
+      save(); renderAll();
+      alert(`Imported ${mapped.length} rows from CSV and merged into the roster.`);
+    });
+
+    /*********************************
+     *  Shuffle / Auto-balance / Reset
+     *********************************/
+    function randShuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
+    function shuffleAll(){
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          const groups = state.groups?.[day]?.[side];
+          if (!Array.isArray(groups) || !groups.length) return;
+
+          const coords = [];
+          const ids = [];
+          groups.forEach((g, gi)=>{
+            (Array.isArray(g)?g:[]).forEach((pid, pos)=>{
+              if (pid) { coords.push({gi: gi, pos}); ids.push(pid); }
+            });
+          });
+
+          if (ids.length < 2) return;
+
+          const shuffled = randShuffle(ids);
+          coords.forEach((c, i)=>{
+            groups[c.gi][c.pos] = shuffled[i];
+          });
+        });
+      });
+      save();
+      renderAll();
+    }
+
+    function autoBalanceAll(){
+      const swapBetween = (arrA, arrB, condA, condB) => {
+        for (let i=0;i<arrA.length;i++){
+          for (let j=0;j<arrB.length;j++){
+            const a = arrA[i], b = arrB[j];
+            if (!a || !b) continue;
+            if (condA(a) && condB(b)){
+              [arrA[i], arrB[j]] = [b, a];
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          const fmt = state.format[day][side];
+          const isTeam = window.TEAM_FORMATS.has(fmt);
+          const groups = state.groups[day][side] || [];
+
+          if (isTeam){
+            const oz = pid => findPlayer(pid)?.team === 'ozark';
+            const va = pid => findPlayer(pid)?.team === 'valley';
+
+            for (let pass=0; pass<6; pass++){
+              let changed = false;
+              for (let g1=0; g1<groups.length; g1++){
+                for (let g2=g1+1; g2<groups.length; g2++){
+                  const A = groups[g1], B = groups[g2];
+                  const ozA = A.filter(Boolean).filter(oz).length;
+                  const vaA = A.filter(Boolean).filter(va).length;
+                  const ozB = B.filter(Boolean).filter(oz).length;
+                  const vaB = B.filter(Boolean).filter(va).length;
+
+                  if (ozA > 2 && vaB > 2) changed = swapBetween(A, B, oz, va) || changed;
+                  if (vaA > 2 && ozB > 2) changed = swapBetween(A, B, va, oz) || changed;
+                }
+              }
+              if (!changed) break;
+            }
+          } else {
+            groups.forEach(g=>{
+              const pairs = [[0,1],[2,3]];
+              pairs.forEach(([a,b])=>{
+                const A = g[a], B = g[b];
+                if (!A || !B) return;
+                const tA = findPlayer(A)?.team, tB = findPlayer(B)?.team;
+                if (tA && tB && tA === tB){
+                  for (let gi=0; gi<groups.length; gi++){
+                    const gg = groups[gi];
+                    for (let k=0;k<gg.length;k++){
+                      if (gg === g && (k===a || k===b)) continue;
+                      const C = gg[k];
+                      if (!C) continue;
+                      const tC = findPlayer(C)?.team;
+                      if (tC && tC !== tA){
+                        [g[b], gg[k]] = [C, B];
+                        return;
+                      }
+                    }
+                  }
+                }
+              });
+            });
+          }
+        });
+      });
+      save(); renderAll();
+    }
+
+    // Handicap-aware helpers + balancer
+    const getHcp = (pid) => {
+      const p = findPlayer(pid);
+      return (p && Number.isFinite(p.handicap)) ? p.handicap : null;
+    };
+    function sumHcp(ids){
+      let s = 0; (ids||[]).forEach(id=>{ const h = getHcp(id); if (h !== null) s += h; });
+      return s;
+    }
+    function groupTeamDiff(g){
+      const a = sumHcp([g[0], g[1]]);
+      const b = sumHcp([g[2], g[3]]);
+      return Math.abs(a - b);
+    }
+    function groupSinglesScore(g){
+      const pairs = [[0,1],[2,3]];
+      let score = 0;
+      pairs.forEach(([i,j])=>{
+        const hi = getHcp(g[i]); const hj = getHcp(g[j]);
+        if (hi === null || hj === null) return;
+        score += Math.abs(hi - hj);
+      });
+      return score;
+    }
+
+    function autoBalanceByHandicap(){
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          const fmt = state.format[day][side];
+          const isTeam = window.TEAM_FORMATS.has(fmt);
+          const groups = state.groups?.[day]?.[side] || [];
+          if (!groups.length) return;
+
+          for (let pass=0; pass<8; pass++){
+            let improved = false;
+
+            for (let g1 = 0; g1 < groups.length; g1++){
+              for (let g2 = g1+1; g2 < groups.length; g2++){
+                const A = groups[g1], B = groups[g2];
+                if (!Array.isArray(A) || !Array.isArray(B)) continue;
+
+                if (isTeam){
+                  const base = groupTeamDiff(A) + groupTeamDiff(B);
+                  for (let i=0; i<A.length; i++){
+                    if (!A[i]) continue;
+                    for (let j=0; j<B.length; j++){
+                      if (!B[j]) continue;
+
+                      [A[i], B[j]] = [B[j], A[i]]; // simulate
+
+                      const okTeams = (() => {
+                        const count = (g, t) => g.filter(Boolean).map(findPlayer).filter(p=>p && p.team===t).length;
+                        const ozA = count(A,'ozark'), vaA = count(A,'valley');
+                        const ozB = count(B,'ozark'), vaB = count(B,'valley');
+                        return (ozA<=2 && vaA<=2 && ozB<=2 && vaB<=2);
+                      })();
+
+                      const score = okTeams ? (groupTeamDiff(A)+groupTeamDiff(B)) : Infinity;
+
+                      if (score < base){ improved = true; }
+                      else { [A[i], B[j]] = [B[j], A[i]]; } // undo
+                    }
+                  }
+                } else {
+                  const base = groupSinglesScore(A) + groupSinglesScore(B);
+
+                  const pairSideOk = (g, idx) => {
+                    const mate = (idx%2===0) ? idx+1 : idx-1;
+                    const a = g[idx], b = g[mate];
+                    if (!a || !b) return true;
+                    const pa = findPlayer(a), pb = findPlayer(b);
+                    return (pa && pb) ? (pa.team !== pb.team) : true;
+                  };
+
+                  for (let i=0; i<A.length; i++){
+                    if (!A[i]) continue;
+                    for (let j=0; j<B.length; j++){
+                      if (!B[j]) continue;
+
+                      [A[i], B[j]] = [B[j], A[i]]; // simulate
+                      const okPairs = pairSideOk(A, i) && pairSideOk(B, j);
+                      const score = okPairs ? (groupSinglesScore(A)+groupSinglesScore(B)) : Infinity;
+
+                      if (score < base){ improved = true; }
+                      else { [A[i], B[j]] = [B[j], A[i]]; } // undo
+                    }
+                  }
+                }
+              }
+            }
+            if (!improved) break;
+          }
+        });
+      });
+
+      save();
+      renderAll();
+    }
+
+    // Buttons
+    document.getElementById('btnShuffle').addEventListener('click', ()=>{
+      if(!confirm('Shuffle all currently filled slots across Day 1 & Day 2? (Empty slots will stay empty.)')) return;
+      shuffleAll();
+    });
+    document.getElementById('pillAutoBalance').addEventListener('click', ()=>{
+      if(!confirm('Auto-balance teams across all groups (no handicaps)?')) return;
+      autoBalanceAll();
+    });
+    document.getElementById('pillAutoHcp').addEventListener('click', ()=>{
+      if(!confirm('Auto-balance by handicap across all groups (keeps OZ vs VA rules)?')) return;
+      autoBalanceByHandicap();
+    });
+    document.getElementById('btnResetAll').addEventListener('click', ()=>{
+      if(!confirm('Reset ALL players and pairings? This removes the entire roster and clears Day 1 & Day 2.')) return;
+
+      state.players = [];
+      AVATAR_CACHE.clear();
+
+      ['day1','day2'].forEach(day=>{
+        ['front','back'].forEach(side=>{
+          const gs = desiredGroupSize(state.format[day][side]);
+          state.groups[day][side] = Array.from({length: state.numGroups}, ()=> Array(gs).fill(null));
+        });
+      });
+
+      state.results = {
+        day1: { 
+          front: Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day1.front) ? null : [null,null]),
+          back : Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day1.back ) ? null : [null,null]) 
+        },
+        day2: { 
+          front: Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day2.front) ? null : [null,null]),
+          back : Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day2.back ) ? null : [null,null]) 
+        }
+      };
+      state.winAnnounced = null;
+
+      save(); renderAll();
+
+      if(confirm('Also clear the previous-site signups cache? (This is the "'+SIGNUPS_KEY+'" localStorage key.)')){
+        try { localStorage.removeItem(SIGNUPS_KEY); } catch {}
+        alert('Roster, pairings, and signups cache cleared.');
+      } else {
+        alert('Roster and pairings cleared.');
+      }
+    });
+
+    /*********************************
+     *  SCOREBOARD + RESULT CONTROLS
+     *********************************/
     const TEAM_TO_LABEL = { ozark: TEAM_LABELS.ozark, valley: TEAM_LABELS.valley };
     const POINTS = { teamMatch: 1, singlesMatch: 1 };
 
@@ -1039,582 +1766,9 @@
       }
     }
 
-    const elPrintAreaRef = elPrintArea; // readability
-    elPrintAreaRef.style.pointerEvents = 'none';
-    document.getElementById('btnPrint').addEventListener('click', () => {
-      ensurePrintOverrides();
-      buildPrintPages();
-
-      document.documentElement.setAttribute('data-printing', '1');
-      elPrintAreaRef.style.display = 'block';
-      elPrintAreaRef.style.pointerEvents = 'auto';
-
-      const endOnce = (() => {
-        let done = false;
-        return () => {
-          if (done) return;
-          done = true;
-          document.documentElement.removeAttribute('data-printing');
-          elPrintAreaRef.style.display = 'none';
-          elPrintAreaRef.style.pointerEvents = 'none';
-          elPrintContent.innerHTML = '';
-          window.removeEventListener('afterprint', endOnce);
-          if (mm && mm.removeEventListener) mm.removeEventListener('change', onMM);
-          if (mm && mm.removeListener) mm.removeListener(onMM);
-          window.removeEventListener('focus', onFocus);
-        };
-      })();
-
-      const onMM = (e) => { if (!e.matches) endOnce(); };
-      const onFocus = () => { setTimeout(endOnce, 150); };
-
-      window.addEventListener('afterprint', endOnce, { once: true });
-      const mm = window.matchMedia && window.matchMedia('print');
-      if (mm && mm.addEventListener) mm.addEventListener('change', onMM);
-      else if (mm && mm.addListener) mm.addListener(onMM);
-      window.addEventListener('focus', onFocus, { once: true });
-
-      setTimeout(endOnce, 8000);
-
-      window.print();
-    });
-
-    function ensurePrintOverrides(){
-      if (document.getElementById('printOverridesScoped')) return;
-      const style = document.createElement('style');
-      style.id = 'printOverridesScoped';
-      style.textContent = `
-        @media print {
-          html[data-printing="1"] .app { display:block !important; padding:0 !important; }
-          html[data-printing="1"] header,
-          html[data-printing="1"] .panel:not(.printable) { display:none !important; }
-          html[data-printing="1"] .printable {
-            display:block !important; width:100% !important; border:none !important;
-            box-shadow:none !important; padding:0 !important; margin:0 !important; background:#fff !important;
-          }
-          html[data-printing="1"] body { background:#fff !important; color:#000 !important; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-    function buildPrintPages(){
-      const css = `
-        <style>
-          @page { size: Letter portrait; margin: 0.35in; }
-          * { box-sizing: border-box; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-          .page { page-break-after: always; width:100%; }
-          .page:last-child { page-break-after: auto; }
-
-          .title { margin:0 0 10px; font-size:22px; font-weight:800; }
-          .day-header { font-size:16px; font-weight:700; margin:0 0 10px; }
-
-          .sheet {
-            border:1px solid #888; margin:10px 0 14px; padding:10px; border-radius:8px;
-            page-break-inside: avoid; background:#fff; width:100%;
-          }
-          .sheet h2 { margin:0 0 8px 0; font-size:15px; }
-
-          table.print { width:100%; border-collapse:collapse; table-layout:auto; font-size:12px; }
-          .print th, .print td { border:1px solid #999; padding:7px 8px; vertical-align:top; overflow-wrap:anywhere; }
-          .print th { text-align:left; background:#f5f5f5; font-weight:700; }
-
-          .col-num { min-width:36px; text-align:center; }
-          .col-format { min-width:110px; }
-          .col-players { width:auto; }
-
-          .muted { color:#555; }
-          .match-line { margin:2px 0; }
-          .vs { font-weight:700; padding:0 4px; }
-
-          .side-wrap { page-break-inside: avoid; }
-        </style>`;
-
-      const mkNameTag = (pid) => {
-        if (!pid) return '';
-        const p = findPlayer(pid);
-        if (!p) return '';
-        const h = (p.handicap!==null && p.handicap!==undefined) ? `, HCP ${p.handicap}` : '';
-        return `${playerDisplayName(p)} <span class="muted">(${p.team==='ozark'?'OZ':'VA'}${h})</span>`;
-      };
-
-      const sideBlock = (day, side) => {
-        const fmt = state.format[day][side];
-        const isTeam = window.TEAM_FORMATS.has(fmt);
-
-        const rows = (state.groups[day][side] || []).map((g,i) => {
-          if (isTeam) {
-            const a = (g.slice(0,2)||[]).filter(Boolean).map(mkNameTag).join('<br/>') || '&nbsp;';
-            const b = (g.slice(2,4)||[]).filter(Boolean).map(mkNameTag).join('<br/>') || '&nbsp;';
-            return `
-              <tr>
-                <td class="col-num">${i+1}</td>
-                <td class="col-format">${fmt}</td>
-                <td class="col-players">
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                    <div style="border:1px solid #bbb;padding:6px;border-radius:6px"><strong>Team A</strong><br/>${a}</div>
-                    <div style="border:1px solid #bbb;padding:6px;border-radius:6px"><strong>Team B</strong><br/>${b}</div>
-                  </div>
-                </td>
-              </tr>`;
-          } else {
-            const a1 = mkNameTag(g[0]), b1 = mkNameTag(g[1]);
-            const a2 = mkNameTag(g[2]), b2 = mkNameTag(g[3]);
-            const line1 = (a1 || b1) ? `<div class="match-line">Match 1: ${a1 || '&nbsp;'} <span class="vs">vs</span> ${b1 || '&nbsp;'}</div>` : '';
-            const line2 = (a2 || b2) ? `<div class="match-line">Match 2: ${a2 || '&nbsp;'} <span class="vs">vs</span> ${b2 || '&nbsp;'}</div>` : '';
-            const names = (line1 + line2) || '&nbsp;';
-            return `
-              <tr>
-                <td class="col-num">${i+1}</td>
-                <td class="col-format">${fmt}</td>
-                <td class="col-players">${names}</td>
-              </tr>`;
-          }
-        }).join('');
-
-        const sideLabel = side === 'front' ? 'Front 9' : 'Back 9';
-        return `
-          <div class="sheet side-wrap">
-            <h2>${sideLabel} • ${fmt}</h2>
-            <table class="print">
-              <thead>
-                <tr>
-                  <th class="col-num">#</th>
-                  <th class="col-format">Format</th>
-                  <th class="col-players">Players</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>`;
-      };
-
-      const dayPage = (day) => {
-        const date = state.dates[day] || '';
-        const dayTitle = (day==='day1' ? 'Day 1' : 'Day 2') + (date ? ` • ${date}` : '');
-        return `
-          <div class="page">
-            <div class="title">${state.eventName}</div>
-            <div class="day-header">${dayTitle}</div>
-            ${sideBlock(day, 'front')}
-            ${sideBlock(day, 'back')}
-          </div>`;
-      };
-
-      elPrintContent.innerHTML = css + dayPage('day1') + dayPage('day2');
-    }
-
-    document.getElementById('btnExport').addEventListener('click', ()=>{
-      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'ozark_pairings_twodays.json';
-      a.click();
-    });
-
-    function pickFile(accept, multiple=false){
-      return new Promise((resolve)=>{
-        const inp = document.createElement('input');
-        inp.type = 'file';
-        inp.accept = accept;
-        inp.multiple = !!multiple;
-        inp.style.display = 'none';
-        document.body.appendChild(inp);
-        inp.addEventListener('change', ()=> resolve(Array.from(inp.files||[])));
-        inp.click();
-        setTimeout(()=> document.body.removeChild(inp), 0);
-      });
-    }
-    function parseCSV(text){
-      const rows = [];
-      let row = [], field = '', inQuotes = false;
-      for (let i=0;i<text.length;i++){
-        const c = text[i];
-        if (c === '"'){
-          if (inQuotes && text[i+1] === '"'){ field += '"'; i++; }
-          else inQuotes = !inQuotes;
-        } else if (c === ',' && !inQuotes){
-          row.push(field); field = '';
-        } else if ((c === '\n' || c === '\r') && !inQuotes){
-          if (field.length || row.length) { row.push(field); rows.push(row); row = []; field = ''; }
-          if (c === '\r' && text[i+1] === '\n') i++;
-        } else {
-          field += c;
-        }
-      }
-      if (field.length || row.length) { row.push(field); rows.push(row); }
-      return rows;
-    }
-    function csvToObjects(csvText){
-      const rows = parseCSV(csvText);
-      if (!rows.length) return [];
-      const header = rows[0].map(h => String(h||'').trim());
-      const out = [];
-      for (let i=1;i<rows.length;i++){
-        const obj = {};
-        const r = rows[i];
-        header.forEach((h,idx)=> { obj[h] = r[idx] ?? ''; });
-        out.push(obj);
-      }
-      return out;
-    }
-    document.getElementById('btnImportCSV').addEventListener('click', async ()=>{
-      const files = await pickFile('.csv');
-      if (!files.length) return;
-      const file = files[0];
-      const text = await file.text();
-
-      let objs = csvToObjects(text);
-      if (!objs.length) { alert('CSV appears empty.'); return; }
-
-      const mapped = objs.map(o=>{
-        const map = {};
-        Object.keys(o).forEach(k => map[k.trim().toLowerCase()] = o[k]);
-        const candidate = {
-          id       : map.id || '',
-          firstName: map.firstname || map.first || '',
-          lastName : map.lastname  || map.last  || '',
-          nickname : map.nickname  || map.nick  || '',
-          team     : map.team      || '',
-          email    : map.email     || '',
-          phone    : map.phone     || '',
-          name     : map.name      || '',
-          handicap : map.handicap || map.hcp || map.hi || map.index || '',
-          photo    : map.photo || '' // <-- read `photo` column
-        };
-        return normalizePlayer(candidate);
-      });
-
-      state.players = mergePlayers(state.players || [], mapped);
-      save(); renderAll();
-      alert(`Imported ${mapped.length} rows from CSV and merged into the roster.`);
-    });
-
-    function randShuffle(arr){
-      const a = arr.slice();
-      for(let i=a.length-1;i>0;i++){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]] = [a[j],a[i]];
-      }
-      return a;
-    }
-    function shuffleAll(){
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          const groups = state.groups?.[day]?.[side];
-          if (!Array.isArray(groups) || !groups.length) return;
-
-          const coords = [];
-          const ids = [];
-          groups.forEach((g, gi)=>{
-            (Array.isArray(g)?g:[]).forEach((pid, pos)=>{
-              if (pid) { coords.push({gi: gi, pos}); ids.push(pid); }
-            });
-          });
-
-          if (ids.length < 2) return;
-
-          const shuffled = randShuffle(ids);
-          coords.forEach((c, i)=>{
-            groups[c.gi][c.pos] = shuffled[i];
-          });
-        });
-      });
-      save();
-      renderAll();
-    }
-    function autoBalanceAll(){
-      const swapBetween = (arrA, arrB, condA, condB) => {
-        for (let i=0;i<arrA.length;i++){
-          for (let j=0;j<arrB.length;j++){
-            const a = arrA[i], b = arrB[j];
-            if (!a || !b) continue;
-            if (condA(a) && condB(b)){
-              [arrA[i], arrB[j]] = [b, a];
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          const fmt = state.format[day][side];
-          const isTeam = window.TEAM_FORMATS.has(fmt);
-          const groups = state.groups[day][side] || [];
-
-          if (isTeam){
-            const oz = pid => findPlayer(pid)?.team === 'ozark';
-            const va = pid => findPlayer(pid)?.team === 'valley';
-
-            for (let pass=0; pass<6; pass++){
-              let changed = false;
-              for (let g1=0; g1<groups.length; g1++){
-                for (let g2=g1+1; g2<groups.length; g2++){
-                  const A = groups[g1], B = groups[g2];
-                  const ozA = A.filter(Boolean).filter(oz).length;
-                  const vaA = A.filter(Boolean).filter(va).length;
-                  const ozB = B.filter(Boolean).filter(oz).length;
-                  const vaB = B.filter(Boolean).filter(va).length;
-
-                  if (ozA > 2 && vaB > 2) changed = swapBetween(A, B, oz, va) || changed;
-                  if (vaA > 2 && ozB > 2) changed = swapBetween(A, B, va, oz) || changed;
-                }
-              }
-              if (!changed) break;
-            }
-          } else {
-            groups.forEach(g=>{
-              const pairs = [[0,1],[2,3]];
-              pairs.forEach(([a,b])=>{
-                const A = g[a], B = g[b];
-                if (!A || !B) return;
-                const tA = findPlayer(A)?.team, tB = findPlayer(B)?.team;
-                if (tA && tB && tA === tB){
-                  for (let gi=0; gi<groups.length; gi++){
-                    const gg = groups[gi];
-                    for (let k=0;k<gg.length;k++){
-                      if (gg === g && (k===a || k===b)) continue;
-                      const C = gg[k];
-                      if (!C) continue;
-                      const tC = findPlayer(C)?.team;
-                      if (tC && tC !== tA){
-                        [g[b], gg[k]] = [C, B];
-                        return;
-                      }
-                    }
-                  }
-                }
-              });
-            });
-          }
-        });
-      });
-      save(); renderAll();
-    }
-
-    const getHcp = (pid) => {
-      const p = findPlayer(pid);
-      return (p && Number.isFinite(p.handicap)) ? p.handicap : null;
-    };
-    function sumHcp(ids){
-      let s = 0; (ids||[]).forEach(id=>{ const h = getHcp(id); if (h !== null) s += h; });
-      return s;
-    }
-    function groupTeamDiff(g){
-      const a = sumHcp([g[0], g[1]]);
-      const b = sumHcp([g[2], g[3]]);
-      return Math.abs(a - b);
-    }
-    function groupSinglesScore(g){
-      const pairs = [[0,1],[2,3]];
-      let score = 0;
-      pairs.forEach(([i,j])=>{
-        const hi = getHcp(g[i]); const hj = getHcp(g[j]);
-        if (hi === null || hj === null) return;
-        score += Math.abs(hi - hj);
-      });
-      return score;
-    }
-    function autoBalanceByHandicap(){
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          const fmt = state.format[day][side];
-          const isTeam = window.TEAM_FORMATS.has(fmt);
-          const groups = state.groups?.[day]?.[side] || [];
-          if (!groups.length) return;
-
-          for (let pass=0; pass<8; pass++){
-            let improved = false;
-
-            for (let g1 = 0; g1 < groups.length; g1++){
-              for (let g2 = g1+1; g2 < groups.length; g2++){
-                const A = groups[g1], B = groups[g2];
-                if (!Array.isArray(A) || !Array.isArray(B)) continue;
-
-                if (isTeam){
-                  const base = groupTeamDiff(A) + groupTeamDiff(B);
-                  for (let i=0; i<A.length; i++){
-                    if (!A[i]) continue;
-                    for (let j=0; j<B.length; j++){
-                      if (!B[j]) continue;
-
-                      [A[i], B[j]] = [B[j], A[i]];
-
-                      const okTeams = (() => {
-                        const count = (g, t) => g.filter(Boolean).map(findPlayer).filter(p=>p && p.team===t).length;
-                        const ozA = count(A,'ozark'), vaA = count(A,'valley');
-                        const ozB = count(B,'ozark'), vaB = count(B,'valley');
-                        return (ozA<=2 && vaA<=2 && ozB<=2 && vaB<=2);
-                      })();
-
-                      const score = okTeams ? (groupTeamDiff(A)+groupTeamDiff(B)) : Infinity;
-
-                      if (score < base){ improved = true; }
-                      else { [A[i], B[j]] = [B[j], A[i]]; }
-                    }
-                  }
-                } else {
-                  const base = groupSinglesScore(A) + groupSinglesScore(B);
-
-                  const pairSideOk = (g, idx) => {
-                    const mate = (idx%2===0) ? idx+1 : idx-1;
-                    const a = g[idx], b = g[mate];
-                    if (!a || !b) return true;
-                    const pa = findPlayer(a), pb = findPlayer(b);
-                    return (pa && pb) ? (pa.team !== pb.team) : true;
-                  };
-
-                  for (let i=0; i<A.length; i++){
-                    if (!A[i]) continue;
-                    for (let j=0; j<B.length; j++){
-                      if (!B[j]) continue;
-
-                      [A[i], B[j]] = [B[j], A[i]];
-                      const okPairs = pairSideOk(A, i) && pairSideOk(B, j);
-                      const score = okPairs ? (groupSinglesScore(A)+groupSinglesScore(B)) : Infinity;
-
-                      if (score < base){ improved = true; }
-                      else { [A[i], B[j]] = [B[j], A[i]]; }
-                    }
-                  }
-                }
-              }
-            }
-            if (!improved) break;
-          }
-        });
-      });
-
-      save();
-      renderAll();
-    }
-
-    document.getElementById('btnShuffle').addEventListener('click', ()=>{
-      if(!confirm('Shuffle all currently filled slots across Day 1 & Day 2? (Empty slots will stay empty.)')) return;
-      shuffleAll();
-    });
-    document.getElementById('pillAutoBalance').addEventListener('click', ()=>{
-      if(!confirm('Auto-balance teams across all groups (no handicaps)?')) return;
-      autoBalanceAll();
-    });
-    document.getElementById('pillAutoHcp').addEventListener('click', ()=>{
-      if(!confirm('Auto-balance by handicap across all groups (keeps OZ vs VA rules)?')) return;
-      autoBalanceByHandicap();
-    });
-    document.getElementById('btnResetAll').addEventListener('click', ()=>{
-      if(!confirm('Reset ALL players and pairings? This removes the entire roster and clears Day 1 & Day 2.')) return;
-
-      state.players = [];
-
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          const gs = desiredGroupSize(state.format[day][side]);
-          state.groups[day][side] = Array.from({length: state.numGroups}, ()=> Array(gs).fill(null));
-        });
-      });
-
-      state.results = {
-        day1: { 
-          front: Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day1.front) ? null : [null,null]),
-          back : Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day1.back ) ? null : [null,null]) 
-        },
-        day2: { 
-          front: Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day2.front) ? null : [null,null]),
-          back : Array.from({length: state.numGroups}, ()=> window.TEAM_FORMATS.has(state.format.day2.back ) ? null : [null,null]) 
-        }
-      };
-      state.winAnnounced = null;
-
-      save(); renderAll();
-
-      if(confirm('Also clear the previous-site signups cache? (This is the "'+SIGNUPS_KEY+'" localStorage key.)')){
-        try { localStorage.removeItem(SIGNUPS_KEY); } catch {}
-        alert('Roster, pairings, and signups cache cleared.');
-      } else {
-        alert('Roster and pairings cleared.');
-      }
-    });
-
-    function printSide(day,side){
-      return `${day==='day1'?'Day 1':'Day 2'} ${side==='front'?'Front 9':'Back 9'}`;
-    }
-    function renderAssignmentsTable(){
-      sanitizeGroups();
-
-      const used = {
-        day1: { front:new Map(), back:new Map() },
-        day2: { front:new Map(), back:new Map() },
-      };
-      const gf = a => Array.isArray(a) ? a : [];
-
-      gf(state.groups.day1.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.front.set(pid, i+1) }));
-      gf(state.groups.day1.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day1.back .set(pid, i+1) }));
-      gf(state.groups.day2.front).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.front.set(pid, i+1) }));
-      gf(state.groups.day2.back ).forEach((g,i)=> gf(g).forEach(pid=>{ if(pid) used.day2.back .set(pid, i+1) }));
-
-      const rows = state.players.map(p=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          `<td>${playerDisplayName(p)}</td><td>${TEAM_LABELS[p.team]}</td>`+
-          `<td>${(p.handicap!==null && p.handicap!==undefined) ? p.handicap : ''}</td>`+
-          `<td>${used.day1.front.get(p.id)||''}</td>`+
-          `<td>${used.day1.back.get(p.id)||''}</td>`+
-          `<td>${used.day2.front.get(p.id)||''}</td>`+
-          `<td>${used.day2.back.get(p.id)||''}</td>`;
-        return tr;
-      });
-      elAssignTable.innerHTML = ''; rows.forEach(r=> elAssignTable.appendChild(r));
-
-      const problems = [];
-
-      ['day1','day2'].forEach(day=>{
-        const label = day==='day1'?'Day 1':'Day 2';
-        state.players.forEach(p=>{
-          if(!used[day].front.has(p.id)) problems.push(`${label} Front: ${playerDisplayName(p)} not placed`);
-          if(!used[day].back.has(p.id))  problems.push(`${label} Back: ${playerDisplayName(p)} not placed`);
-        });
-      });
-
-      ['day1','day2'].forEach(day=>{
-        ['front','back'].forEach(side=>{
-          const fmt = state.format[day][side];
-          const isTeam = window.TEAM_FORMATS.has(fmt);
-          gf(state.groups[day][side]).forEach((g,i)=>{
-            const players = gf(g).filter(Boolean).map(findPlayer);
-            if(isTeam){
-              if(players.length>0){
-                const oz = players.filter(p=>p.team==='ozark').length;
-                const va = players.filter(p=>p.team==='valley').length;
-                if(players.length !== 4) problems.push(`${printSide(day,side)} Group ${i+1}: incomplete (needs 4 players: 2v2)`);
-                else if(!(oz===2 && va===2)) problems.push(`${printSide(day,side)} Group ${i+1}: must be 2 OZ + 2 VA (now ${oz}/${va})`);
-              }
-            }else{
-              const pairIdx = [[0,1],[2,3]];
-              pairIdx.forEach((pair, pi)=>{
-                const ids = pair.map(pos => (Array.isArray(g)?g[pos]:null)).filter(Boolean);
-                if (ids.length === 0) return;
-                if (ids.length !== 2) {
-                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: needs exactly 2 players (1v1).`);
-                  return;
-                }
-                const pA = findPlayer(ids[0]), pB = findPlayer(ids[1]);
-                if (!pA || !pB || pA.team === pB.team) {
-                  problems.push(`${printSide(day,side)} Group ${i+1} Match ${pi+1}: must be OZ vs VA.`);
-                }
-              });
-            }
-          });
-        });
-      });
-
-      elAlerts.innerHTML = problems.length
-        ? `<div class="card" style="border-color:#4d2626;background:#171112"><strong style="color:#ffb3b3">Needs attention</strong><ul style="margin:.3rem 0 .2rem .9rem">${problems.map(p=>`<li>${p}</li>`).join('')}</ul></div>`
-        : `<div class="card" style="border-color:#244a3c;background:#0f1513"><strong style="color:#b9fbd2">Looks good</strong><div>Everyone is placed with correct pair sizes on both days.</div></div>`;
-    }
-
+    /*********************************
+     *  5) UI HYDRATE + RENDER ALL
+     *********************************/
     function hydrateControls(){
       document.getElementById('eventName').value = state.eventName||'';
       document.getElementById('eventDate1').value = state.dates.day1||'';
@@ -1640,28 +1794,22 @@
       renderScoreboard();
     }
 
+    /*********************************
+     *  6) INIT / BOOT
+     *********************************/
     try {
       load();
       ensurePlayers();
       sanitizeGroups();
       initGroupsIfNeeded();
       renderAll();
-      pushShared();
+      pushShared(); // prime other pages with current snapshot
     } catch (e) {
       console.error('[boot] initial render failed:', e);
     }
-
-    window.state = state;
-    window.save = save;
-    window.renderAll = renderAll;
-    window.TEAM_FORMATS = window.TEAM_FORMATS || new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
-    window.desiredGroupSize = window.desiredGroupSize || desiredGroupSize;
-
-    document.getElementById('pillOnce').addEventListener('click', ()=> alert('One placement per player per side per day is enforced when you drop a player again.'));
-    document.getElementById('pillBalance').addEventListener('click', ()=> alert('Team events require 2v2 (2 Ozark + 2 Valley). Singles requires 1v1.'));
   </script>
 
-  <!-- Load autopair AFTER the inline app script defines state/renderAll/save -->
+  <!-- Load autopair AFTER the inline script defines state/renderAll/save -->
   <script src="autopair.js"></script>
 </body>
 </html>
