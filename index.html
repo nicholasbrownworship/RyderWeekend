@@ -21,7 +21,7 @@
   <script src="script.js" defer></script>
 </head>
 <body id="top">
-  <!-- SHARED TOP BAR (loaded once; remove any extra nav/toggle elsewhere) -->
+  <!-- SHARED TOP BAR -->
   <div id="siteHeader"></div>
   <script>
     fetch("header.html")
@@ -133,7 +133,7 @@
 
       <div class="schedule-cols">
         <!-- DAY 1 -->
-        <div class="schedule-day active" id="day1" role="tabpanel" aria-labelledby="day1-tab">
+        <div class="schedule-day active" id="day1">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
             <h3>Check-in & Range</h3>
@@ -157,7 +157,7 @@
         </div>
 
         <!-- DAY 2 -->
-        <div class="schedule-day" id="day2" role="tabpanel" aria-labelledby="day2-tab" hidden>
+        <div class="schedule-day" id="day2" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
             <h3>Warm-up & Singles Pairings</h3>
@@ -193,10 +193,6 @@
         <button class="team-btn active" data-team="all" aria-pressed="true">All Players</button>
         <button class="team-btn" data-team="ozark" aria-pressed="false">Team Ozark</button>
         <button class="team-btn" data-team="valley" aria-pressed="false">Team Valley</button>
-
-        <div class="admin-bar">
-          <button id="viewPoolBtn" class="btn btn-admin" type="button">Admin: View Player Pool</button>
-        </div>
       </div>
 
       <div class="player-wheel" aria-label="Player carousel">
@@ -214,9 +210,7 @@
         <h2>2026 Sponsors</h2>
         <p>These folks help cover lunch, prizes, and course costs.</p>
       </div>
-      <div class="sponsor-grid" id="sponsorGrid">
-        <!-- JS injects sponsor cards -->
-      </div>
+      <div class="sponsor-grid" id="sponsorGrid"></div>
       <p class="sponsor-cta">
         Want to sponsor a hole or prize?
         <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
@@ -282,35 +276,8 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- Admin Pool Modal -->
-  <dialog id="poolDialog">
-    <form method="dialog" class="pool-header">
-      <h3>Player Pool</h3>
-      <div class="pool-actions">
-        <button type="button" id="exportCSV" class="btn">Export Active as CSV</button>
-        <button value="close" class="btn ghost">Close</button>
-      </div>
-    </form>
-
-    <div class="pool-section">
-      <h4>Active Roster (<span id="activeCount">0</span>)</h4>
-      <div id="activeRosterTable" class="pool-table"></div>
-    </div>
-
-    <div class="pool-section">
-      <h4>Hidden Seeded Players (<span id="hiddenCount">0</span>)</h4>
-      <div id="hiddenSeededTable" class="pool-table"></div>
-    </div>
-
-    <div class="pool-section">
-      <h4>Saved Signups (<span id="signupCount">0</span>)</h4>
-      <div id="signupTable" class="pool-table"></div>
-    </div>
-  </dialog>
-
-  <!-- Inline helpers (safe alongside script.js) -->
+  <!-- Inline helpers -->
   <script>
-    // Simple schedule tab switcher (if your script.js doesn't already handle it)
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
       const days = Array.from(document.querySelectorAll('.schedule-day'));
