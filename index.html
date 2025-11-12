@@ -19,7 +19,7 @@
   <!-- App script -->
   <script src="script.js" defer></script>
 
-  <!-- Page-scoped CSS for new hero/gallery bits (doesn't replace your styles.css) -->
+  <!-- Page-scoped CSS (hero & gallery helpers) -->
   <style>
     /* HERO (video-ready) */
     .hero.video {
@@ -28,23 +28,18 @@
       overflow: clip;
       background: radial-gradient(1200px 600px at 10% -10%, #132022 0%, #0b0f0d 45%, #0b0f0d 100%);
     }
-    .hero.video .hero-video {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover; opacity: .9;
-    }
+    .hero.video .hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
     .hero.video .hero-overlay {
-      position: relative; z-index: 1;
-      display: grid; place-items: start; gap: .7rem;
-      max-width: 1100px; margin: 0 auto; padding: 14vh 16px 12vh;
-      color: #f5f0e6;
-      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+      position: relative; z-index: 1; display: grid; place-items: start; gap: .7rem;
+      max-width: 1100px; margin: 0 auto; padding: 14vh 16px 12vh; color: #f5f0e6; text-shadow: 0 10px 30px rgba(0,0,0,.55);
     }
     .hero.video h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: .02em; }
     .hero.video .lead { margin: 0; opacity: .95; max-width: 60ch; }
     .hero.video .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .hero.video .pill { display: inline-flex; gap: 8px; align-items: center; padding: .4rem .6rem; border-radius: 999px;
-      background: rgba(0,0,0,.35); color: #eaf6f0; border: 1px solid rgba(255,255,255,.2); }
+    .hero.video .pill {
+      display: inline-flex; gap: 8px; align-items: center; padding: .4rem .6rem; border-radius: 999px;
+      background: rgba(0,0,0,.35); color: #eaf6f0; border: 1px solid rgba(255,255,255,.2);
+    }
     .hero.video .pill-label { opacity: .8; font-weight: 600; }
     .hero.video .pill-value { font-weight: 800; letter-spacing: .02em; }
     .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 10px; }
@@ -52,7 +47,7 @@
     .hero.video .btn.ghost { background: rgba(0,0,0,.4); color: #f5f0e6; border: 1px solid rgba(255,255,255,.25); }
     .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
 
-    /* Gallery (grid) */
+    /* Gallery grid */
     .section .gallery {
       display: grid; gap: 12px;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -249,7 +244,7 @@
       <div class="sponsor-grid" id="sponsorGrid"></div>
       <p class="sponsor-cta">
         Want to sponsor a hole or prize?
-        <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
+      <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
       </p>
     </section>
 
@@ -336,7 +331,7 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- Schedule tabs (kept; script.js also handles tabs if you wired it) -->
+  <!-- Tabs helper (safe if script.js also handles tabs) -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -352,12 +347,13 @@
       }
       buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.day)));
     })();
+  </script>
 
-    // Populate sponsor placeholders if nothing is loaded yet
+  <!-- Sponsor placeholders if empty -->
+  <script>
     (function () {
       const grid = document.getElementById('sponsorGrid');
-      if (!grid) return;
-      if (grid.children.length) return; // you might fill this from script.js later
+      if (!grid || grid.children.length) return;
       const mk = () => {
         const img = document.createElement('img');
         img.alt = "Sponsor placeholder";
@@ -373,17 +369,23 @@
         grid.appendChild(wrap);
       }
     })();
+  </script>
 
-    /* Gallery auto-detect (NEW)
-       Looks for images/gallery/placeholder1..6 with any of:
-       .webp .jpg .jpeg .png .svg — stops on the first that loads. */
+  <!-- Robust Gallery auto-detect + diagnostics -->
+  <script>
     (function(){
       const COUNT = 6;
-      const BASENAME = "placeholder";
-      const BASEPATH = "images/gallery/";
-      const EXT_TRY = ["webp","jpg","jpeg","png","svg"];
-
+      const DIRS = ["images/gallery/", "images/Gallery/"];
+      const BASENAMES = [
+        "placeholder",    // placeholder1
+        "placeholder-",   // placeholder-1
+        "placeholder ",   // placeholder 1
+        "placeholder ("   // placeholder (1   ) -> we add )
+      ];
+      const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
       const grid = document.getElementById("galleryGrid");
+      const DEBUG = true;
+
       if (!grid) return;
 
       function probe(url){
@@ -393,15 +395,23 @@
           img.loading = "lazy";
           img.onload = ()=> resolve(url);
           img.onerror = ()=> reject(url);
-          img.src = url;
+          // cache-bust to avoid stale 404s on GitHub Pages after renames
+          img.src = url + (url.includes("?") ? "" : `?v=${Date.now()}`);
+          if (DEBUG) console.debug("[gallery] trying →", img.src);
         });
       }
 
       async function resolveSrc(index){
-        for (const ext of EXT_TRY){
-          const url = `${BASEPATH}${BASENAME}${index}.${ext}`;
-          try { await probe(url); return url; } catch {}
+        for (const dir of DIRS){
+          for (const base of BASENAMES){
+            const name = base.endsWith("(") ? `${base}${index})` : `${base}${index}`;
+            for (const ext of EXTS){
+              const url = `${dir}${name}.${ext}`;
+              try { await probe(url); return url; } catch {}
+            }
+          }
         }
+        if (DEBUG) console.warn(`[gallery] could not resolve image for index ${index}`);
         return null;
       }
 
@@ -414,9 +424,11 @@
           if (!src) continue;
           const img = document.createElement("img");
           img.src = src;
-          img.alt = `${BASENAME}${i}`;
+          img.alt = `gallery image ${i}`;
           img.loading = "lazy";
           img.decoding = "async";
+          img.style.aspectRatio = "4 / 3";
+          img.style.objectFit = "cover";
           frag.appendChild(img);
           found++;
         }
@@ -424,14 +436,15 @@
         if (found) {
           grid.innerHTML = "";
           grid.appendChild(frag);
+          if (DEBUG) console.info(`[gallery] loaded ${found}/${COUNT}`);
         } else {
-          // fallback placeholders if nothing is found
           grid.innerHTML = `
             <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
             <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
             <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
             <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
           `;
+          if (DEBUG) console.info("[gallery] no matches; rendered fallback placeholders");
         }
       }
 
