@@ -18,6 +18,64 @@
 
   <!-- App script -->
   <script src="script.js" defer></script>
+
+  <!-- Page-scoped CSS for new hero/gallery bits (doesn't replace your styles.css) -->
+  <style>
+    /* HERO (video-ready) */
+    .hero.video {
+      position: relative;
+      min-height: 62vh;
+      overflow: clip;
+      background: radial-gradient(1200px 600px at 10% -10%, #132022 0%, #0b0f0d 45%, #0b0f0d 100%);
+    }
+    .hero.video .hero-video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; opacity: .9;
+    }
+    .hero.video .hero-overlay {
+      position: relative; z-index: 1;
+      display: grid; place-items: start; gap: .7rem;
+      max-width: 1100px; margin: 0 auto; padding: 14vh 16px 12vh;
+      color: #f5f0e6;
+      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    }
+    .hero.video h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: .02em; }
+    .hero.video .lead { margin: 0; opacity: .95; max-width: 60ch; }
+    .hero.video .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .hero.video .pill { display: inline-flex; gap: 8px; align-items: center; padding: .4rem .6rem; border-radius: 999px;
+      background: rgba(0,0,0,.35); color: #eaf6f0; border: 1px solid rgba(255,255,255,.2); }
+    .hero.video .pill-label { opacity: .8; font-weight: 600; }
+    .hero.video .pill-value { font-weight: 800; letter-spacing: .02em; }
+    .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .hero.video .btn.primary { background: #d1a14b; color: #1a1407; border: 1px solid #8f6a29; }
+    .hero.video .btn.ghost { background: rgba(0,0,0,.4); color: #f5f0e6; border: 1px solid rgba(255,255,255,.25); }
+    .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
+
+    /* Gallery (placeholder-ready) */
+    .section .gallery {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      max-width: 1100px; margin: 0 auto;
+    }
+    .gallery img {
+      width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+      border-radius: 12px; border: 1px solid #e7e0d1; background: #fff;
+      box-shadow: 0 14px 38px rgba(0,0,0,.06);
+    }
+
+    /* Sponsor placeholders look tidy even before data */
+    .sponsor-grid:empty::before {
+      content: "";
+      display: block;
+      background:
+        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat center/contain,
+        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat left/contain,
+        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat right/contain;
+      height: 90px; opacity: .65; filter: saturate(.7);
+      border: 1px dashed #e7e0d1; border-radius: 12px;
+    }
+  </style>
 </head>
 <body id="top">
   <!-- SHARED TOP BAR -->
@@ -25,44 +83,46 @@
   <script>
     fetch("header.html")
       .then(res => res.text())
-      .then(html => { document.getElementById("siteHeader").innerHTML = html; });
+      .then(html => {
+        document.getElementById("siteHeader").innerHTML = html;
+        // Highlight current page (safe on GitHub Pages)
+        const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        document.querySelectorAll('.nav a').forEach(a=>{
+          const t = (a.getAttribute('href')||'').split('#')[0]||'index.html';
+          if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
+        });
+      });
   </script>
 
-  <!-- HERO -->
-  <section class="hero pro-hero" id="top-hero">
-    <div class="hero-bg"></div>
-    <div class="hero-inner hero-grid">
-      <div class="hero-left">
-        <p class="tagline">Brown Family • Ozark Invitational 2026</p>
-        <h1>2-Day Ryder Cup Style Golf Tournament</h1>
-        <p class="lead">
-          Diamond Hills Country Club • Diamond City, Arkansas.
-          Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
-        </p>
-        <div class="hero-pills">
-          <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
-          <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
-          <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
-        </div>
-        <div class="hero-actions">
-          <a href="#signup" class="btn primary">Reserve my spot</a>
-          <a href="#schedule" class="btn ghost">View format</a>
-        </div>
-        <p class="hero-footnote">Spots limited to family & invited guests • Captains announced closer to event.</p>
+  <!-- HERO (video-ready; using poster placeholder today) -->
+  <section class="hero video" id="top-hero">
+    <video class="hero-video" muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
+      <!-- When you have footage, uncomment and point to your files:
+      <source src="media/hero-2026.webm" type="video/webm">
+      <source src="media/hero-2026.mp4" type="video/mp4">
+      -->
+    </video>
+
+    <div class="hero-overlay">
+      <p class="tagline">Brown Family • Ozark Invitational 2026</p>
+      <h1>2-Day Ryder Cup Style Golf Tournament</h1>
+      <p class="lead">
+        Diamond Hills Country Club • Diamond City, Arkansas.
+        Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
+      </p>
+
+      <div class="hero-pills">
+        <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
+        <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
+        <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
       </div>
 
-      <div class="hero-right">
-        <div class="hero-card">
-          <h2>Event Snapshot</h2>
-          <ul class="hero-list">
-            <li><strong>Day 1:</strong> Best Ball (F9) • 2-Man Scramble (B9)</li>
-            <li><strong>Day 2:</strong> Alternate Shot (F9) • Singles (B9)</li>
-            <li><strong>Teams:</strong> Ozark vs Valley</li>
-            <li><strong>Prizes:</strong> Trophy + side prizes</li>
-          </ul>
-          <p class="small">Questions? <a href="mailto:nicholasbrownworship@gmail.com">Contact Us</a></p>
-        </div>
+      <div class="hero-actions">
+        <a href="#signup" class="btn primary">Reserve my spot</a>
+        <a href="#schedule" class="btn ghost">View format</a>
       </div>
+
+      <p class="hero-footnote">Spots limited to family & invited guests • Captains announced closer to event.</p>
     </div>
   </section>
 
@@ -170,6 +230,20 @@
       </div>
     </section>
 
+    <!-- GALLERY (placeholders for now) -->
+    <section id="gallery" class="section">
+      <div class="section-head center">
+        <h2>Moments (Coming Soon)</h2>
+        <p>We’ll swap these placeholders with real photos after the event.</p>
+      </div>
+      <div class="gallery">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+      </div>
+    </section>
+
     <!-- SPONSORS -->
     <section id="sponsors" class="section section-tight">
       <div class="section-head center">
@@ -192,7 +266,7 @@
             <span class="muted">Join the Ozark Invitational</span>
           </div>
 
-          <!-- CHANGED: removed action/method; added novalidate + hidden _redirect -->
+          <!-- No action/method; handled by script.js -->
           <form id="signupForm" novalidate>
             <div style="position: absolute; left: -5000px;" aria-hidden="true">
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
@@ -266,7 +340,7 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- (Optional) Keep this small helper if you want, but script.js already handles tabs -->
+  <!-- Schedule tabs (kept; script.js also handles tabs if you wired it) -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -281,6 +355,27 @@
         buttons.forEach(b => b.classList.toggle('active', b.dataset.day === id));
       }
       buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.day)));
+    })();
+
+    // Populate sponsor placeholders if nothing is loaded yet
+    (function () {
+      const grid = document.getElementById('sponsorGrid');
+      if (!grid) return;
+      if (grid.children.length) return; // you might fill this from script.js later
+      const mk = () => {
+        const img = document.createElement('img');
+        img.alt = "Sponsor placeholder";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.src = "images/placeholders/ph-sponsor-3x1.svg";
+        return img;
+      };
+      for (let i = 0; i < 8; i++) {
+        const wrap = document.createElement('div');
+        wrap.className = 'sponsor';
+        wrap.appendChild(mk());
+        grid.appendChild(wrap);
+      }
     })();
   </script>
 </body>
