@@ -374,130 +374,88 @@
  <!-- Robust Gallery auto-detect + visible diagnostics -->
 <script>
 (function(){
+  // How many images you want to show
   const COUNT = 6;
 
-  // Try a few likely base paths (relative + root-anchored)
-  const BASES = [
-    "images/gallery/",
-    "./images/gallery/",
-    "/images/gallery/"  // in case the site root differs on GH Pages
+  // Directory(ies) to try (relative first, but you can add root-anchored if needed)
+  const DIRS = ["images/gallery/"];
+
+  // Filename base patterns you mentioned/likely variants
+  // - "placeholder1"
+  // - "placeholder-1"
+  // - "placeholder 1"
+  // - "placeholder (1)"
+  const NAME_PATTERNS = [
+    i => `placeholder${i}`,
+    i => `placeholder-${i}`,
+    i => `placeholder ${i}`,
+    i => `placeholder (${i})`
   ];
 
-  // Name patterns we’ve seen users upload with
-  const BASENAMES = [
-    "placeholder",     // placeholder1
-    "placeholder-",    // placeholder-1
-    "placeholder ",    // placeholder 1
-    "placeholder ("    // placeholder (1  ) -> we add )
-  ];
-
-  // Mixed extensions + uppercases
+  // Extensions to try (both lower/upper just in case)
   const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
 
   const grid = document.getElementById("galleryGrid");
   if (!grid) return;
 
-  // Small helper to show an on-page status
-  function showStatus(msg) {
-    const p = document.createElement("p");
-    p.style.margin = "8px 0 0";
-    p.style.fontSize = "0.9rem";
-    p.style.color = "#8a5b00";
-    p.style.background = "#fff6e5";
-    p.style.border = "1px solid #f3d19c";
-    p.style.borderRadius = "8px";
-    p.style.padding = "8px 10px";
-    p.textContent = msg;
-    grid.before(p);
-  }
+  // If you want to hardcode exact files, fill this list and we’ll use it and skip guessing:
+  // window.__GALLERY_FILES__ = ["images/gallery/placeholder1.JPG", ...];
 
-  function probe(url){
-    return new Promise((resolve, reject)=>{
-      const img = new Image();
-      img.decoding = "async";
-      img.loading = "lazy";
-      img.onload = ()=> resolve(url);
-      img.onerror = ()=> reject(url);
-      // cache-bust to avoid stale 404s on GH Pages after renames
-      img.src = url + (url.includes("?") ? "" : `?v=${Date.now()}`);
-      console.log("[gallery] try:", img.src);
-    });
-  }
-
-  async function resolveSrc(index){
-    for (const base of BASES){
-      for (const nameBase of BASENAMES){
-        const name = nameBase.endsWith("(") ? `${nameBase}${index})` : `${nameBase}${index}`;
-        for (const ext of EXTS){
-          const url = `${base}${name}.${ext}`;
-          try { await probe(url); return url; } catch {}
+  function candidatesForIndex(i){
+    // If a hardcoded list is supplied, just return that single candidate
+    if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
+      return [window.__GALLERY_FILES__[i-1]];
+    }
+    const urls = [];
+    for (const dir of DIRS) {
+      for (const pat of NAME_PATTERNS) {
+        const base = pat(i);
+        for (const ext of EXTS) {
+          urls.push(`${dir}${base}.${ext}`);
         }
       }
     }
-    console.warn(`[gallery] could not resolve image for index ${index}`);
-    return null;
+    return urls;
   }
 
-  async function build(){
-    const frag = document.createDocumentFragment();
-    let found = 0;
-
-    // If you ever want to force exact filenames, set:
-    // window.__GALLERY_FILES__ = ["images/gallery/placeholder1.jpg", ...]
-    const forced = Array.isArray(window.__GALLERY_FILES__) ? window.__GALLERY_FILES__ : null;
-
-    if (forced && forced.length) {
-      for (const src of forced) {
-        try {
-          await probe(src);
-          const img = document.createElement("img");
-          img.src = src;
-          img.alt = "gallery image";
-          img.loading = "lazy";
-          img.decoding = "async";
-          img.style.aspectRatio = "4 / 3";
-          img.style.objectFit = "cover";
-          frag.appendChild(img);
-          found++;
-        } catch {}
-      }
-    } else {
-      for (let i=1; i<=COUNT; i++){
-        const src = await resolveSrc(i);
-        if (!src) continue;
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = `gallery image ${i}`;
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.style.aspectRatio = "4 / 3";
-        img.style.objectFit = "cover";
-        frag.appendChild(img);
-        found++;
-      }
+  function setNextSrc(img, urls, idx){
+    if (idx >= urls.length) {
+      img.src = "images/placeholders/ph-gallery-4x3.svg"; // last-resort placeholder
+      img.onerror = null; // stop the chain
+      return;
     }
-
-    grid.innerHTML = "";
-    if (found) {
-      grid.appendChild(frag);
-      console.info(`[gallery] loaded ${found}/${forced ? forced.length : COUNT}`);
-    } else {
-      // Fallback placeholders + a visible hint with what to check
-      grid.innerHTML = `
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
-      `;
-      showStatus(
-        "No gallery images were found. Quick checks: 1) Are files in ‘images/gallery/’? " +
-        "2) Exact names like placeholder1.jpg/png/webp (1–6)? 3) Correct capitalization? " +
-        "4) If you just renamed files on GitHub, hard refresh (Ctrl/Cmd+Shift+R)."
-      );
-    }
+    // cache-bust to avoid GH Pages stale 404 after renames
+    const url = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
+    img.dataset.try = urls[idx]; // store the base URL for debugging
+    img.src = url;
   }
 
-  build();
+  // Build images and attach onerror chains
+  const frag = document.createDocumentFragment();
+  for (let i=1; i<=COUNT; i++){
+    const img = document.createElement("img");
+    img.alt = `gallery image ${i}`;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.style.aspectRatio = "4 / 3";
+    img.style.objectFit = "cover";
+
+    const tries = candidatesForIndex(i);
+    let k = 0;
+
+    img.onerror = () => {
+      // Try the next candidate URL
+      k++;
+      setNextSrc(img, tries, k);
+    };
+
+    // Kick off with the first candidate
+    setNextSrc(img, tries, k);
+    frag.appendChild(img);
+  }
+
+  grid.innerHTML = "";
+  grid.appendChild(frag);
 })();
 </script>
 
