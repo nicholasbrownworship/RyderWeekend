@@ -371,85 +371,135 @@
     })();
   </script>
 
-  <!-- Robust Gallery auto-detect + diagnostics -->
-  <script>
-    (function(){
-      const COUNT = 6;
-      const DIRS = ["images/gallery/", "images/Gallery/"];
-      const BASENAMES = [
-        "placeholder",    // placeholder1
-        "placeholder-",   // placeholder-1
-        "placeholder ",   // placeholder 1
-        "placeholder ("   // placeholder (1   ) -> we add )
-      ];
-      const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
-      const grid = document.getElementById("galleryGrid");
-      const DEBUG = true;
+ <!-- Robust Gallery auto-detect + visible diagnostics -->
+<script>
+(function(){
+  const COUNT = 6;
 
-      if (!grid) return;
+  // Try a few likely base paths (relative + root-anchored)
+  const BASES = [
+    "images/gallery/",
+    "./images/gallery/",
+    "/images/gallery/"  // in case the site root differs on GH Pages
+  ];
 
-      function probe(url){
-        return new Promise((resolve, reject)=>{
-          const img = new Image();
-          img.decoding = "async";
-          img.loading = "lazy";
-          img.onload = ()=> resolve(url);
-          img.onerror = ()=> reject(url);
-          // cache-bust to avoid stale 404s on GitHub Pages after renames
-          img.src = url + (url.includes("?") ? "" : `?v=${Date.now()}`);
-          if (DEBUG) console.debug("[gallery] trying →", img.src);
-        });
-      }
+  // Name patterns we’ve seen users upload with
+  const BASENAMES = [
+    "placeholder",     // placeholder1
+    "placeholder-",    // placeholder-1
+    "placeholder ",    // placeholder 1
+    "placeholder ("    // placeholder (1  ) -> we add )
+  ];
 
-      async function resolveSrc(index){
-        for (const dir of DIRS){
-          for (const base of BASENAMES){
-            const name = base.endsWith("(") ? `${base}${index})` : `${base}${index}`;
-            for (const ext of EXTS){
-              const url = `${dir}${name}.${ext}`;
-              try { await probe(url); return url; } catch {}
-            }
-          }
+  // Mixed extensions + uppercases
+  const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
+
+  const grid = document.getElementById("galleryGrid");
+  if (!grid) return;
+
+  // Small helper to show an on-page status
+  function showStatus(msg) {
+    const p = document.createElement("p");
+    p.style.margin = "8px 0 0";
+    p.style.fontSize = "0.9rem";
+    p.style.color = "#8a5b00";
+    p.style.background = "#fff6e5";
+    p.style.border = "1px solid #f3d19c";
+    p.style.borderRadius = "8px";
+    p.style.padding = "8px 10px";
+    p.textContent = msg;
+    grid.before(p);
+  }
+
+  function probe(url){
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.onload = ()=> resolve(url);
+      img.onerror = ()=> reject(url);
+      // cache-bust to avoid stale 404s on GH Pages after renames
+      img.src = url + (url.includes("?") ? "" : `?v=${Date.now()}`);
+      console.log("[gallery] try:", img.src);
+    });
+  }
+
+  async function resolveSrc(index){
+    for (const base of BASES){
+      for (const nameBase of BASENAMES){
+        const name = nameBase.endsWith("(") ? `${nameBase}${index})` : `${nameBase}${index}`;
+        for (const ext of EXTS){
+          const url = `${base}${name}.${ext}`;
+          try { await probe(url); return url; } catch {}
         }
-        if (DEBUG) console.warn(`[gallery] could not resolve image for index ${index}`);
-        return null;
       }
+    }
+    console.warn(`[gallery] could not resolve image for index ${index}`);
+    return null;
+  }
 
-      async function build(){
-        const frag = document.createDocumentFragment();
-        let found = 0;
+  async function build(){
+    const frag = document.createDocumentFragment();
+    let found = 0;
 
-        for (let i=1; i<=COUNT; i++){
-          const src = await resolveSrc(i);
-          if (!src) continue;
+    // If you ever want to force exact filenames, set:
+    // window.__GALLERY_FILES__ = ["images/gallery/placeholder1.jpg", ...]
+    const forced = Array.isArray(window.__GALLERY_FILES__) ? window.__GALLERY_FILES__ : null;
+
+    if (forced && forced.length) {
+      for (const src of forced) {
+        try {
+          await probe(src);
           const img = document.createElement("img");
           img.src = src;
-          img.alt = `gallery image ${i}`;
+          img.alt = "gallery image";
           img.loading = "lazy";
           img.decoding = "async";
           img.style.aspectRatio = "4 / 3";
           img.style.objectFit = "cover";
           frag.appendChild(img);
           found++;
-        }
-
-        if (found) {
-          grid.innerHTML = "";
-          grid.appendChild(frag);
-          if (DEBUG) console.info(`[gallery] loaded ${found}/${COUNT}`);
-        } else {
-          grid.innerHTML = `
-            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-          `;
-          if (DEBUG) console.info("[gallery] no matches; rendered fallback placeholders");
-        }
+        } catch {}
       }
+    } else {
+      for (let i=1; i<=COUNT; i++){
+        const src = await resolveSrc(i);
+        if (!src) continue;
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `gallery image ${i}`;
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.style.aspectRatio = "4 / 3";
+        img.style.objectFit = "cover";
+        frag.appendChild(img);
+        found++;
+      }
+    }
 
-      build();
-    })();
-  </script>
+    grid.innerHTML = "";
+    if (found) {
+      grid.appendChild(frag);
+      console.info(`[gallery] loaded ${found}/${forced ? forced.length : COUNT}`);
+    } else {
+      // Fallback placeholders + a visible hint with what to check
+      grid.innerHTML = `
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
+        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder image" loading="lazy" decoding="async">
+      `;
+      showStatus(
+        "No gallery images were found. Quick checks: 1) Are files in ‘images/gallery/’? " +
+        "2) Exact names like placeholder1.jpg/png/webp (1–6)? 3) Correct capitalization? " +
+        "4) If you just renamed files on GitHub, hard refresh (Ctrl/Cmd+Shift+R)."
+      );
+    }
+  }
+
+  build();
+})();
+</script>
+
 </body>
 </html>
