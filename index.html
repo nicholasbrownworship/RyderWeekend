@@ -225,15 +225,33 @@
       </div>
     </section>
 
-    <!-- GALLERY (auto-detect placeholder1..6 in images/gallery, mixed extensions) -->
-    <section id="gallery" class="section">
-      <div class="section-head center">
-        <h2>Moments (Coming Soon)</h2>
-        <p>We’ll swap these placeholders with real photos after the event.</p>
-      </div>
-      <div id="galleryGrid" class="gallery" aria-live="polite"></div>
-      <noscript><p>Please enable JavaScript to view the gallery.</p></noscript>
-    </section>
+   <!-- GALLERY (carousel + zoomable lightbox) -->
+<section id="gallery" class="section">
+  <div class="section-head center">
+    <h2>Moments (Coming Soon)</h2>
+    <p>We’ll swap these placeholders with real photos after the event.</p>
+  </div>
+
+  <div class="gallery-wrap">
+    <button class="gbtn prev" aria-label="Previous photos" id="galPrev">‹</button>
+    <div id="galleryRail" class="gallery-rail" aria-live="polite" tabindex="0"></div>
+    <button class="gbtn next" aria-label="Next photos" id="galNext">›</button>
+  </div>
+
+  <noscript><p>Please enable JavaScript to view the gallery.</p></noscript>
+</section>
+
+<!-- LIGHTBOX (zoom/pan) -->
+<dialog id="lightbox" class="lightbox">
+  <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+  <img id="lbImg" alt="Gallery image" />
+  <div class="lb-controls">
+    <button id="lbMinus" class="btn">−</button>
+    <button id="lbReset" class="btn">Reset</button>
+    <button id="lbPlus" class="btn">+</button>
+  </div>
+</dialog>
+
 
     <!-- SPONSORS -->
     <section id="sponsors" class="section section-tight">
@@ -371,38 +389,24 @@
     })();
   </script>
 
- <!-- Robust Gallery auto-detect + visible diagnostics -->
 <script>
 (function(){
-  // How many images you want to show
+  /* ---------- Config ---------- */
   const COUNT = 6;
-
-  // Directory(ies) to try (relative first, but you can add root-anchored if needed)
   const DIRS = ["images/gallery/"];
-
-  // Filename base patterns you mentioned/likely variants
-  // - "placeholder1"
-  // - "placeholder-1"
-  // - "placeholder 1"
-  // - "placeholder (1)"
   const NAME_PATTERNS = [
     i => `placeholder${i}`,
     i => `placeholder-${i}`,
     i => `placeholder ${i}`,
     i => `placeholder (${i})`
   ];
-
-  // Extensions to try (both lower/upper just in case)
   const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
 
-  const grid = document.getElementById("galleryGrid");
-  if (!grid) return;
+  const rail = document.getElementById("galleryRail");
+  if (!rail) return;
 
-  // If you want to hardcode exact files, fill this list and we’ll use it and skip guessing:
-  // window.__GALLERY_FILES__ = ["images/gallery/placeholder1.JPG", ...];
-
+  /* ---------- Build candidate URLs ---------- */
   function candidatesForIndex(i){
-    // If a hardcoded list is supplied, just return that single candidate
     if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
       return [window.__GALLERY_FILES__[i-1]];
     }
@@ -410,9 +414,7 @@
     for (const dir of DIRS) {
       for (const pat of NAME_PATTERNS) {
         const base = pat(i);
-        for (const ext of EXTS) {
-          urls.push(`${dir}${base}.${ext}`);
-        }
+        for (const ext of EXTS) urls.push(`${dir}${base}.${ext}`);
       }
     }
     return urls;
@@ -420,44 +422,132 @@
 
   function setNextSrc(img, urls, idx){
     if (idx >= urls.length) {
-      img.src = "images/placeholders/ph-gallery-4x3.svg"; // last-resort placeholder
-      img.onerror = null; // stop the chain
+      img.src = "images/placeholders/ph-gallery-4x3.svg";
+      img.onerror = null;
       return;
     }
-    // cache-bust to avoid GH Pages stale 404 after renames
     const url = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
-    img.dataset.try = urls[idx]; // store the base URL for debugging
+    img.dataset.try = urls[idx];
     img.src = url;
   }
 
-  // Build images and attach onerror chains
-  const frag = document.createDocumentFragment();
-  for (let i=1; i<=COUNT; i++){
+  /* ---------- Render carousel items ---------- */
+  const items = [];
+  for (let i = 1; i <= COUNT; i++){
+    const wrap = document.createElement("button");
+    wrap.type = "button";
+    wrap.className = "gitem";
+    wrap.setAttribute("aria-label", `Open image ${i} larger`);
     const img = document.createElement("img");
     img.alt = `gallery image ${i}`;
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.style.aspectRatio = "4 / 3";
-    img.style.objectFit = "cover";
+    img.loading = "lazy"; img.decoding = "async";
 
     const tries = candidatesForIndex(i);
     let k = 0;
-
-    img.onerror = () => {
-      // Try the next candidate URL
-      k++;
-      setNextSrc(img, tries, k);
-    };
-
-    // Kick off with the first candidate
+    img.onerror = () => { k++; setNextSrc(img, tries, k); };
     setNextSrc(img, tries, k);
-    frag.appendChild(img);
+
+    wrap.appendChild(img);
+    rail.appendChild(wrap);
+    items.push({wrap, img});
   }
 
-  grid.innerHTML = "";
-  grid.appendChild(frag);
+  /* ---------- Carousel nav ---------- */
+  const prev = document.getElementById("galPrev");
+  const next = document.getElementById("galNext");
+
+  function scrollByAmount(dir){
+    const amt = Math.max(rail.clientWidth * 0.9, 300) * dir;
+    rail.scrollBy({left: amt, behavior: "smooth"});
+  }
+  prev.addEventListener("click", ()=> scrollByAmount(-1));
+  next.addEventListener("click", ()=> scrollByAmount( 1));
+
+  // Keyboard support when the rail is focused
+  rail.addEventListener("keydown", (e)=>{
+    if (e.key === "ArrowLeft") { e.preventDefault(); scrollByAmount(-1); }
+    if (e.key === "ArrowRight"){ e.preventDefault(); scrollByAmount( 1); }
+  });
+
+  /* ---------- Lightbox (zoom & pan) ---------- */
+  const dlg = document.getElementById("lightbox");
+  const lbImg = document.getElementById("lbImg");
+  const lbClose = document.getElementById("lbClose");
+  const lbPlus  = document.getElementById("lbPlus");
+  const lbMinus = document.getElementById("lbMinus");
+  const lbReset = document.getElementById("lbReset");
+
+  let currentIndex = 0;
+  let scale = 1, tx = 0, ty = 0; // transform
+
+  function applyTransform(){
+    lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+  function resetTransform(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
+
+  function openLightbox(idx){
+    currentIndex = idx;
+    lbImg.src = items[idx].img.src; // use the resolved src
+    resetTransform();
+    dlg.showModal();
+  }
+  function closeLightbox(){ dlg.close(); }
+
+  // Click any tile to open
+  items.forEach((it, idx)=>{
+    it.wrap.addEventListener("click", ()=> openLightbox(idx));
+  });
+
+  // Controls
+  lbClose.addEventListener("click", closeLightbox);
+  lbReset.addEventListener("click", resetTransform);
+  lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
+  lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
+
+  // Wheel to zoom (Ctrl/Cmd not required)
+  dlg.addEventListener("wheel", (e)=>{
+    e.preventDefault();
+    const delta = -Math.sign(e.deltaY);
+    const prevScale = scale;
+    scale = Math.min(4, Math.max(1, scale + delta * 0.15));
+    // Zoom towards mouse position
+    const rect = lbImg.getBoundingClientRect();
+    const cx = e.clientX - rect.left - rect.width/2;
+    const cy = e.clientY - rect.top  - rect.height/2;
+    // Adjust translation so that the point under cursor stays near cursor
+    tx = (tx - cx) * (scale/prevScale) + cx;
+    ty = (ty - cy) * (scale/prevScale) + cy;
+    applyTransform();
+  }, {passive:false});
+
+  // Drag to pan
+  let dragging = false, sx=0, sy=0, stx=0, sty=0;
+  lbImg.addEventListener("mousedown", (e)=>{
+    dragging = true; sx = e.clientX; sy = e.clientY; stx = tx; sty = ty; e.preventDefault();
+  });
+  window.addEventListener("mousemove", (e)=>{
+    if (!dragging) return;
+    tx = stx + (e.clientX - sx);
+    ty = sty + (e.clientY - sy);
+    applyTransform();
+  });
+  window.addEventListener("mouseup", ()=> dragging = false);
+
+  // Swap images with arrow keys in lightbox
+  dlg.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowRight") { currentIndex = (currentIndex+1) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
+    if (e.key === "ArrowLeft")  { currentIndex = (currentIndex-1+items.length) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
+  });
+
+  // Click backdrop to close
+  dlg.addEventListener("click", (e)=>{
+    const r = dlg.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeLightbox();
+  });
 })();
 </script>
+
 
 </body>
 </html>
