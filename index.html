@@ -89,37 +89,42 @@
       });
   </script>
 
-  <!-- HERO (video-ready; using poster placeholder today) -->
-  <section class="hero video" id="top-hero">
-    <video class="hero-video" muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
-      <!-- When you have footage, uncomment & point to files:
-      <source src="media/hero-2026.webm" type="video/webm">
-      <source src="media/hero-2026.mp4" type="video/mp4">
-      -->
-    </video>
+  <!-- HERO (video background enabled) -->
+<section class="hero video" id="top-hero">
+  <video class="hero-video" autoplay muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
+    <!-- Primary video file -->
+    <source src="media/placeholder-vid.mp4" type="video/mp4">
+    <!-- Optional WebM (future-proof; ignored if missing) -->
+    <source src="media/placeholder-vid.webm" type="video/webm">
+    <!-- Fallback message -->
+    Your browser does not support the video tag.
+  </video>
 
-    <div class="hero-overlay">
-      <p class="tagline">Brown Family • Ozark Invitational 2026</p>
-      <h1>2-Day Ryder Cup Style Golf Tournament</h1>
-      <p class="lead">
-        Diamond Hills Country Club • Diamond City, Arkansas.
-        Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
-      </p>
+  <div class="hero-overlay">
+    <p class="tagline">Brown Family • Ozark Invitational 2026</p>
+    <h1>2-Day Ryder Cup Style Golf Tournament</h1>
+    <p class="lead">
+      Diamond Hills Country Club • Diamond City, Arkansas.
+      Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
+    </p>
 
-      <div class="hero-pills">
-        <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
-        <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
-        <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
-      </div>
-
-      <div class="hero-actions">
-        <a href="#signup" class="btn primary">Reserve my spot</a>
-        <a href="#schedule" class="btn ghost">View format</a>
-      </div>
-
-      <p class="hero-footnote">Spots limited to family & invited guests • Captains announced closer to event.</p>
+    <div class="hero-pills">
+      <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
+      <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
+      <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
     </div>
-  </section>
+
+    <div class="hero-actions">
+      <a href="#signup" class="btn primary">Reserve my spot</a>
+      <a href="#schedule" class="btn ghost">View format</a>
+    </div>
+
+    <p class="hero-footnote">
+      Spots limited to family & invited guests • Captains announced closer to event.
+    </p>
+  </div>
+</section>
+
 
   <main>
     <!-- EVENT DETAILS -->
