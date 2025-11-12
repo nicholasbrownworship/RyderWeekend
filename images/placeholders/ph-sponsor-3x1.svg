@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="Sponsor logo placeholder 3x1">
+  <title>Sponsor Placeholder (3×1)</title>
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"></stop>
+      <stop offset="1" stop-color="#faf7ef"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Card frame -->
+  <rect x="8" y="8" width="1184" height="384" rx="18" fill="url(#frame)" stroke="#e7e0d1" stroke-width="2"></rect>
+  <rect x="8" y="8" width="1184" height="384" rx="18" fill="none" stroke="#d1a14b" stroke-width="2" opacity=".25" stroke-dasharray="10 8"></rect>
+
+  <!-- Center mark -->
+  <g transform="translate(600,200)">
+    <rect x="-270" y="-70" width="540" height="140" rx="14" fill="#244f3c" opacity=".08"></rect>
+    <text x="0" y="-6" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial" font-size="28" fill="#244f3c" font-weight="800">
+      Sponsor Logo
+    </text>
+    <text x="0" y="28" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial" font-size="16" fill="#6b7280">
+      Replace with provided artwork (PNG/SVG)
+    </text>
+  </g>
+
+  <!-- Corner badge -->
+  <g>
+    <circle cx="64" cy="64" r="26" fill="#244f3c"></circle>
+    <text x="64" y="70" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial" font-size="16" text-anchor="middle" fill="#f5f0e6" font-weight="800">OI</text>
+  </g>
+</svg>
