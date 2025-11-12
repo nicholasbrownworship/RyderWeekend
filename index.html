@@ -52,7 +52,7 @@
     .hero.video .btn.ghost { background: rgba(0,0,0,.4); color: #f5f0e6; border: 1px solid rgba(255,255,255,.25); }
     .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
 
-    /* Gallery (placeholder-ready) */
+    /* Gallery (grid) */
     .section .gallery {
       display: grid; gap: 12px;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -61,7 +61,7 @@
     .gallery img {
       width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
       border-radius: 12px; border: 1px solid #e7e0d1; background: #fff;
-      box-shadow: 0 14px 38px rgba(0,0,0,.06);
+      box-shadow: 0 14px 38px rgba(0,0,0,0.06);
     }
 
     /* Sponsor placeholders look tidy even before data */
@@ -97,7 +97,7 @@
   <!-- HERO (video-ready; using poster placeholder today) -->
   <section class="hero video" id="top-hero">
     <video class="hero-video" muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
-      <!-- When you have footage, uncomment and point to your files:
+      <!-- When you have footage, uncomment & point to files:
       <source src="media/hero-2026.webm" type="video/webm">
       <source src="media/hero-2026.mp4" type="video/mp4">
       -->
@@ -230,18 +230,14 @@
       </div>
     </section>
 
-    <!-- GALLERY (placeholders for now) -->
+    <!-- GALLERY (auto-detect placeholder1..6 in images/gallery, mixed extensions) -->
     <section id="gallery" class="section">
       <div class="section-head center">
         <h2>Moments (Coming Soon)</h2>
         <p>We’ll swap these placeholders with real photos after the event.</p>
       </div>
-      <div class="gallery">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-        <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
-      </div>
+      <div id="galleryGrid" class="gallery" aria-live="polite"></div>
+      <noscript><p>Please enable JavaScript to view the gallery.</p></noscript>
     </section>
 
     <!-- SPONSORS -->
@@ -376,6 +372,70 @@
         wrap.appendChild(mk());
         grid.appendChild(wrap);
       }
+    })();
+
+    /* Gallery auto-detect (NEW)
+       Looks for images/gallery/placeholder1..6 with any of:
+       .webp .jpg .jpeg .png .svg — stops on the first that loads. */
+    (function(){
+      const COUNT = 6;
+      const BASENAME = "placeholder";
+      const BASEPATH = "images/gallery/";
+      const EXT_TRY = ["webp","jpg","jpeg","png","svg"];
+
+      const grid = document.getElementById("galleryGrid");
+      if (!grid) return;
+
+      function probe(url){
+        return new Promise((resolve, reject)=>{
+          const img = new Image();
+          img.decoding = "async";
+          img.loading = "lazy";
+          img.onload = ()=> resolve(url);
+          img.onerror = ()=> reject(url);
+          img.src = url;
+        });
+      }
+
+      async function resolveSrc(index){
+        for (const ext of EXT_TRY){
+          const url = `${BASEPATH}${BASENAME}${index}.${ext}`;
+          try { await probe(url); return url; } catch {}
+        }
+        return null;
+      }
+
+      async function build(){
+        const frag = document.createDocumentFragment();
+        let found = 0;
+
+        for (let i=1; i<=COUNT; i++){
+          const src = await resolveSrc(i);
+          if (!src) continue;
+          const img = document.createElement("img");
+          img.src = src;
+          img.alt = `${BASENAME}${i}`;
+          img.loading = "lazy";
+          img.decoding = "async";
+          frag.appendChild(img);
+          found++;
+        }
+
+        if (found) {
+          grid.innerHTML = "";
+          grid.appendChild(frag);
+        } else {
+          // fallback placeholders if nothing is found
+          grid.innerHTML = `
+            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+            <img src="images/placeholders/ph-gallery-4x3.svg" alt="Placeholder photo" loading="lazy" decoding="async">
+          `;
+        }
+      }
+
+      build();
     })();
   </script>
 </body>
