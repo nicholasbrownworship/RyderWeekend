@@ -14,7 +14,7 @@ const PRECACHE_ASSETS = [
   "./scoreboard.html",
   "./scorecard.html",
   "./sponsors.html",
-  "./profiles.html",
+  "./players.html",
 
   // CSS / JS
   "./styles.css",
