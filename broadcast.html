@@ -539,6 +539,49 @@
         return "";
       }
 
+      // tolerant photo resolver
+      function resolvePhotoSrc(p) {
+        const basePath = window.PLAYER_PHOTO_BASE_PATH || "images/";
+        let raw =
+          p.photo ||
+          p.Photo ||
+          p.image ||
+          p.Image ||
+          p.photoFile ||
+          p.PhotoFile ||
+          p.pic ||
+          p.picture ||
+          "";
+
+        if (!raw) {
+          return basePath + "default-player.png";
+        }
+
+        raw = String(raw).trim();
+        if (!raw) {
+          return basePath + "default-player.png";
+        }
+
+        // If it's already a path or URL, use as-is
+        if (
+          raw.startsWith("http://") ||
+          raw.startsWith("https://") ||
+          raw.startsWith("./") ||
+          raw.startsWith("/") ||
+          raw.includes("images/")
+        ) {
+          return raw;
+        }
+
+        // If no file extension, assume .png
+        const hasExt = /\.[a-zA-Z0-9]{2,4}$/.test(raw);
+        if (!hasExt) {
+          raw += ".png";
+        }
+
+        return basePath + raw;
+      }
+
       function scoreText(p) {
         const raw = p.toPar ?? p.to_par ?? p.score ?? p.totalToPar ?? p.total;
         if (raw === undefined || raw === null || raw === "") return "—";
@@ -588,12 +631,10 @@
         const COUNT = Math.min(4, shuffled.length);
         const picks = shuffled.slice(0, COUNT);
 
-        const basePath = window.PLAYER_PHOTO_BASE_PATH || "images/";
         featuredGrid.innerHTML = picks.map(p => {
           const name = playerDisplayName(p);
           const teamHtml = teamBadge(p.team || p.Team);
-          const imgFile = p.photo || p.Photo || p.image || "default-player.png";
-          const imgSrc = basePath + imgFile;
+          const imgSrc = resolvePhotoSrc(p);
           return `
             <article class="broadcast-featured-card">
               <img src="${imgSrc}" alt="${name}">
