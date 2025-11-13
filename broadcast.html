@@ -233,62 +233,75 @@
       color: var(--muted);
     }
 
-    /* ===== LEADERBOARD ===== */
-    .broadcast-leaderboard table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      table-layout: fixed;       /* table can't grow past card width */
-      max-width: 100%;
+    /* ===== RYDER-CUP TEAM SCOREBOARD ===== */
+    .broadcast-teams-score {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      align-items: stretch;
     }
 
-    .broadcast-leaderboard thead {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.7rem;
-      color: var(--muted);
+    @media (max-width: 520px) {
+      .broadcast-teams-score {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
-    .broadcast-leaderboard th,
-    .broadcast-leaderboard td {
-      padding: 0.35rem 0.25rem;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      white-space: normal;
-      word-wrap: break-word;
-      word-break: break-word;
+    .broadcast-team-card {
+      border-radius: calc(var(--radius) - 4px);
+      padding: 0.7rem 0.8rem;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
 
-    .broadcast-leaderboard tbody tr:nth-child(odd) {
-      background: rgba(0,0,0,0.01);
+    .broadcast-team-card.ozark {
+      box-shadow: 0 0 0 1px rgba(36,79,60,0.18);
     }
 
-    .broadcast-leaderboard tbody tr.highlight {
-      background: rgba(209,161,75,0.12);
+    .broadcast-team-card.valley {
+      box-shadow: 0 0 0 1px rgba(52,152,219,0.18);
     }
 
-    .broadcast-leaderboard td.name {
+    .broadcast-team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .broadcast-team-name {
+      font-size: 0.9rem;
       font-weight: 600;
-    }
-
-    .badge-ozark,
-    .badge-valley {
-      border-radius: 999px;
-      padding: 0.12rem 0.45rem;
-      font-size: 0.7rem;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      letter-spacing: 0.09em;
-      display: inline-block;
     }
 
-    .badge-ozark {
-      background: rgba(36,79,60,0.09);
+    .broadcast-team-name.ozark {
       color: var(--green-dark);
     }
 
-    .badge-valley {
-      background: rgba(52,152,219,0.1);
+    .broadcast-team-name.valley {
       color: #1c4f7a;
+    }
+
+    .broadcast-team-points {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .broadcast-team-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .broadcast-team-meta span {
+      white-space: nowrap;
     }
 
     .broadcast-side-spacer {
@@ -349,30 +362,15 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- Topbar – shared header -->
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a href="index.html" class="brand">
-        <span class="brand-mark">Ozark Invitational</span>
-        <span class="brand-sub">Family Golf Weekend</span>
-      </a>
-      <nav class="topnav">
-        <a href="index.html">Sign-Up</a>
-        <a href="scoreboard.html">Scoreboard</a>
-        <a href="scorecard.html">Scorecards</a>
-        <a href="players.html">Players</a>
-        <a href="sponsors.html">Sponsors</a>
-        <a href="broadcast.html" class="active">Broadcast</a>
-      </nav>
-    </div>
-  </header>
+  <!-- Shared header include -->
+  <div id="siteHeader" data-include="header.html"></div>
 
   <main class="broadcast-shell">
     <header class="broadcast-header">
       <div class="broadcast-eyebrow">Live Coverage</div>
       <h1 class="broadcast-title">Ozark Invitational Broadcast Center</h1>
       <p class="broadcast-subtitle">
-        Follow the action with live video, rolling leaderboard, and real-time updates from Diamond Hills.
+        Follow the action with live video, team points, and real-time updates from Diamond Hills.
       </p>
     </header>
 
@@ -413,28 +411,40 @@
         </div>
       </section>
 
-      <!-- RIGHT: LEADERBOARD + NOTES -->
+      <!-- RIGHT: TEAM POINTS + STORYLINES -->
       <aside>
-        <section class="broadcast-card broadcast-leaderboard">
+        <section class="broadcast-card">
           <div class="broadcast-card-header">
-            <div class="broadcast-card-title">Leaderboard</div>
-            <div class="pill" id="broadcastSideLabel">Live</div>
+            <div class="broadcast-card-title">Ryder Cup Score</div>
+            <span class="pill" id="broadcastSessionLabel">Session TBD</span>
           </div>
-          <table id="broadcastLeaderboard">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Player</th>
-                <th>Team</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Filled by JS -->
-            </tbody>
-          </table>
+
+          <div class="broadcast-teams-score">
+            <article class="broadcast-team-card ozark">
+              <div class="broadcast-team-header">
+                <div class="broadcast-team-name ozark">Team Ozark</div>
+                <div class="broadcast-team-points" id="teamOzPoints">0</div>
+              </div>
+              <div class="broadcast-team-meta">
+                <span id="teamOzMatches">Matches: —</span>
+                <span id="teamOzStatus">In play: —</span>
+              </div>
+            </article>
+
+            <article class="broadcast-team-card valley">
+              <div class="broadcast-team-header">
+                <div class="broadcast-team-name valley">Team Valley</div>
+                <div class="broadcast-team-points" id="teamValleyPoints">0</div>
+              </div>
+              <div class="broadcast-team-meta">
+                <span id="teamValleyMatches">Matches: —</span>
+                <span id="teamValleyStatus">In play: —</span>
+              </div>
+            </article>
+          </div>
+
           <p class="broadcast-note" id="broadcastNote">
-            Waiting for scores&hellip; once rounds begin, standings will update live from the main scoreboard.
+            Points reflect match play results in Ryder Cup format. Wins, halves, and losses are converted to team points as results are entered.
           </p>
         </section>
 
@@ -444,8 +454,8 @@
               <div class="broadcast-card-title">Today&apos;s Storylines</div>
             </div>
             <ul id="broadcastStories" style="margin:0; padding-left:1.1rem; font-size:0.8rem; color:var(--muted);">
-              <li>Opening tee shots set the tone for Team Ozark vs Team Valley.</li>
-              <li>Watch for momentum swings on the closing stretch at Diamond Hills.</li>
+              <li>Early matches can swing momentum in favor of either side.</li>
+              <li>Watch for key putts on the closing stretch at Diamond Hills.</li>
               <li>Follow our feature group in the live stream for on-course commentary.</li>
             </ul>
           </section>
@@ -470,11 +480,17 @@
       const video = document.getElementById('broadcastVideo');
       const btnToggleMute = document.getElementById('btnToggleMute');
       const featuredGrid = document.getElementById('broadcastFeatured');
-      const leaderboardBody = document.querySelector('#broadcastLeaderboard tbody');
       const noteEl = document.getElementById('broadcastNote');
       const roundLabel = document.getElementById('broadcastRoundLabel');
-      const sideLabel = document.getElementById('broadcastSideLabel');
+      const sessionLabel = document.getElementById('broadcastSessionLabel');
       const tickerInner = document.getElementById('broadcastTickerInner');
+
+      const teamOzPointsEl = document.getElementById('teamOzPoints');
+      const teamValPointsEl = document.getElementById('teamValleyPoints');
+      const teamOzMatchesEl = document.getElementById('teamOzMatches');
+      const teamValMatchesEl = document.getElementById('teamValleyMatches');
+      const teamOzStatusEl = document.getElementById('teamOzStatus');
+      const teamValStatusEl = document.getElementById('teamValleyStatus');
 
       const SHARED_KEY = "ozarkShared_v1";
       const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
@@ -601,9 +617,52 @@
         return a;
       }
 
-      // Try to guess round label from state if it exists
+      // Ryder-style team points
+      function deriveTeamPoints(players) {
+        // If you later set window.state.teamPoints = { ozark: X, valley: Y }, we respect that first.
+        if (window.state && window.state.teamPoints) {
+          const tp = window.state.teamPoints;
+          return {
+            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
+            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
+          };
+        }
+
+        // Otherwise, sum per-player points fields by team
+        let ozark = 0;
+        let valley = 0;
+        let ozMatches = 0;
+        let valMatches = 0;
+
+        players.forEach(p => {
+          const t = (p.team || p.Team || "").toString().toLowerCase();
+          const rawPts = p.points ?? p.Points ?? p.matchPoints ?? p.pts;
+          const pts = Number(rawPts);
+          const validPts = Number.isNaN(pts) ? 0 : pts;
+
+          if (t === "ozark") {
+            ozark += validPts;
+            if (!Number.isNaN(pts)) ozMatches++;
+          } else if (t === "valley") {
+            valley += validPts;
+            if (!Number.isNaN(pts)) valMatches++;
+          }
+        });
+
+        return {
+          ozark,
+          valley,
+          ozMatches,
+          valMatches
+        };
+      }
+
+      // Try to guess round/session labels from state if it exists
       if (window.state && window.state.roundLabel) {
         roundLabel.textContent = window.state.roundLabel;
+      }
+      if (window.state && window.state.sessionLabel) {
+        sessionLabel.textContent = window.state.sessionLabel;
       }
 
       // ==============
@@ -650,44 +709,32 @@
       }
 
       // ==============
-      // Leaderboard
+      // Ryder Cup team scoreboard
       // ==============
-      if (!players.length) {
-        leaderboardBody.innerHTML = `
-          <tr>
-            <td colspan="4" style="padding:0.6rem 0.25rem; font-size:0.8rem; color:var(--muted);">
-              No scores yet. Once the main scoreboard has players, they&apos;ll appear here automatically.
-            </td>
-          </tr>
-        `;
+      const tp = deriveTeamPoints(players);
+      const ozPoints = tp.ozark || 0;
+      const valPoints = tp.valley || 0;
+      const ozMatches = tp.ozMatches ?? "—";
+      const valMatches = tp.valMatches ?? "—";
+
+      teamOzPointsEl.textContent = ozPoints;
+      teamValPointsEl.textContent = valPoints;
+      teamOzMatchesEl.textContent = "Matches scored: " + (ozMatches === 0 ? "0" : ozMatches);
+      teamValMatchesEl.textContent = "Matches scored: " + (valMatches === 0 ? "0" : valMatches);
+
+      // Very simple "in play" status – if you later track active matches, you can wire it up here.
+      const activeMatches = (window.state && window.state.activeMatches) || 0;
+      if (activeMatches) {
+        teamOzStatusEl.textContent = "In play: " + activeMatches;
+        teamValStatusEl.textContent = "In play: " + activeMatches;
       } else {
-        const sorted = players.slice().sort((a, b) => {
-          const aRaw = a.toPar ?? a.to_par ?? a.totalToPar ?? a.total;
-          const bRaw = b.toPar ?? b.to_par ?? b.totalToPar ?? b.total;
-          const aVal = Number(aRaw);
-          const bVal = Number(bRaw);
-          if (Number.isNaN(aVal) && Number.isNaN(bVal)) return playerDisplayName(a).localeCompare(playerDisplayName(b));
-          if (Number.isNaN(aVal)) return 1;
-          if (Number.isNaN(bVal)) return -1;
-          return aVal - bVal;
-        });
+        teamOzStatusEl.textContent = "In play: —";
+        teamValStatusEl.textContent = "In play: —";
+      }
 
-        leaderboardBody.innerHTML = sorted.map((p, idx) => {
-          const name = playerDisplayName(p);
-          const teamHtml = teamBadge(p.team || p.Team);
-          const score = scoreText(p);
-          const highlight = idx === 0 ? ' class="highlight"' : '';
-          return `
-            <tr${highlight}>
-              <td>${idx + 1}</td>
-              <td class="name">${name}</td>
-              <td>${teamHtml}</td>
-              <td>${score}</td>
-            </tr>
-          `;
-        }).join("");
-
-        noteEl.textContent = "Leaderboard is reading from the same player data as your main scoreboard.";
+      if (!players.length) {
+        noteEl.textContent =
+          "Points will appear here once match play results are entered on the main scoreboard.";
       }
 
       // ==============
@@ -696,7 +743,7 @@
       const baseMessages = [
         "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
         "Reminder: hydrate and keep pace with the group ahead.",
-        "Longest drive and closest to the pin awards will be announced after play.",
+        "Ryder Cup format: wins and halves earn points for each side.",
         "Thank you to all families and sponsors for supporting this weekend.",
         "Scores are unofficial until verified by the committee."
       ];
@@ -704,7 +751,7 @@
       const topThree = players.slice(0, 3).map((p, idx) => {
         const name = playerDisplayName(p);
         const score = scoreText(p);
-        return `Leaderboard: #${idx + 1} ${name} (${score})`;
+        return `Leaderboard (stroke play recap): #${idx + 1} ${name} (${score})`;
       });
 
       const tickerMessages = baseMessages.concat(topThree);
