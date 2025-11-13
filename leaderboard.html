@@ -435,8 +435,9 @@
 
         // 🔗 Link to the correct scorecard round
         const linkHref = `scorecard.html?day=${encodeURIComponent(day)}&side=${encodeURIComponent(side)}&group=${groupNum}`;
-        const linkOpen = `<a class="match-link" href="${linkHref}" target="_blank" rel="noopener">`;
-        const linkClose = `</a>`;
+const linkOpen = `<a class="match-link" href="${linkHref}">`;
+const linkClose = `</a>`;
+
 
         if (teamEvent){
           const ozNames = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ') || '—';
