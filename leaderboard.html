@@ -152,12 +152,27 @@
 </head>
 <body>
 
- <div id="siteHeader"></div>
+<div id="siteHeader"></div>
 <script>
   fetch("header.html")
     .then(res => res.text())
-    .then(html => { document.getElementById("siteHeader").innerHTML = html; });
+    .then(html => {
+      document.getElementById("siteHeader").innerHTML = html;
+
+      // Current tab highlight (GitHub Pages-safe)
+      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(a => {
+        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      });
+
+      // 🔥 Start the team score pill if script.js has defined it
+      if (window.initTeamScoreWidget) {
+        window.initTeamScoreWidget();
+      }
+    });
 </script>
+
 
 
   <div class="wrap">
@@ -350,6 +365,30 @@
         return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
       }
 
+            function updateSharedTeamScores(oz, va, snap){
+        try{
+          // If snapshot already has these exact scores, don't rewrite (prevents cross-tab loops)
+          if (snap && snap.teamScores &&
+              snap.teamScores.ozark === oz &&
+              snap.teamScores.valley === va){
+            return;
+          }
+
+          const base = snap ? {...snap} : {};
+          base.teamScores = { ozark: oz, valley: va };
+          base.ts = Date.now();
+          localStorage.setItem(SHARED_KEY, JSON.stringify(base));
+
+          // If the header widget exists on THIS page, refresh it immediately
+          if (window.initTeamScoreWidget){
+            window.initTeamScoreWidget();
+          }
+        }catch(e){
+          console.warn("[leaderboard] failed to update shared teamScores", e);
+        }
+      }
+
+
       // ---- Card rendering
       function cardForTeam(day, side, fmt, gIndex, snap){
         const teamEvent = TEAM_FORMATS.has(fmt);
@@ -534,6 +573,10 @@
         const evName = snap.eventName || 'Event';
         evtBadge.textContent = evName;
       }
+              // 🔥 Push the team totals into the shared snapshot for the header widget
+        updateSharedTeamScores(ozR, vaR, snap);
+      }
+
 
       function adoptShared(raw){
         shared = raw; LAST_TS = raw.ts || Date.now();
