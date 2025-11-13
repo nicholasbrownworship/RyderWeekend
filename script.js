@@ -731,7 +731,7 @@ Notes: ${notes}`.trim());
 // =======================
 (function () {
   const grid = document.getElementById("featuredGrid");
-  if (!grid || !Array.isArray(window.players)) return; // only runs on homepage
+  if (!grid || !Array.isArray(players)) return; // only runs on homepage
 
   const FEATURED_COUNT = 6; // how many players to show
 
@@ -764,18 +764,19 @@ Notes: ${notes}`.trim());
     const subEl = document.createElement("div");
     subEl.className = "pc-sub";
 
-    const bits = [];
+    const parts = [];
     if (p.team) {
-      bits.push(
-        (p.team || "").toLowerCase() === "ozark" ? "Team Ozark" :
-        (p.team || "").toLowerCase() === "valley" ? "Team Valley" :
+      const t = (p.team || "").toLowerCase();
+      parts.push(
+        t === "ozark" ? "Team Ozark" :
+        t === "valley" ? "Team Valley" :
         p.team
       );
     }
     if (p.handicap !== undefined && p.handicap !== null && p.handicap !== "") {
-      bits.push(`Hcp ${p.handicap}`);
+      parts.push(`Hcp ${p.handicap}`);
     }
-    subEl.textContent = bits.join(" • ");
+    subEl.textContent = parts.join(" • ");
 
     meta.appendChild(nameEl);
     meta.appendChild(subEl);
@@ -805,11 +806,9 @@ Notes: ${notes}`.trim());
     });
   }
 
-  // Run once when the DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", renderFeatured, { once: true });
   } else {
     renderFeatured();
   }
 })();
-
