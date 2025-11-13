@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Broadcast – Ozark Invitational</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Live broadcast hub for the Ozark Invitational – video, leaderboard, ticker, and featured players." />
+
+  <!-- Shared site styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* ===== BROADCAST PAGE LAYOUT ===== */
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .broadcast-shell {
+      max-width: 1200px;
+      margin: 1.5rem auto 2.5rem;
+      padding: 0 1rem;
+    }
+
+    .broadcast-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .broadcast-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.75rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .broadcast-title {
+      margin: 0.15rem 0 0.3rem;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    .broadcast-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .broadcast-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .broadcast-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .broadcast-card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+      padding: 1rem 1.1rem;
+    }
+
+    .broadcast-card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .broadcast-card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--green-dark);
+    }
+
+    .broadcast-badge-live {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+      background: #b91c1c;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .broadcast-badge-live::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: #f97373;
+      box-shadow: 0 0 0 5px rgba(239,68,68,0.35);
+      animation: live-pulse 1.4s infinite;
+    }
+
+    @keyframes live-pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(1.4); opacity: 0; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* ===== VIDEO PANEL ===== */
+    .broadcast-video-wrap {
+      border-radius: calc(var(--radius) - 4px);
+      overflow: hidden;
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      margin-bottom: 0.75rem;
+    }
+
+    .broadcast-video-wrap video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .broadcast-video-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .broadcast-video-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-right: 0.75rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: rgba(0,0,0,0.015);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 0.35rem 0.8rem;
+      font-size: 0.8rem;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(0,0,0,0.03);
+    }
+
+    /* ===== FEATURED PLAYERS STRIP ===== */
+    .broadcast-featured {
+      margin-top: 0.9rem;
+    }
+
+    .broadcast-featured-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .broadcast-featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .broadcast-featured-card {
+      background: var(--bg);
+      border-radius: calc(var(--radius) - 6px);
+      border: 1px solid var(--line);
+      padding: 0.4rem 0.5rem 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .broadcast-featured-card img {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--line);
+    }
+
+    .broadcast-featured-name {
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+
+    .broadcast-featured-meta {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* ===== LEADERBOARD ===== */
+    .broadcast-leaderboard table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .broadcast-leaderboard thead {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .broadcast-leaderboard th,
+    .broadcast-leaderboard td {
+      padding: 0.35rem 0.25rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .broadcast-leaderboard tbody tr:nth-child(odd) {
+      background: rgba(0,0,0,0.01);
+    }
+
+    .broadcast-leaderboard tbody tr.highlight {
+      background: rgba(209,161,75,0.12);
+    }
+
+    .broadcast-leaderboard td.name {
+      font-weight: 600;
+    }
+
+    .badge-ozark,
+    .badge-valley {
+      border-radius: 999px;
+      padding: 0.12rem 0.45rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .badge-ozark {
+      background: rgba(36,79,60,0.09);
+      color: var(--green-dark);
+    }
+
+    .badge-valley {
+      background: rgba(52,152,219,0.1);
+      color: #1c4f7a;
+    }
+
+    .broadcast-side-spacer {
+      margin-top: 1rem;
+    }
+
+    .broadcast-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    /* ===== TICKER ===== */
+    .broadcast-ticker-shell {
+      margin-top: 1.75rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--green-dark);
+      color: #fefcf7;
+    }
+
+    .broadcast-ticker-label {
+      padding: 0.45rem 0.7rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 600;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .broadcast-ticker {
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 0.35rem 0;
+    }
+
+    .broadcast-ticker-inner {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker-scroll 30s linear infinite;
+      font-size: 0.78rem;
+    }
+
+    .broadcast-ticker-inner span {
+      margin-right: 3rem;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+
+  <!-- Site-wide scripts (state, helpers, etc.) -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Topbar – adjust links to match your actual site if needed -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-mark">Ozark Invitational</span>
+        <span class="brand-sub">Family Golf Weekend</span>
+      </a>
+      <nav class="topnav">
+        <a href="index.html">Sign-Up</a>
+        <a href="scoreboard.html">Scoreboard</a>
+        <a href="scorecard.html">Scorecards</a>
+        <a href="players.html">Players</a>
+        <a href="sponsors.html">Sponsors</a>
+        <a href="broadcast.html" class="active">Broadcast</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="broadcast-shell">
+    <header class="broadcast-header">
+      <div class="broadcast-eyebrow">Live Coverage</div>
+      <h1 class="broadcast-title">Ozark Invitational Broadcast Center</h1>
+      <p class="broadcast-subtitle">
+        Follow the action with live video, rolling leaderboard, and real-time updates from Diamond Hills.
+      </p>
+    </header>
+
+    <section class="broadcast-grid">
+      <!-- LEFT: VIDEO + FEATURED PLAYERS -->
+      <section class="broadcast-card">
+        <div class="broadcast-card-header">
+          <div class="broadcast-card-title">Live Stream</div>
+          <div class="broadcast-badge-live">Live</div>
+        </div>
+
+        <div class="broadcast-video-wrap">
+          <!-- Use your sample video for now; you can swap this for YouTube later -->
+          <video
+            id="broadcastVideo"
+            src="media/placeholder-vid.mp4"
+            playsinline
+            controls
+          ></video>
+        </div>
+
+        <div class="broadcast-video-footer">
+          <div class="broadcast-video-meta">
+            <span><strong>Now Playing:</strong> Ozark Invitational Feature Reel</span>
+            <span class="pill" id="broadcastRoundLabel">Round TBD</span>
+          </div>
+          <div>
+            <button class="btn-ghost" id="btnToggleMute" type="button">
+              <span>Mute</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="broadcast-featured">
+          <div class="broadcast-featured-title">Featured Players</div>
+          <div id="broadcastFeatured" class="broadcast-featured-grid">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: LEADERBOARD + NOTES -->
+      <aside>
+        <section class="broadcast-card broadcast-leaderboard">
+          <div class="broadcast-card-header">
+            <div class="broadcast-card-title">Leaderboard</div>
+            <div class="pill" id="broadcastSideLabel">Live</div>
+          </div>
+          <table id="broadcastLeaderboard">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Player</th>
+                <th>Team</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+          <p class="broadcast-note" id="broadcastNote">
+            Waiting for scores&hellip; once rounds begin, standings will update live from the main scoreboard.
+          </p>
+        </section>
+
+        <div class="broadcast-side-spacer">
+          <section class="broadcast-card">
+            <div class="broadcast-card-header">
+              <div class="broadcast-card-title">Today&apos;s Storylines</div>
+            </div>
+            <ul id="broadcastStories" style="margin:0; padding-left:1.1rem; font-size:0.8rem; color:var(--muted);">
+              <li>Opening tee shots set the tone for Team Ozark vs Team Valley.</li>
+              <li>Watch for momentum swings on the closing stretch at Diamond Hills.</li>
+              <li>Follow our feature group in the live stream for on-course commentary.</li>
+            </ul>
+          </section>
+        </div>
+      </aside>
+    </section>
+
+    <!-- BOTTOM TICKER -->
+    <section class="broadcast-ticker-shell">
+      <div class="broadcast-ticker-label">Live ticker</div>
+      <div class="broadcast-ticker">
+        <div class="broadcast-ticker-inner" id="broadcastTickerInner">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BROADCAST PAGE SCRIPT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const video = document.getElementById('broadcastVideo');
+      const btnToggleMute = document.getElementById('btnToggleMute');
+      const featuredGrid = document.getElementById('broadcastFeatured');
+      const leaderboardBody = document.querySelector('#broadcastLeaderboard tbody');
+      const noteEl = document.getElementById('broadcastNote');
+      const roundLabel = document.getElementById('broadcastRoundLabel');
+      const sideLabel = document.getElementById('broadcastSideLabel');
+      const tickerInner = document.getElementById('broadcastTickerInner');
+
+      // ==============
+      // Helpers
+      // ==============
+      function safePlayers() {
+        if (window.state && Array.isArray(window.state.players) && window.state.players.length) {
+          return window.state.players.slice();
+        }
+        if (Array.isArray(window.seededPlayers) && window.seededPlayers.length) {
+          return window.seededPlayers.slice();
+        }
+        return [];
+      }
+
+      function playerDisplayName(p) {
+        if (p.Nickname) return p.Nickname;
+        if (p.nickname) return p.nickname;
+        const first = p.FirstName || p.first || "";
+        const last = p.LastName || p.last || "";
+        const name = (first + " " + last).trim();
+        return name || "Player";
+      }
+
+      function teamBadge(team) {
+        const t = (team || "").toString().toLowerCase();
+        if (t === "ozark") return '<span class="badge-ozark">Ozark</span>';
+        if (t === "valley") return '<span class="badge-valley">Valley</span>';
+        return "";
+      }
+
+      function scoreText(p) {
+        // Very light touch so we don't break your data model:
+        const raw = p.toPar ?? p.to_par ?? p.score ?? p.totalToPar ?? p.total;
+        if (raw === undefined || raw === null || raw === "") return "—";
+        const n = Number(raw);
+        if (Number.isNaN(n)) return raw;
+        if (n === 0) return "E";
+        if (n > 0) return "+" + n;
+        return String(n);
+      }
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      // Try to guess round label from state if it exists
+      if (window.state && window.state.roundLabel) {
+        roundLabel.textContent = window.state.roundLabel;
+      }
+
+      // ==============
+      // Mute button
+      // ==============
+      if (video && btnToggleMute) {
+        video.muted = false;
+        btnToggleMute.addEventListener('click', () => {
+          video.muted = !video.muted;
+          btnToggleMute.querySelector('span').textContent = video.muted ? 'Unmute' : 'Mute';
+        });
+      }
+
+      // ==============
+      // Featured players
+      // ==============
+      const players = safePlayers();
+      if (!players.length) {
+        featuredGrid.innerHTML = '<p class="broadcast-note" style="margin:0;">Players will appear here once the field is loaded on the main site.</p>';
+      } else {
+        const shuffled = shuffle(players);
+        const COUNT = Math.min(4, shuffled.length);
+        const picks = shuffled.slice(0, COUNT);
+
+        const basePath = window.PLAYER_PHOTO_BASE_PATH || "images/";
+        featuredGrid.innerHTML = picks.map(p => {
+          const name = playerDisplayName(p);
+          const teamHtml = teamBadge(p.team || p.Team);
+          const imgFile = p.photo || p.Photo || p.image || "default-player.png";
+          const imgSrc = basePath + imgFile;
+          return `
+            <article class="broadcast-featured-card">
+              <img src="${imgSrc}" alt="${name}">
+              <div>
+                <div class="broadcast-featured-name">${name}</div>
+                <div class="broadcast-featured-meta">
+                  ${teamHtml || "In the field"}
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      // ==============
+      // Leaderboard
+      // ==============
+      if (!players.length) {
+        leaderboardBody.innerHTML = `
+          <tr>
+            <td colspan="4" style="padding:0.6rem 0.25rem; font-size:0.8rem; color:var(--muted);">
+              No scores yet. Once the main scoreboard has players, they&apos;ll appear here automatically.
+            </td>
+          </tr>
+        `;
+      } else {
+        const sorted = players.slice().sort((a, b) => {
+          const aRaw = a.toPar ?? a.to_par ?? a.totalToPar ?? a.total;
+          const bRaw = b.toPar ?? b.to_par ?? b.totalToPar ?? b.total;
+          const aVal = Number(aRaw);
+          const bVal = Number(bRaw);
+          if (Number.isNaN(aVal) && Number.isNaN(bVal)) return playerDisplayName(a).localeCompare(playerDisplayName(b));
+          if (Number.isNaN(aVal)) return 1;
+          if (Number.isNaN(bVal)) return -1;
+          return aVal - bVal;
+        });
+
+        leaderboardBody.innerHTML = sorted.map((p, idx) => {
+          const name = playerDisplayName(p);
+          const teamHtml = teamBadge(p.team || p.Team);
+          const score = scoreText(p);
+          const highlight = idx === 0 ? ' class="highlight"' : '';
+          return `
+            <tr${highlight}>
+              <td>${idx + 1}</td>
+              <td class="name">${name}</td>
+              <td>${teamHtml}</td>
+              <td>${score}</td>
+            </tr>
+          `;
+        }).join("");
+
+        noteEl.textContent = "Leaderboard is reading from the same player data as your main scoreboard.";
+      }
+
+      // ==============
+      // Ticker
+      // ==============
+      const baseMessages = [
+        "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
+        "Reminder: hydrate and keep pace with the group ahead.",
+        "Longest drive and closest to the pin awards will be announced after play.",
+        "Thank you to all families and sponsors for supporting this weekend.",
+        "Scores are unofficial until verified by the committee."
+      ];
+
+      const topThree = players.slice(0, 3).map((p, idx) => {
+        const name = playerDisplayName(p);
+        const score = scoreText(p);
+        return `Leaderboard: #${idx + 1} ${name} (${score})`;
+      });
+
+      const tickerMessages = baseMessages.concat(topThree);
+      tickerInner.innerHTML = tickerMessages.map(msg => `<span>${msg}</span>`).join("");
+    });
+  </script>
+</body>
+</html>
