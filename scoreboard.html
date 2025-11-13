@@ -5,7 +5,7 @@
   <title>Scoreboard – Ozark Invitational</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Shared site styles -->
+  <!-- Shared site styles & scripts (topbar, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
 
   <style>
@@ -417,25 +417,21 @@
     /*********************************
      *  0) DATA & STORAGE LAYER
      *********************************/
-    // Keys used elsewhere on the site:
-    const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";   // main roster from signup site
-    const LEGACY_SIGNUPS_KEY = "ozarkSignups_v1";         // older key, for safety
-    const SIGNUPS_KEY        = "ozarkSignups_v1";         // kept for compatibility
-    const STORAGE_KEY        = "ozarkPairings_v3_twoDays";
-    const SHARED_KEY         = "ozarkShared_v1";
-
+    const SIGNUPS_KEY = "ozarkSignups_v1";
+    const STORAGE_KEY = "ozarkPairings_v3_twoDays";
+    const SHARED_KEY  = "ozarkShared_v1";
     const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
     const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
     const WIN_THRESHOLD = 15.5; // clinch threshold for 24-player format
 
+    // Match players.html behaviour
+    const PLAYER_PHOTO_BASE = "images/";
+
     // Expose these for autopair.js **before** it loads:
     window.TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']);
 
-    // ==== Avatar / Photo config ====
-    // Your real images live in /images/, and scoreboard sits next to those pages.
-    // We'll still *try* images/players/ first, then images/, then bare filename.
-    const PHOTO_BASE = "images/players/";
-    const DEFAULT_EXT_ORDER = ["png","jpg","jpeg","webp"];
+    // Dummy cache (kept so other code that calls AVATAR_CACHE.delete/clear doesn't crash)
+    const AVATAR_CACHE = new Map();
 
     // ---- IMPORTANT: keep a single, stable object for `state` and export it
     let state = {
@@ -541,95 +537,29 @@
     function desiredGroupSize(fmt){ return 4; }
     window.desiredGroupSize = desiredGroupSize; // <-- expose
 
-    /* ========= PLAYER LOADING (ROSTER + SHARED) ========= */
-
-    function normalizeFromSharedOrSignupPlayer(p){
-      // basically just normalize shape but keep photo fields
-      const first = p.firstName || p.first || "";
-      const last  = p.lastName  || p.last  || "";
-      const nickname = p.nickname || p.nick || "";
-      const teamRaw = p.team || "";
-      const team = (typeof teamRaw === "string" && teamRaw.toLowerCase().includes("val")) ? "valley" : "ozark";
-
-      const handicap = (()=>{
-        const hRaw = p.handicap ?? p.hcp ?? p.index ?? p.hi;
-        if (hRaw === null || hRaw === undefined || String(hRaw).trim()==="") return null;
-        const cleaned = String(hRaw).replace(/[^\d.\-]/g,"");
-        const num = Number(cleaned);
-        return Number.isFinite(num) ? num : null;
-      })();
-
-      // keep ANY of the photo-ish properties as-is; normalize later
-      const photo =
-        p.photo ??
-        p.photoUrl ??
-        p.photoURL ??
-        p.PhotoUrl ??
-        p.PhotoURL ??
-        p.photourl ??
-        p.Photo ??
-        p.image ??
-        p.Image ??
-        "";
-
-      return {
-        id: p.id || uid(),
-        firstName:first, lastName:last, nickname, team,
-        email:p.email || "", phone:p.phone || "",
-        handicap, photo
-      };
-    }
-
     function loadPlayersFromPreviousSite(){
       try{
-        const collected = [];
-
-        // 1) main roster key used on the signup page
-        const rosterRaw = localStorage.getItem(SIGNUPS_ROSTER_KEY);
-        if (rosterRaw) {
-          const arr = JSON.parse(rosterRaw);
-          if (Array.isArray(arr)) collected.push(...arr);
-        }
-
-        // 2) shared snapshot (players array is already what index/players use)
-        const sharedRaw = localStorage.getItem(SHARED_KEY);
-        if (sharedRaw) {
-          const snap = JSON.parse(sharedRaw);
-          if (snap && Array.isArray(snap.players)) collected.push(...snap.players);
-        }
-
-        // 3) legacy one-shot signup key
-        const legacyRaw = localStorage.getItem(LEGACY_SIGNUPS_KEY);
-        if (legacyRaw) {
-          const arr = JSON.parse(legacyRaw);
-          if (Array.isArray(arr)) collected.push(...arr);
-        }
-
-        if (!collected.length) return [];
-
-        // de-dupe by first+last+email
-        const byKey = p => (`${(p.firstName||p.first||"").toLowerCase()}|${(p.lastName||p.last||"").toLowerCase()}|${(p.email||"").toLowerCase()}`);
-        const map = new Map();
-        collected.forEach(p=>{
-          const k = byKey(p);
-          if (!map.has(k)) map.set(k, normalizeFromSharedOrSignupPlayer(p));
-        });
-        return Array.from(map.values());
-      }catch{
-        return [];
-      }
+        const raw = localStorage.getItem(SIGNUPS_KEY);
+        if(!raw) return [];
+        const arr = JSON.parse(raw);
+        return (arr||[]).map((p)=>({
+          id: p.id || uid(),
+          firstName: p.firstName || (p.name?.split(" ")[0]||""),
+          lastName: p.lastName || (p.name?.split(" ").slice(1).join(" ")||""),
+          nickname: p.nickname || "",
+          team: (p.team||"").toLowerCase().includes("valley")?"valley":"ozark",
+          email: p.email||"",
+          phone: p.phone||"",
+          handicap: Number.isFinite(Number(p.handicap)) ? Number(p.handicap) : null,
+          photo: p.photo || p.photourl || p.image || ""
+        }));
+      }catch{ return [] }
     }
 
     function ensurePlayers(){
       if(state.players && state.players.length) return;
-
       const prior = loadPlayersFromPreviousSite();
-      if(prior.length){
-        state.players = prior;
-        return;
-      }
-
-      // Fallback seeded demo players with photos
+      if(prior.length){ state.players = prior; return; }
       state.players = [
         {id:uid(), firstName:"Nick",   lastName:"Brown", nickname:"Frenzy",   team:"ozark",  handicap: 10.2, photo:"nick-brown.png"},
         {id:uid(), firstName:"Chris",  lastName:"B.",    nickname:"CB",       team:"ozark",  handicap: 15.0, photo:"chris-b..png"},
@@ -638,95 +568,7 @@
       ];
     }
 
-    /* ======= Avatar helpers (more forgiving) ======= */
-    function slugify(first, last){
-      const f = String(first||"").trim().toLowerCase()
-        .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      const l = String(last ||"").trim().toLowerCase()
-        .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      return [f,l].filter(Boolean).join("-");
-    }
-
-    // Normalize stored photo value:
-    // - Keep absolute URLs intact
-    // - Strip leading slashes
-    // - Strip "images/players/" or "images/" prefixes
-    // - Normalize backslashes to "/"
-    function normalizePhotoValue(v){
-      if (!v) return "";
-      let s = String(v).trim();
-      if (!s) return "";
-
-      s = s.replace(/\\/g, "/");
-
-      // If it's an absolute URL, keep as-is
-      if (/^https?:\/\//i.test(s)) return s;
-
-      s = s.replace(/^\/+/, "");
-      s = s.replace(/^images\/players\//i, "").replace(/^images\//i, "");
-
-      return s;
-    }
-
-    // Build URLs we will try when rendering avatars
-    function buildCandidatePhotoURLs(p){
-      const candidates = [];
-
-      const rawVal =
-        p.photo ??
-        p.photoUrl ??
-        p.photoURL ??
-        p.PhotoUrl ??
-        p.PhotoURL ??
-        p.photourl ??
-        p.Photo ??
-        p.image ??
-        p.Image ??
-        "";
-
-      if (!rawVal) return candidates;
-
-      const normalized = normalizePhotoValue(rawVal);
-
-      // Absolute URL case (normalizePhotoValue leaves these untouched)
-      if (/^https?:\/\//i.test(normalized)) {
-        candidates.push(normalized);
-        return candidates;
-      }
-
-      if (!normalized) return candidates;
-      const filename = normalized;
-
-      const base = PHOTO_BASE.replace(/\/+$/,"");
-
-      // 1) Canonical: images/players/<filename>
-      candidates.push(base + "/" + filename);
-
-      // 2) Fallback: images/<filename>
-      candidates.push("images/" + filename);
-
-      // 3) Fallback: bare filename next to HTML
-      candidates.push(filename);
-
-      // 4) Slug-based guesses from first/last name
-      const slug = slugify(p.firstName, p.lastName);
-      if (slug) {
-        DEFAULT_EXT_ORDER.forEach(ext => {
-          candidates.push(`${base}/${slug}.${ext}`);
-        });
-      }
-
-      // Remove duplicates while preserving order
-      const seen = new Set();
-      return candidates.filter(url => {
-        if (!url || seen.has(url)) return false;
-        seen.add(url);
-        return true;
-      });
-    }
-
-    const AVATAR_CACHE = new Map(); // id -> url or ""
-
+    /******* SIMPLE AVATAR HANDLING – MATCHES PLAYERS.HTML *******/
     function makeAvatarEl(p, size=28){
       const wrap = document.createElement('div');
       wrap.className = 'av';
@@ -734,50 +576,36 @@
 
       const initials = ((p?.firstName?.[0]||"") + (p?.lastName?.[0]||"")).toUpperCase() || "??";
 
-      if (p?.id && AVATAR_CACHE.has(p.id)) {
-        const url = AVATAR_CACHE.get(p.id);
-        if (url) {
-          const img = document.createElement('img');
-          img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
-          img.src = url;
-          wrap.appendChild(img);
-        } else {
-          wrap.textContent = initials;
-        }
+      const rawVal =
+        p && (p.photo || p.Photo || p.photourl || p.PhotoURL || p.image || p.Image);
+
+      if (!rawVal) {
+        wrap.textContent = initials;
         return wrap;
       }
 
-      wrap.textContent = initials;
-
-      const candidates = buildCandidatePhotoURLs(p || {});
-      if (!candidates.length) {
-        if (p?.id) AVATAR_CACHE.set(p.id, "");
+      let src = String(rawVal).trim();
+      if (!src) {
+        wrap.textContent = initials;
         return wrap;
       }
 
-      let idx = 0;
-      const tryNext = () => {
-        if (idx >= candidates.length) {
-          if (p?.id) AVATAR_CACHE.set(p.id, "");
-          return;
+      // absolute URL
+      if (!/^https?:\/\//i.test(src) && !src.startsWith('/')) {
+        // relative path: if it doesn't already start with images/, prefix PLAYER_PHOTO_BASE
+        if (!src.toLowerCase().startsWith('images/')) {
+          src = PLAYER_PHOTO_BASE + src;
         }
-        const url = candidates[idx++];
-        const test = new Image();
-        test.decoding = "async";
-        test.loading = "lazy";
-        test.onload = () => {
-          wrap.innerHTML = "";
-          const img = document.createElement('img');
-          img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
-          img.src = url;
-          wrap.appendChild(img);
-          if (p?.id) AVATAR_CACHE.set(p.id, url);
-        };
-        test.onerror = tryNext;
-        test.src = url;
-      };
-      tryNext();
+      }
 
+      const img = document.createElement('img');
+      img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
+      img.src = src;
+      img.addEventListener('error', () => {
+        wrap.innerHTML = '';
+        wrap.textContent = initials;
+      });
+      wrap.appendChild(img);
       return wrap;
     }
 
@@ -811,18 +639,8 @@
         handicap = Number.isFinite(num) ? num : null;
       }
 
-      const photo = normalizePhotoValue(
-        obj.photo ??
-        obj.photoUrl ??
-        obj.photoURL ??
-        obj.PhotoUrl ??
-        obj.PhotoURL ??
-        obj.photourl ??
-        obj.Photo ??
-        obj.image ??
-        obj.Image ??
-        ""
-      );
+      const rawPhoto = obj.photo || obj.Photo || obj.photourl || obj.PhotoURL || obj.image || obj.Image || "";
+      const photo = String(rawPhoto || "").trim();
       const id = obj.id || uid();
 
       return {
@@ -954,8 +772,8 @@
 
     document.getElementById('btnReloadPool').addEventListener('click', ()=>{
       const fromOld = loadPlayersFromPreviousSite();
-      if(fromOld.length){ state.players = mergePlayers(state.players, fromOld); save(); renderAll(); alert('Loaded players from previous site roster/shared state.'); }
-      else alert('No roster found under '+SIGNUPS_ROSTER_KEY+' / '+SHARED_KEY+'. Add players manually or import CSV.');
+      if(fromOld.length){ state.players = mergePlayers(state.players, fromOld); save(); renderAll(); alert('Loaded players from previous site signups.'); }
+      else alert('No signups found under key '+SIGNUPS_KEY+'. Add players manually or use an Import button.');
     });
 
     document.getElementById('btnAddManual').addEventListener('click', ()=>{
@@ -966,7 +784,7 @@
       const hStr = prompt('Handicap (e.g., 12.4). Leave blank if unknown:') || '';
       const hNum = Number(String(hStr).replace(/[^\d.\-]/g,''));
       const handicap = Number.isFinite(hNum) ? hNum : null;
-      const photo = (prompt('Photo filename or URL (optional) e.g. nick-brown.png')||'').trim();
+      const photo = (prompt('Photo filename or path (optional), e.g. images/nick-brown.png or nick-brown.png')||'').trim();
       const p = {id:uid(), firstName, lastName, nickname, team, handicap, photo};
       state.players.push(p);
       save(); renderAll();
@@ -1504,7 +1322,7 @@
           phone    : map.phone     || '',
           name     : map.name      || '',
           handicap : map.handicap || map.hcp || map.hi || map.index || '',
-          photo    : map.photo || map.photourl || map["photo url"] || map.photourl || map.photourl || map.image || map.photourl || map.photourl || map.photourl || ''
+          photo    : map.photo || map.photourl || map.image || ''
         };
         return normalizePlayer(candidate);
       });
