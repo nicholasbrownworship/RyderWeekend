@@ -67,7 +67,7 @@
       border: 1px solid var(--line);
       padding: 1rem 1.1rem;
       position: relative;
-      overflow: hidden; /* FIX: keep contents inside rounded card */
+      overflow: hidden; /* keep contents inside rounded card */
       max-width: 100%;
     }
 
@@ -211,7 +211,7 @@
       align-items: center;
       gap: 0.5rem;
       font-size: 0.8rem;
-      min-width: 0; /* FIX: allow content to shrink within card */
+      min-width: 0; /* allow content to shrink within card */
     }
 
     .broadcast-featured-card img {
@@ -238,7 +238,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
-      table-layout: fixed;       /* FIX: table can't grow past card width */
+      table-layout: fixed;       /* table can't grow past card width */
       max-width: 100%;
     }
 
@@ -254,7 +254,6 @@
       padding: 0.35rem 0.25rem;
       border-bottom: 1px solid var(--line);
       text-align: left;
-      /* FIX: allow wrapping so we don't blow out the card width */
       white-space: normal;
       word-wrap: break-word;
       word-break: break-word;
@@ -386,7 +385,6 @@
         </div>
 
         <div class="broadcast-video-wrap">
-          <!-- Use your sample video for now; you can swap this for YouTube later -->
           <video
             id="broadcastVideo"
             src="media/placeholder-vid.mp4"
@@ -478,17 +476,51 @@
       const sideLabel = document.getElementById('broadcastSideLabel');
       const tickerInner = document.getElementById('broadcastTickerInner');
 
+      const SHARED_KEY = "ozarkShared_v1";
+      const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
+
       // ==============
-      // Helpers
+      // Data helpers
       // ==============
+      function loadPlayersFromStorage() {
+        // 1) Shared tournament state
+        try {
+          const rawShared = localStorage.getItem(SHARED_KEY);
+          if (rawShared) {
+            const data = JSON.parse(rawShared);
+            if (Array.isArray(data.players)) return data.players.slice();
+            if (Array.isArray(data)) return data.slice();
+          }
+        } catch (e) {
+          console.warn("[broadcast] Failed to parse shared state", e);
+        }
+
+        // 2) Signups roster
+        try {
+          const rawRoster = localStorage.getItem(SIGNUPS_ROSTER_KEY);
+          if (rawRoster) {
+            const data = JSON.parse(rawRoster);
+            if (Array.isArray(data)) return data.slice();
+            if (Array.isArray(data.players)) return data.players.slice();
+          }
+        } catch (e) {
+          console.warn("[broadcast] Failed to parse roster state", e);
+        }
+
+        return [];
+      }
+
       function safePlayers() {
+        // Prefer live JS state from script.js if available
         if (window.state && Array.isArray(window.state.players) && window.state.players.length) {
           return window.state.players.slice();
         }
+        // Seeded players fallback
         if (Array.isArray(window.seededPlayers) && window.seededPlayers.length) {
           return window.seededPlayers.slice();
         }
-        return [];
+        // Finally, localStorage
+        return loadPlayersFromStorage();
       }
 
       function playerDisplayName(p) {
@@ -508,7 +540,6 @@
       }
 
       function scoreText(p) {
-        // Very light touch so we don't break your data model:
         const raw = p.toPar ?? p.to_par ?? p.score ?? p.totalToPar ?? p.total;
         if (raw === undefined || raw === null || raw === "") return "—";
         const n = Number(raw);
@@ -547,8 +578,11 @@
       // Featured players
       // ==============
       const players = safePlayers();
+      console.log("[broadcast] players available:", players.length);
+
       if (!players.length) {
-        featuredGrid.innerHTML = '<p class="broadcast-note" style="margin:0;">Players will appear here once the field is loaded on the main site.</p>';
+        featuredGrid.innerHTML =
+          '<p class="broadcast-note" style="margin:0;">Players will appear here once the field is loaded on the main site.</p>';
       } else {
         const shuffled = shuffle(players);
         const COUNT = Math.min(4, shuffled.length);
