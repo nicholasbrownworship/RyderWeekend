@@ -701,7 +701,7 @@
     })();
   </script>
 
-  <!-- Featured players renderer (uses nickname field only) -->
+  <!-- Featured players renderer (reads from scoreboard snapshot first) -->
   <script>
     (function(){
       const grid = document.getElementById('featuredGrid');
@@ -731,19 +731,84 @@
       }
 
       function getPlayers(){
-        // 1) Prefer window.state.players if script.js built it
-        if (window.state && Array.isArray(window.state.players) && window.state.players.length){
-          return window.state.players;
-        }
-        // 2) Fallback: shared snapshot used by scoreboard/pairings
+        // 1) PRIMARY: what scoreboard.html wrote
         const sharedPlayers = loadSharedPlayers();
         if (sharedPlayers.length) return sharedPlayers;
 
-        // 3) Fallback: raw signups roster
+        // 2) SECONDARY: what script.js has in memory
+        if (window.state && Array.isArray(window.state.players) && window.state.players.length){
+          return window.state.players;
+        }
+
+        // 3) TERTIARY: raw signups roster
         const signups = loadSignups();
         if (signups.length) return signups;
 
         return [];
+      }
+
+      function initialsOf(p){
+        const f = (p.firstName || p.FirstName || p.first || '').trim();
+        const l = (p.lastName  || p.LastName  || p.last  || '').trim();
+        const fi = f ? f[0] : '';
+        const li = l ? l[0] : '';
+        return (fi + li) || 'OI';
+      }
+
+      function resolvePhoto(p){
+        return (
+          p.photoUrl || p.photoURL ||
+          p.photo    || p.Photo    ||
+          p.photourl || p.PhotoURL ||
+          p.avatar   || p.image    || p.Image || ""
+        );
+      }
+
+      function renderCard(p){
+        const first = (p.firstName || p.FirstName || p.first || "").trim();
+        const last  = (p.lastName  || p.LastName  || p.last  || "").trim();
+
+        const nicknameRaw = p.nickname || p.Nickname || p.nick || "";
+        const nickClean = nicknameRaw.toString().trim();
+        const nickname = nickClean ? ` “${nickClean}”` : "";
+
+        const rawTeam = (p.team || p.Team || "").toString().toLowerCase();
+        let team = "ozark";
+        if (rawTeam.includes("val")) team = "valley";
+        else if (rawTeam.includes("oz")) team = "ozark";
+
+        const teamLabel = team === "valley" ? "Team Valley" : "Team Ozark";
+        const teamClass = team === "valley" ? "va" : "oz";
+
+        const hRaw = (
+          p.handicap ?? p.Handicap ??
+          p.hcp      ?? p.HCP      ??
+          p.hi       ?? p.Hi       ??
+          p.index    ?? p.Index    ?? ""
+        );
+        const hcapStr = hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== ""
+          ? String(hRaw).trim()
+          : "";
+
+        const photo = resolvePhoto(p);
+        const imgHtml = photo
+          ? '<div class="player-photo-wrap"><img src="' + photo + '" alt="' +
+              (first + " " + last).trim() +
+              '" loading="lazy" decoding="async"></div>'
+          : '<div class="player-photo-wrap">' + initialsOf(p) + '</div>';
+
+        return `
+          <article class="player-card">
+            ${imgHtml}
+            <div class="player-body">
+              <h3 class="player-name">${(first + " " + last).trim()}${nickname}</h3>
+              <p class="player-meta">
+                <span class="badge team ${teamClass}">${teamLabel}</span>
+                ${hcapStr ? '<span class="badge">HCP ' + hcapStr + '</span>' : ''}
+              </p>
+            </div>
+          </article>
+        `;
       }
 
       function pickRandom(src, count){
@@ -756,47 +821,6 @@
         return out;
       }
 
-      function initialsOf(p){
-        const f = (p.firstName || p.first || '').trim();
-        const l = (p.lastName || p.last || '').trim();
-        return (f[0] || '') + (l[0] || '');
-      }
-
-      function resolvePhoto(p){
-        // Try a few common properties
-        return p.photoUrl || p.photo || p.avatar || p.image || "";
-      }
-
-      function renderCard(p){
-        const first = (p.firstName || p.first || "").trim();
-        const last  = (p.lastName || p.last || "").trim();
-        const nickname = p.nickname && p.nickname.toString().trim().length
-          ? ` “${p.nickname.toString().trim()}”`
-          : "";
-        const team = (p.team === "valley") ? "valley" : "ozark";
-        const teamLabel = team === "valley" ? "Team Valley" : "Team Ozark";
-        const teamClass = team === "valley" ? "va" : "oz";
-        const hcap = (p.handicap ?? p.hcp ?? "").toString();
-        const photo = resolvePhoto(p);
-
-        const imgHtml = photo
-          ? `<div class="player-photo-wrap"><img src="${photo}" alt="${first} ${last}" loading="lazy" decoding="async"></div>`
-          : `<div class="player-photo-wrap">${(initialsOf(p) || "OI")}</div>`;
-
-        return `
-          <article class="player-card">
-            ${imgHtml}
-            <div class="player-body">
-              <h3 class="player-name">${(first + " " + last).trim()}${nickname}</h3>
-              <p class="player-meta">
-                <span class="badge team ${teamClass}">${teamLabel}</span>
-                ${hcap && hcap !== "": `<span class="badge">HCP ${hcap}</span>`}
-              </p>
-            </div>
-          </article>
-        `;
-      }
-
       function renderFeatured(){
         const players = getPlayers();
         if (!players.length){
@@ -807,7 +831,7 @@
         grid.innerHTML = picks.map(renderCard).join("");
       }
 
-      // Wait until after everything (including script.js) is loaded
+      // Wait until after everything (including scoreboard’s shared state, if open) is available
       window.addEventListener("load", renderFeatured);
     })();
   </script>
