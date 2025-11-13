@@ -276,6 +276,41 @@ for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]
 // =======================
 // 4b) TEAM COUNTS + FIELD SUMMARY (homepage widget)
 // =======================
+function getPlayersForSummary() {
+  // 1) Prefer shared snapshot from scoreboard / OZARK bridge
+  try {
+    if (window.OZARK && typeof window.OZARK.readSharedSnapshot === "function") {
+      const snap = window.OZARK.readSharedSnapshot();
+      if (snap && Array.isArray(snap.players) && snap.players.length) {
+        return snap.players;
+      }
+    } else {
+      // fallback direct read if OZARK isn't defined
+      const raw = localStorage.getItem(SHARED_KEY || "ozarkShared_v1");
+      if (raw) {
+        const snap = JSON.parse(raw);
+        if (snap && Array.isArray(snap.players) && snap.players.length) {
+          return snap.players;
+        }
+      }
+    }
+  } catch {}
+
+  // 2) Fallback: global players array on this page, if it exists
+  if (typeof players !== "undefined" && Array.isArray(players) && players.length) {
+    return players;
+  }
+
+  // 3) Fallback: signups roster (local-only)
+  try {
+    const raw = localStorage.getItem(SIGNUPS_ROSTER_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(arr) && arr.length) return arr;
+  } catch {}
+
+  return [];
+}
+
 function computeTeamCounts() {
   const counts = {
     ozark: 0,
@@ -284,8 +319,10 @@ function computeTeamCounts() {
     total: 0,
   };
 
-  players.forEach(p => {
-    const team = (p.team || "").toLowerCase();
+  const list = getPlayersForSummary();
+
+  list.forEach(p => {
+    const team = (p.team || p.Team || "").toLowerCase();
     if (team === "ozark") counts.ozark++;
     else if (team === "valley") counts.valley++;
     else counts.other++;
@@ -294,6 +331,7 @@ function computeTeamCounts() {
 
   return counts;
 }
+
 
 function renderTeamSummary() {
   const host = document.getElementById("teamSummary");
