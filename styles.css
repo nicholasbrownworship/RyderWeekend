@@ -1137,3 +1137,66 @@ a {
   background: #fff; color: #1a1407; border: 1px solid #e7e0d1;
   border-radius: 10px; padding: .35rem .6rem; font-weight: 700; cursor: pointer;
 }
+
+/* ========== Team score header widget ========== */
+.team-score-widget{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  margin-left:1rem;
+  font-size:0.78rem;
+  color:var(--green-dark);
+}
+
+.team-score-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0.25rem 0.7rem;
+  border-radius:999px;
+  background:rgba(36,79,60,0.06);
+  border:1px solid rgba(36,79,60,0.18);
+  box-shadow:0 6px 16px rgba(0,0,0,0.04);
+}
+
+.score-team{
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-weight:700;
+  font-size:0.68rem;
+  opacity:0.85;
+}
+.score-team-oz{ color:#1f5c35; }
+.score-team-va{ color:#8a672a; }
+
+.score-num{
+  font-weight:800;
+  font-size:0.98rem;
+}
+.score-divider{
+  opacity:0.6;
+  font-weight:700;
+}
+
+.score-label{
+  margin-top:2px;
+  font-size:0.7rem;
+  opacity:0.7;
+}
+
+/* small pulse when scores update */
+.team-score-widget.score-updated .team-score-pill{
+  animation:scorePulse .45s ease-out;
+}
+@keyframes scorePulse{
+  0%{ transform:scale(1); box-shadow:0 6px 16px rgba(0,0,0,0.04); }
+  40%{ transform:scale(1.04); box-shadow:0 10px 24px rgba(36,79,60,0.25); }
+  100%{ transform:scale(1); box-shadow:0 6px 16px rgba(0,0,0,0.04); }
+}
+
+/* make room on narrow screens */
+@media (max-width: 800px){
+  .team-score-widget{
+    display:none; /* hide if header feels crowded on mobile—toggle if you prefer */
+  }
+}
