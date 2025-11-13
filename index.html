@@ -19,7 +19,7 @@
   <!-- App script -->
   <script src="script.js?v=2" defer></script>
 
-  <!-- Page-scoped CSS (hero & gallery helpers) -->
+  <!-- Page-scoped CSS (hero, gallery, featured players helpers) -->
   <style>
     /* HERO (video-ready) */
     .hero.video {
@@ -28,34 +28,83 @@
       overflow: clip;
       background: radial-gradient(1200px 600px at 10% -10%, #132022 0%, #0b0f0d 45%, #0b0f0d 100%);
     }
-    .hero.video .hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
-    .hero.video .hero-overlay {
-      position: relative; z-index: 1; display: grid; place-items: start; gap: .7rem;
-      max-width: 1100px; margin: 0 auto; padding: 14vh 16px 12vh; color: #f5f0e6; text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    .hero.video .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .9;
     }
-    .hero.video h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: .02em; }
-    .hero.video .lead { margin: 0; opacity: .95; max-width: 60ch; }
-    .hero.video .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .hero.video .hero-overlay {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: start;
+      gap: .7rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14vh 16px 12vh;
+      color: #f5f0e6;
+      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+    }
+    .hero.video h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    .hero.video .lead {
+      margin: 0;
+      opacity: .95;
+      max-width: 60ch;
+    }
+    .hero.video .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
     .hero.video .pill {
-      display: inline-flex; gap: 8px; align-items: center; padding: .4rem .6rem; border-radius: 999px;
-      background: rgba(0,0,0,.35); color: #eaf6f0; border: 1px solid rgba(255,255,255,.2);
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: .4rem .6rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,.35);
+      color: #eaf6f0;
+      border: 1px solid rgba(255,255,255,.2);
     }
     .hero.video .pill-label { opacity: .8; font-weight: 600; }
     .hero.video .pill-value { font-weight: 800; letter-spacing: .02em; }
     .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 10px; }
-    .hero.video .btn.primary { background: #d1a14b; color: #1a1407; border: 1px solid #8f6a29; }
-    .hero.video .btn.ghost { background: rgba(0,0,0,.4); color: #f5f0e6; border: 1px solid rgba(255,255,255,.25); }
+    .hero.video .btn.primary {
+      background: #d1a14b;
+      color: #1a1407;
+      border: 1px solid #8f6a29;
+    }
+    .hero.video .btn.ghost {
+      background: rgba(0,0,0,.4);
+      color: #f5f0e6;
+      border: 1px solid rgba(255,255,255,.25);
+    }
     .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
 
     /* Gallery grid */
     .section .gallery {
-      display: grid; gap: 12px;
+      display: grid;
+      gap: 12px;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      max-width: 1100px; margin: 0 auto;
+      max-width: 1100px;
+      margin: 0 auto;
     }
     .gallery img {
-      width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
-      border-radius: 12px; border: 1px solid #e7e0d1; background: #fff;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #e7e0d1;
+      background: #fff;
       box-shadow: 0 14px 38px rgba(0,0,0,0.06);
     }
 
@@ -67,9 +116,75 @@
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat center/contain,
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat left/contain,
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat right/contain;
-      height: 90px; opacity: .65; filter: saturate(.7);
-      border: 1px dashed #e7e0d1; border-radius: 12px;
+      height: 90px;
+      opacity: .65;
+      filter: saturate(.7);
+      border: 1px dashed #e7e0d1;
+      border-radius: 12px;
     }
+
+    /* Featured players grid + cards */
+    .players-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      align-items: stretch;
+    }
+    .player-card {
+      background: #fff;
+      border: 1px solid #e7e0d1;
+      border-radius: 16px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 12px 32px rgba(0,0,0,.06);
+    }
+    .player-photo-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #f5f0e6;
+      border: 1px solid #e7e0d1;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: #244f3c;
+    }
+    .player-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .player-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .player-name {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+    .player-meta {
+      margin: 0;
+      font-size: .85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .player-meta .badge {
+      border-radius: 999px;
+      padding: .15rem .5rem;
+      border: 1px solid #d9d2c4;
+      background: #fdfaf4;
+    }
+    .badge.team.oz { border-color: rgba(46,204,113,.4); }
+    .badge.team.va { border-color: rgba(52,152,219,.4); }
   </style>
 </head>
 <body id="top">
@@ -87,7 +202,7 @@
           if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
         });
 
-        // header score widget
+        // Boot the small header score widget if available
         if (window.initTeamScoreWidget) {
           window.initTeamScoreWidget();
         }
@@ -111,9 +226,18 @@
       </p>
 
       <div class="hero-pills">
-        <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
-        <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
-        <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
+        <div class="pill">
+          <span class="pill-label">Dates</span>
+          <span class="pill-value">May 23–24, 2026</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Venue</span>
+          <span class="pill-value">DHCC – Diamond City, AR</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Entry</span>
+          <span class="pill-value">$150 (lunch incl.)</span>
+        </div>
       </div>
 
       <div class="hero-actions">
@@ -122,7 +246,7 @@
       </div>
 
       <p class="hero-footnote">
-        Spots limited to family & invited guests • Captains announced closer to event.
+        Spots limited to family &amp; invited guests • Captains announced closer to event.
       </p>
     </div>
   </section>
@@ -137,7 +261,7 @@
 
       <div class="info-row">
         <article class="info-card">
-          <h3>Date & Location</h3>
+          <h3>Date &amp; Location</h3>
           <p class="muted">Locked, not tentative.</p>
           <ul>
             <li><strong>Saturday, May 23, 2026</strong> – Rounds 1–2</li>
@@ -158,13 +282,13 @@
         </article>
 
         <article class="info-card">
-          <h3>Cost & Inclusions</h3>
+          <h3>Cost &amp; Inclusions</h3>
           <p class="muted">Straightforward pricing.</p>
           <ul>
             <li><strong>$150 per player</strong></li>
             <li>Greens fees + cart both days</li>
             <li>Lunch (Day 1)</li>
-            <li>Prizes & traveling trophy</li>
+            <li>Prizes &amp; traveling trophy</li>
           </ul>
         </article>
       </div>
@@ -198,7 +322,7 @@
         <div class="schedule-day active" id="day1">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
-            <h3>Check-in & Range</h3>
+            <h3>Check-in &amp; Range</h3>
             <p>Grab carts, hit balls, team photos.</p>
           </div>
           <div class="sched-card">
@@ -213,7 +337,7 @@
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">12:30 PM</span>
-            <h3>Lunch & Day 1 Scoring</h3>
+            <h3>Lunch &amp; Day 1 Scoring</h3>
             <p>Included. Scores posted to main board.</p>
           </div>
         </div>
@@ -221,7 +345,7 @@
         <div class="schedule-day" id="day2" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
-            <h3>Warm-up & Singles Pairings</h3>
+            <h3>Warm-up &amp; Singles Pairings</h3>
             <p>Captains finalize Day 2 rotation.</p>
           </div>
           <div class="sched-card">
@@ -236,7 +360,7 @@
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">1:00 PM</span>
-            <h3>Trophy & Photos</h3>
+            <h3>Trophy &amp; Photos</h3>
             <p>Winning team name engraved, family photo, wrap-up.</p>
           </div>
         </div>
@@ -304,6 +428,7 @@
             <span class="muted">Join the Ozark Invitational</span>
           </div>
 
+          <!-- No action/method; handled by script.js -->
           <form id="signupForm" novalidate>
             <div style="position: absolute; left: -5000px;" aria-hidden="true">
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
@@ -377,7 +502,7 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- Tabs helper (schedule) -->
+  <!-- Tabs helper (safe if script.js also handles tabs) -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -417,235 +542,274 @@
     })();
   </script>
 
-  <!-- FEATURED PLAYERS FIX -->
+  <!-- Gallery carousel + lightbox -->
   <script>
-    window.addEventListener('load', function () {
+    (function(){
+      /* ---------- Config ---------- */
+      const COUNT = 6;
+      const DIRS = ["images/gallery/"];
+      const NAME_PATTERNS = [
+        i => `placeholder${i}`,
+        i => `placeholder-${i}`,
+        i => `placeholder ${i}`,
+        i => `placeholder (${i})`
+      ];
+      const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
+
+      const rail = document.getElementById("galleryRail");
+      if (!rail) return;
+
+      /* ---------- Build candidate URLs ---------- */
+      function candidatesForIndex(i){
+        if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
+          return [window.__GALLERY_FILES__[i-1]];
+        }
+        const urls = [];
+        for (const dir of DIRS) {
+          for (const pat of NAME_PATTERNS) {
+            const base = pat(i);
+            for (const ext of EXTS) urls.push(`${dir}${base}.${ext}`);
+          }
+        }
+        return urls;
+      }
+
+      function setNextSrc(img, urls, idx){
+        if (idx >= urls.length) {
+          img.src = "images/placeholders/ph-gallery-4x3.svg";
+          img.onerror = null;
+          return;
+        }
+        const url = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
+        img.dataset.try = urls[idx];
+        img.src = url;
+      }
+
+      /* ---------- Render carousel items ---------- */
+      const items = [];
+      for (let i = 1; i <= COUNT; i++){
+        const wrap = document.createElement("button");
+        wrap.type = "button";
+        wrap.className = "gitem";
+        wrap.setAttribute("aria-label", `Open image ${i} larger`);
+        const img = document.createElement("img");
+        img.alt = `gallery image ${i}`;
+        img.loading = "lazy"; img.decoding = "async";
+
+        const tries = candidatesForIndex(i);
+        let k = 0;
+        img.onerror = () => { k++; setNextSrc(img, tries, k); };
+        setNextSrc(img, tries, k);
+
+        wrap.appendChild(img);
+        rail.appendChild(wrap);
+        items.push({wrap, img});
+      }
+
+      /* ---------- Carousel nav ---------- */
+      const prev = document.getElementById("galPrev");
+      const next = document.getElementById("galNext");
+
+      function scrollByAmount(dir){
+        const amt = Math.max(rail.clientWidth * 0.9, 300) * dir;
+        rail.scrollBy({left: amt, behavior: "smooth"});
+      }
+      prev.addEventListener("click", ()=> scrollByAmount(-1));
+      next.addEventListener("click", ()=> scrollByAmount( 1));
+
+      rail.addEventListener("keydown", (e)=>{
+        if (e.key === "ArrowLeft") { e.preventDefault(); scrollByAmount(-1); }
+        if (e.key === "ArrowRight"){ e.preventDefault(); scrollByAmount( 1); }
+      });
+
+      /* ---------- Lightbox (zoom & pan) ---------- */
+      const dlg = document.getElementById("lightbox");
+      const lbImg = document.getElementById("lbImg");
+      const lbClose = document.getElementById("lbClose");
+      const lbPlus  = document.getElementById("lbPlus");
+      const lbMinus = document.getElementById("lbMinus");
+      const lbReset = document.getElementById("lbReset");
+
+      let currentIndex = 0;
+      let scale = 1, tx = 0, ty = 0;
+
+      function applyTransform(){
+        lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      }
+      function resetTransform(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
+
+      function openLightbox(idx){
+        currentIndex = idx;
+        lbImg.src = items[idx].img.src;
+        resetTransform();
+        dlg.showModal();
+      }
+      function closeLightbox(){ dlg.close(); }
+
+      items.forEach((it, idx)=>{
+        it.wrap.addEventListener("click", ()=> openLightbox(idx));
+      });
+
+      lbClose.addEventListener("click", closeLightbox);
+      lbReset.addEventListener("click", resetTransform);
+      lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
+      lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
+
+      dlg.addEventListener("wheel", (e)=>{
+        e.preventDefault();
+        const delta = -Math.sign(e.deltaY);
+        const prevScale = scale;
+        scale = Math.min(4, Math.max(1, scale + delta * 0.15));
+        const rect = lbImg.getBoundingClientRect();
+        const cx = e.clientX - rect.left - rect.width/2;
+        const cy = e.clientY - rect.top  - rect.height/2;
+        tx = (tx - cx) * (scale/prevScale) + cx;
+        ty = (ty - cy) * (scale/prevScale) + cy;
+        applyTransform();
+      }, {passive:false});
+
+      let dragging = false, sx=0, sy=0, stx=0, sty=0;
+      lbImg.addEventListener("mousedown", (e)=>{
+        dragging = true; sx = e.clientX; sy = e.clientY; stx = tx; sty = ty; e.preventDefault();
+      });
+      window.addEventListener("mousemove", (e)=>{
+        if (!dragging) return;
+        tx = stx + (e.clientX - sx);
+        ty = sty + (e.clientY - sy);
+        applyTransform();
+      });
+      window.addEventListener("mouseup", ()=> dragging = false);
+
+      dlg.addEventListener("keydown", (e)=>{
+        if (e.key === "Escape") closeLightbox();
+        if (e.key === "ArrowRight") {
+          currentIndex = (currentIndex+1) % items.length;
+          lbImg.src = items[currentIndex].img.src;
+          resetTransform();
+        }
+        if (e.key === "ArrowLeft")  {
+          currentIndex = (currentIndex-1+items.length) % items.length;
+          lbImg.src = items[currentIndex].img.src;
+          resetTransform();
+        }
+      });
+
+      dlg.addEventListener("click", (e)=>{
+        const r = dlg.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeLightbox();
+      });
+    })();
+  </script>
+
+  <!-- Featured players renderer (uses nickname field only) -->
+  <script>
+    (function(){
       const grid = document.getElementById('featuredGrid');
       if (!grid) return;
 
-      // Pull from shared state if present
-      let players = [];
-      if (window.state && Array.isArray(window.state.players)) {
-        players = window.state.players.slice();
-      } else if (Array.isArray(window.seededPlayers)) {
-        players = window.seededPlayers.slice();
+      const SHARED_KEY = "ozarkShared_v1";
+      const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
+
+      function loadSharedPlayers(){
+        try{
+          const raw = localStorage.getItem(SHARED_KEY);
+          if (!raw) return [];
+          const snap = JSON.parse(raw);
+          if (snap && Array.isArray(snap.players)) return snap.players;
+        }catch{}
+        return [];
       }
 
-      if (!players.length) {
-        grid.innerHTML = '<p class="muted">Players will appear here once the field is loaded.</p>';
-        return;
+      function loadSignups(){
+        try{
+          const raw = localStorage.getItem(SIGNUPS_ROSTER_KEY);
+          if (!raw) return [];
+          const arr = JSON.parse(raw);
+          return Array.isArray(arr) ? arr : [];
+        }catch{}
+        return [];
       }
 
-      // Shuffle
-      for (let i = players.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [players[i], players[j]] = [players[j], players[i]];
+      function getPlayers(){
+        // 1) Prefer window.state.players if script.js built it
+        if (window.state && Array.isArray(window.state.players) && window.state.players.length){
+          return window.state.players;
+        }
+        // 2) Fallback: shared snapshot used by scoreboard/pairings
+        const sharedPlayers = loadSharedPlayers();
+        if (sharedPlayers.length) return sharedPlayers;
+
+        // 3) Fallback: raw signups roster
+        const signups = loadSignups();
+        if (signups.length) return signups;
+
+        return [];
       }
 
-      const COUNT = Math.min(6, players.length);
-      const picks = players.slice(0, COUNT);
-
-      function teamLabel(team) {
-        if (team === 'ozark') return 'Team Ozark';
-        if (team === 'valley') return 'Team Valley';
-        return 'Unassigned';
-      }
-      function teamClass(team) {
-        if (team === 'ozark') return 'pill team-ozark';
-        if (team === 'valley') return 'pill team-valley';
-        return 'pill';
+      function pickRandom(src, count){
+        const copy = src.slice();
+        const out = [];
+        while (copy.length && out.length < count){
+          const idx = Math.floor(Math.random() * copy.length);
+          out.push(copy.splice(idx, 1)[0]);
+        }
+        return out;
       }
 
-      function photoFor(p) {
-        if (p.photoUrl) return p.photoUrl;
-        if (typeof p.photo === 'string' && p.photo.trim()) return p.photo;
-        if (p.id) return `images/players/${p.id}.jpg`;
-        const slug = (`${p.firstName || ''}-${p.lastName || ''}`.trim() || 'placeholder')
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-');
-        return `images/players/${slug}.jpg`;
+      function initialsOf(p){
+        const f = (p.firstName || p.first || '').trim();
+        const l = (p.lastName || p.last || '').trim();
+        return (f[0] || '') + (l[0] || '');
       }
 
-      const html = picks.map(p => {
-        const name = (`${p.firstName || ''} ${p.lastName || ''}`).trim() || 'TBD Player';
-        const nickname = p.nickname && p.nickname.trim().length
-          ? ` “${p.nickname.trim()}”`
-          : '';
-        const handicap = (p.handicap ?? p.hcap ?? '').toString();
-        const hcapLabel = handicap ? `HCP ${handicap}` : '';
-        const tLabel = teamLabel(p.team);
-        const tClass = teamClass(p.team);
-        const src = photoFor(p);
+      function resolvePhoto(p){
+        // Try a few common properties
+        return p.photoUrl || p.photo || p.avatar || p.image || "";
+      }
+
+      function renderCard(p){
+        const first = (p.firstName || p.first || "").trim();
+        const last  = (p.lastName || p.last || "").trim();
+        const nickname = p.nickname && p.nickname.toString().trim().length
+          ? ` “${p.nickname.toString().trim()}”`
+          : "";
+        const team = (p.team === "valley") ? "valley" : "ozark";
+        const teamLabel = team === "valley" ? "Team Valley" : "Team Ozark";
+        const teamClass = team === "valley" ? "va" : "oz";
+        const hcap = (p.handicap ?? p.hcp ?? "").toString();
+        const photo = resolvePhoto(p);
+
+        const imgHtml = photo
+          ? `<div class="player-photo-wrap"><img src="${photo}" alt="${first} ${last}" loading="lazy" decoding="async"></div>`
+          : `<div class="player-photo-wrap">${(initialsOf(p) || "OI")}</div>`;
 
         return `
           <article class="player-card">
-            <div class="player-photo">
-              <img src="${src}"
-                   alt="${name}${nickname}"
-                   loading="lazy"
-                   decoding="async"
-                   onerror="this.src='images/placeholders/ph-player-4x5.svg'">
-            </div>
-            <div class="player-meta">
-              <h3 class="player-name">${name}${nickname}</h3>
-              <div class="player-tags">
-                <span class="${tClass}">${tLabel}</span>
-                ${hcapLabel ? `<span class="pill pill-soft">${hcapLabel}</span>` : ''}
-              </div>
+            ${imgHtml}
+            <div class="player-body">
+              <h3 class="player-name">${(first + " " + last).trim()}${nickname}</h3>
+              <p class="player-meta">
+                <span class="badge team ${teamClass}">${teamLabel}</span>
+                ${hcap && hcap !== "": `<span class="badge">HCP ${hcap}</span>`}
+              </p>
             </div>
           </article>
         `;
-      }).join('');
-
-      grid.innerHTML = html;
-    });
-  </script>
-
-  <!-- Gallery + lightbox -->
-  <script>
-  (function(){
-    /* ---------- Config ---------- */
-    const COUNT = 6;
-    const DIRS = ["images/gallery/"];
-    const NAME_PATTERNS = [
-      i => `placeholder${i}`,
-      i => `placeholder-${i}`,
-      i => `placeholder ${i}`,
-      i => `placeholder (${i})`
-    ];
-    const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
-
-    const rail = document.getElementById("galleryRail");
-    if (!rail) return;
-
-    function candidatesForIndex(i){
-      if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
-        return [window.__GALLERY_FILES__[i-1]];
       }
-      const urls = [];
-      for (const dir of DIRS) {
-        for (const pat of NAME_PATTERNS) {
-          const base = pat(i);
-          for (const ext of EXTS) urls.push(`${dir}${base}.${ext}`);
+
+      function renderFeatured(){
+        const players = getPlayers();
+        if (!players.length){
+          grid.innerHTML = `<p class="muted">Players will appear here once the field is loaded.</p>`;
+          return;
         }
+        const picks = pickRandom(players, 4);
+        grid.innerHTML = picks.map(renderCard).join("");
       }
-      return urls;
-    }
 
-    function setNextSrc(img, urls, idx){
-      if (idx >= urls.length) {
-        img.src = "images/placeholders/ph-gallery-4x3.svg";
-        img.onerror = null;
-        return;
-      }
-      const url = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
-      img.dataset.try = urls[idx];
-      img.src = url;
-    }
-
-    const items = [];
-    for (let i = 1; i <= COUNT; i++){
-      const wrap = document.createElement("button");
-      wrap.type = "button";
-      wrap.className = "gitem";
-      wrap.setAttribute("aria-label", `Open image ${i} larger`);
-      const img = document.createElement("img");
-      img.alt = `gallery image ${i}`;
-      img.loading = "lazy"; img.decoding = "async";
-
-      const tries = candidatesForIndex(i);
-      let k = 0;
-      img.onerror = () => { k++; setNextSrc(img, tries, k); };
-      setNextSrc(img, tries, k);
-
-      wrap.appendChild(img);
-      rail.appendChild(wrap);
-      items.push({wrap, img});
-    }
-
-    const prev = document.getElementById("galPrev");
-    const next = document.getElementById("galNext");
-
-    function scrollByAmount(dir){
-      const amt = Math.max(rail.clientWidth * 0.9, 300) * dir;
-      rail.scrollBy({left: amt, behavior: "smooth"});
-    }
-    prev.addEventListener("click", ()=> scrollByAmount(-1));
-    next.addEventListener("click", ()=> scrollByAmount( 1));
-
-    rail.addEventListener("keydown", (e)=>{
-      if (e.key === "ArrowLeft") { e.preventDefault(); scrollByAmount(-1); }
-      if (e.key === "ArrowRight"){ e.preventDefault(); scrollByAmount( 1); }
-    });
-
-    const dlg = document.getElementById("lightbox");
-    const lbImg = document.getElementById("lbImg");
-    const lbClose = document.getElementById("lbClose");
-    const lbPlus  = document.getElementById("lbPlus");
-    const lbMinus = document.getElementById("lbMinus");
-    const lbReset = document.getElementById("lbReset");
-
-    let currentIndex = 0;
-    let scale = 1, tx = 0, ty = 0;
-
-    function applyTransform(){
-      lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-    }
-    function resetTransform(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
-
-    function openLightbox(idx){
-      currentIndex = idx;
-      lbImg.src = items[idx].img.src;
-      resetTransform();
-      dlg.showModal();
-    }
-    function closeLightbox(){ dlg.close(); }
-
-    items.forEach((it, idx)=>{
-      it.wrap.addEventListener("click", ()=> openLightbox(idx));
-    });
-
-    lbClose.addEventListener("click", closeLightbox);
-    lbReset.addEventListener("click", resetTransform);
-    lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
-    lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
-
-    dlg.addEventListener("wheel", (e)=>{
-      e.preventDefault();
-      const delta = -Math.sign(e.deltaY);
-      const prevScale = scale;
-      scale = Math.min(4, Math.max(1, scale + delta * 0.15));
-      const rect = lbImg.getBoundingClientRect();
-      const cx = e.clientX - rect.left - rect.width/2;
-      const cy = e.clientY - rect.top  - rect.height/2;
-      tx = (tx - cx) * (scale/prevScale) + cx;
-      ty = (ty - cy) * (scale/prevScale) + cy;
-      applyTransform();
-    }, {passive:false});
-
-    let dragging = false, sx=0, sy=0, stx=0, sty=0;
-    lbImg.addEventListener("mousedown", (e)=>{
-      dragging = true; sx = e.clientX; sy = e.clientY; stx = tx; sty = ty; e.preventDefault();
-    });
-    window.addEventListener("mousemove", (e)=>{
-      if (!dragging) return;
-      tx = stx + (e.clientX - sx);
-      ty = sty + (e.clientY - sy);
-      applyTransform();
-    });
-    window.addEventListener("mouseup", ()=> dragging = false);
-
-    dlg.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight") { currentIndex = (currentIndex+1) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
-      if (e.key === "ArrowLeft")  { currentIndex = (currentIndex-1+items.length) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
-    });
-
-    dlg.addEventListener("click", (e)=>{
-      const r = dlg.getBoundingClientRect();
-      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeLightbox();
-    });
-  })();
+      // Wait until after everything (including script.js) is loaded
+      window.addEventListener("load", renderFeatured);
+    })();
   </script>
 
   <!-- Service worker -->
@@ -658,6 +822,5 @@
       });
     }
   </script>
-
 </body>
 </html>
