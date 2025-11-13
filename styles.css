@@ -331,6 +331,64 @@ a {
 }
 
 /* ===================
+   TEAM / FIELD SUMMARY
+=================== */
+.team-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.team-summary-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.1rem 0.9rem;
+}
+
+.team-summary-card h3 {
+  margin: 0 0 0.4rem 0;
+  font-size: 1rem;
+  color: var(--green);
+}
+
+.team-summary-card .count {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--green-dark);
+}
+
+.team-summary-card .label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.team-summary-card .meta {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+/* Progress bar for total spots (optional but nice) */
+.team-progress {
+  margin-top: 0.7rem;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.team-progress-inner {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  transition: width 0.25s ease-out;
+}
+
+
+/* ===================
    TABS
 =================== */
 .tabs {
