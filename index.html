@@ -152,6 +152,7 @@
       place-items: center;
       font-weight: 700;
       color: #244f3c;
+      text-transform: uppercase;
     }
     .player-photo-wrap img {
       width: 100%;
@@ -701,14 +702,17 @@
     })();
   </script>
 
-  <!-- Featured players renderer (reads from scoreboard snapshot first) -->
+  <!-- Featured players renderer (same photo logic style as players.html) -->
   <script>
     (function(){
       const grid = document.getElementById('featuredGrid');
       if (!grid) return;
 
       const SHARED_KEY = "ozarkShared_v1";
-      const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
+      const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1"; // fallback; main data still from shared/state
+
+      const PHOTO_BASE = "images/players/";
+      const PHOTO_EXTS = ["png","jpg","jpeg","webp"];
 
       function loadSharedPlayers(){
         try{
@@ -730,85 +734,100 @@
         return [];
       }
 
-      function getPlayers(){
-        // 1) PRIMARY: what scoreboard.html wrote
-        const sharedPlayers = loadSharedPlayers();
-        if (sharedPlayers.length) return sharedPlayers;
+      function firstLastFrom(p){
+        const first = (p.firstName || p.FirstName || p.first || "").trim();
+        const last  = (p.lastName  || p.LastName  || p.last  || "").trim();
+        return { first, last };
+      }
 
-        // 2) SECONDARY: what script.js has in memory
+      function normalizeTeam(raw){
+        const t = (raw || "").toString().toLowerCase();
+        if (t.includes("val")) return "valley";
+        if (t.includes("oz"))  return "ozark";
+        return "";
+      }
+
+      function initialsOf(p){
+        const { first, last } = firstLastFrom(p);
+        const fi = first ? first[0] : "";
+        const li = last  ? last[0]  : "";
+        const both = (fi + li).trim();
+        return (both || "OI").toUpperCase();
+      }
+
+      function normalizePhotoValue(v){
+        if (!v) return "";
+        return String(v)
+          .trim()
+          .replace(/\\/g,"/")
+          .replace(/^\/+/, "")
+          .replace(/^\.\//,"");
+      }
+
+      function slugifyName(p){
+        const { first, last } = firstLastFrom(p);
+        const norm = s => String(s||"")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g,"-")
+          .replace(/^-+|-+$/g,"");
+        const f = norm(first);
+        const l = norm(last);
+        return [f,l].filter(Boolean).join("-");
+      }
+
+      function candidatePhotoURLs(p){
+        // Prefer explicit CSV/photo fields first
+        const explicit = normalizePhotoValue(
+          p.photo || p.Photo ||
+          p.photourl || p.photoURL || p.PhotoURL ||
+          p.image || p.Image || ""
+        );
+        if (explicit){
+          if (/^https?:\/\//i.test(explicit)) return [explicit];          // absolute URL
+          if (explicit.includes("/")) return [explicit];                  // relative path already has folders
+          return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit];        // bare filename
+        }
+        // Else slug from first+last with common extensions
+        const slug = slugifyName(p);
+        if (!slug) return [];
+        return PHOTO_EXTS.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
+      }
+
+      function loadImage(url){
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(url);
+          img.onerror = reject;
+          img.src = url;
+        });
+      }
+
+      async function resolvePhotoURL(p){
+        const candidates = candidatePhotoURLs(p);
+        for (const url of candidates){
+          try {
+            await loadImage(url);
+            return url;
+          } catch(_){}
+        }
+        return "";
+      }
+
+      function getPlayers(){
+        // 1) Prefer window.state.players if script.js built it
         if (window.state && Array.isArray(window.state.players) && window.state.players.length){
           return window.state.players;
         }
+        // 2) Fallback: shared snapshot used by scoreboard/pairings
+        const sharedPlayers = loadSharedPlayers();
+        if (sharedPlayers.length) return sharedPlayers;
 
-        // 3) TERTIARY: raw signups roster
+        // 3) Fallback: raw signups roster
         const signups = loadSignups();
         if (signups.length) return signups;
 
         return [];
-      }
-
-      function initialsOf(p){
-        const f = (p.firstName || p.FirstName || p.first || '').trim();
-        const l = (p.lastName  || p.LastName  || p.last  || '').trim();
-        const fi = f ? f[0] : '';
-        const li = l ? l[0] : '';
-        return (fi + li) || 'OI';
-      }
-
-      function resolvePhoto(p){
-        return (
-          p.photoUrl || p.photoURL ||
-          p.photo    || p.Photo    ||
-          p.photourl || p.PhotoURL ||
-          p.avatar   || p.image    || p.Image || ""
-        );
-      }
-
-      function renderCard(p){
-        const first = (p.firstName || p.FirstName || p.first || "").trim();
-        const last  = (p.lastName  || p.LastName  || p.last  || "").trim();
-
-        const nicknameRaw = p.nickname || p.Nickname || p.nick || "";
-        const nickClean = nicknameRaw.toString().trim();
-        const nickname = nickClean ? ` “${nickClean}”` : "";
-
-        const rawTeam = (p.team || p.Team || "").toString().toLowerCase();
-        let team = "ozark";
-        if (rawTeam.includes("val")) team = "valley";
-        else if (rawTeam.includes("oz")) team = "ozark";
-
-        const teamLabel = team === "valley" ? "Team Valley" : "Team Ozark";
-        const teamClass = team === "valley" ? "va" : "oz";
-
-        const hRaw = (
-          p.handicap ?? p.Handicap ??
-          p.hcp      ?? p.HCP      ??
-          p.hi       ?? p.Hi       ??
-          p.index    ?? p.Index    ?? ""
-        );
-        const hcapStr = hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== ""
-          ? String(hRaw).trim()
-          : "";
-
-        const photo = resolvePhoto(p);
-        const imgHtml = photo
-          ? '<div class="player-photo-wrap"><img src="' + photo + '" alt="' +
-              (first + " " + last).trim() +
-              '" loading="lazy" decoding="async"></div>'
-          : '<div class="player-photo-wrap">' + initialsOf(p) + '</div>';
-
-        return `
-          <article class="player-card">
-            ${imgHtml}
-            <div class="player-body">
-              <h3 class="player-name">${(first + " " + last).trim()}${nickname}</h3>
-              <p class="player-meta">
-                <span class="badge team ${teamClass}">${teamLabel}</span>
-                ${hcapStr ? '<span class="badge">HCP ' + hcapStr + '</span>' : ''}
-              </p>
-            </div>
-          </article>
-        `;
       }
 
       function pickRandom(src, count){
@@ -821,6 +840,75 @@
         return out;
       }
 
+      function renderCard(p, idx){
+        const { first, last } = firstLastFrom(p);
+
+        const nicknameRaw = p.nickname || p.Nickname || p.nick || "";
+        const nickClean = nicknameRaw.toString().trim();
+        const nickname = nickClean ? ` “${nickClean}”` : "";
+
+        const teamNorm = normalizeTeam(p.team || p.Team) || "ozark";
+        const teamLabel = teamNorm === "valley" ? "Team Valley" : "Team Ozark";
+        const teamClass = teamNorm === "valley" ? "va" : "oz";
+
+        const hRaw = (
+          p.handicap ?? p.Handicap ??
+          p.hcp      ?? p.HCP      ??
+          p.hi       ?? p.Hi       ??
+          p.index    ?? p.Index    ?? ""
+        );
+        const hcapStr = hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== ""
+          ? String(hRaw).trim()
+          : "";
+
+        const fullName = (first + " " + last).trim();
+
+        // Photo wrapper only; we hydrate with real image or initials later
+        const avatarHtml = `
+          <div class="player-photo-wrap" data-feature-index="${idx}">
+            ${initialsOf(p)}
+          </div>
+        `;
+
+        return `
+          <article class="player-card" data-feature-index="${idx}">
+            ${avatarHtml}
+            <div class="player-body">
+              <h3 class="player-name">${fullName}${nickname}</h3>
+              <p class="player-meta">
+                <span class="badge team ${teamClass}">${teamLabel}</span>
+                ${hcapStr ? `<span class="badge">HCP ${hcapStr}</span>` : ""}
+              </p>
+            </div>
+          </article>
+        `;
+      }
+
+      async function hydrateFeaturedPhotos(picks){
+        for (let i = 0; i < picks.length; i++){
+          const p = picks[i];
+          const wrap = grid.querySelector('.player-photo-wrap[data-feature-index="' + i + '"]');
+          if (!wrap) continue;
+
+          const url = await resolvePhotoURL(p);
+          const { first, last } = firstLastFrom(p);
+          const fullName = (first + " " + last).trim();
+
+          if (url){
+            wrap.innerHTML = "";
+            const img = document.createElement("img");
+            img.src = url;
+            img.alt = fullName || "Player photo";
+            img.loading = "lazy";
+            img.decoding = "async";
+            wrap.appendChild(img);
+          } else {
+            // keep initials fallback already in wrap
+            wrap.textContent = initialsOf(p);
+          }
+        }
+      }
+
       function renderFeatured(){
         const players = getPlayers();
         if (!players.length){
@@ -828,10 +916,12 @@
           return;
         }
         const picks = pickRandom(players, 4);
-        grid.innerHTML = picks.map(renderCard).join("");
+        grid.innerHTML = picks.map((p, idx) => renderCard(p, idx)).join("");
+        // hydrate photos asynchronously
+        hydrateFeaturedPhotos(picks);
       }
 
-      // Wait until after everything (including scoreboard’s shared state, if open) is available
+      // Wait until after everything (including script.js) is loaded
       window.addEventListener("load", renderFeatured);
     })();
   </script>
