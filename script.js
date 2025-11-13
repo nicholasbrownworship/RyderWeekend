@@ -62,13 +62,7 @@ const saveHiddenIds = (set) => {
 // =======================
 // 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
-const players = [
-  { id: "1", firstName: "Nick",    nickname: "Gamer",     lastName: "Brown",   team: "ozark",  photo: "nick-brown.png",  handicap: 15, notes: "Tech guy" },
-  { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "barry-brown.png", handicap: 18, notes: "OG" },
-  { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh-brown.png",  handicap: 11, notes: "Long hitter" },
-  { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt-brown.png",  handicap: 10, notes: "Short game guy" },
-  // add more seeded players here as needed
-];
+
 
 const SEEDED_PLAYERS = players.slice();
 
