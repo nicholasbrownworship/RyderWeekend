@@ -86,7 +86,12 @@
           const t = (a.getAttribute('href')||'').split('#')[0]||'index.html';
           if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
         });
-      });
+      
+    // 🔥 NEW: boot the header score widget
+      if (window.initTeamScoreWidget) {
+        window.initTeamScoreWidget();
+      }
+    });
   </script>
 
   <!-- HERO (video background enabled) -->
