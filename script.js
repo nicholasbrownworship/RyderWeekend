@@ -27,31 +27,37 @@ const saveHiddenIds = (set) => {
 // =======================
 // 1) NAV TOGGLE (mobile + a11y)
 // =======================
-const navToggle = document.getElementById("navToggle");
-const nav = document.querySelector(".nav");
-if (navToggle && nav) {
-  navToggle.addEventListener("click", () => {
-    const open = nav.classList.toggle("open");
-    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
-  });
-}
+(function initNavToggleImmediate() {
+  const navToggle = document.getElementById("navToggle");
+  const nav = document.querySelector(".nav");
+  if (navToggle && nav) {
+    navToggle.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+})();
 
 // =======================
 // 2) SCHEDULE TABS
 // =======================
-const scheduleTabButtons = document.querySelectorAll(".tab-btn[data-day]");
-const scheduleDays = document.querySelectorAll(".schedule-day");
-scheduleTabButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    scheduleTabButtons.forEach((b) => b.classList.remove("active"));
-    scheduleDays.forEach((d) => {
-      const isActive = d.id === btn.dataset.day;
-      d.classList.toggle("active", isActive);
-      d.toggleAttribute("hidden", !isActive);
+(function initScheduleTabs() {
+  const scheduleTabButtons = document.querySelectorAll(".tab-btn[data-day]");
+  const scheduleDays = document.querySelectorAll(".schedule-day");
+  if (!scheduleTabButtons.length || !scheduleDays.length) return;
+
+  scheduleTabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      scheduleTabButtons.forEach((b) => b.classList.remove("active"));
+      scheduleDays.forEach((d) => {
+        const isActive = d.id === btn.dataset.day;
+        d.classList.toggle("active", isActive);
+        d.toggleAttribute("hidden", !isActive);
+      });
+      btn.classList.add("active");
     });
-    btn.classList.add("active");
   });
-});
+})();
 
 // =======================
 // 3) MASTER PLAYER LIST (seeded + signups)
@@ -61,7 +67,7 @@ const players = [
   { id: "2", firstName: "Barry",   nickname: "Aim Right", lastName: "Brown",   team: "ozark",  photo: "barry-brown.png", handicap: 18, notes: "OG" },
   { id: "3", firstName: "Joshua",  nickname: "Long Ball", lastName: "Brown",   team: "valley", photo: "josh-brown.png",  handicap: 11, notes: "Long hitter" },
   { id: "4", firstName: "Matthew", nickname: "Hands",     lastName: "Brown",   team: "valley", photo: "matt-brown.png",  handicap: 10, notes: "Short game guy" },
-  // add more players here
+  // add more seeded players here as needed
 ];
 
 const SEEDED_PLAYERS = players.slice();
@@ -213,10 +219,10 @@ function computeTeamCounts() {
 
 function renderTeamSummary() {
   const host = document.getElementById("teamSummary");
-  if (!host) return; // not on this page
+  if (!host) return; // homepage only
 
   const counts = computeTeamCounts();
-  const MAX_PLAYERS = 24; // tweak this if you change field size
+  const MAX_PLAYERS = 24; // adjust as needed
   const remaining = Math.max(0, MAX_PLAYERS - counts.total);
   const pct = Math.max(0, Math.min(100, (counts.total / MAX_PLAYERS) * 100));
 
@@ -370,7 +376,7 @@ function onWheelScroll(){
 (function safeBootWheel(){
   const boot = () => {
     const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-    renderWheel(activeTeam);   // no-op on pages without the wheel
+    renderWheel(activeTeam);   // no-op on pages without wheel
     renderTeamSummary();       // no-op on pages without #teamSummary
   };
   if (document.readyState === "loading") {
@@ -379,7 +385,6 @@ function onWheelScroll(){
     boot();
   }
 })();
-
 
 // =======================
 // 6) SIGNUP FORM (nickname + team + optional photo; submit via fetch; NO REDIRECT)
@@ -394,7 +399,6 @@ function onWheelScroll(){
   const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
-  // If nickname/team fields are already in HTML, we won't inject duplicates.
   const makeRow = (labelEl, inputEl) => {
     const row = document.createElement("div");
     row.className = "form-row";
@@ -536,9 +540,10 @@ Notes: ${notes}`.trim());
         saveSignupPlayers(roster);
         upsertPlayerToMasterList(playerObj);
 
-        // If a wheel exists on this page, update it (safe no-op on homepage)
+        // If a wheel exists on this page, update it
         const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
         renderWheel(activeTeam);
+        renderTeamSummary();
 
         // Clear the form + reset team select placeholder
         signupForm.reset();
@@ -720,5 +725,3 @@ Notes: ${notes}`.trim());
   const snap = readSharedSnapshot();
   if (!snap) writeSharedSnapshot({ eventName: "Ozark Invitational" });
 })();
-
-</script>
