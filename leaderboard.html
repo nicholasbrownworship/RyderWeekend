@@ -39,6 +39,16 @@
     .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff}
     .card .body{padding:12px 14px}
 
+    .match-link{
+  text-decoration:none;
+  color:inherit;
+  display:block;
+}
+.match-link:hover .match-card{
+  transform:translateY(-1px);
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+}
+
     /* ===== Scoreboard header ===== */
     .totals{
       display:grid;grid-template-columns:1fr minmax(220px, 380px) 1fr;gap:14px;align-items:center
@@ -401,27 +411,114 @@
 
       // ---- Card rendering
       function cardForTeam(day, side, fmt, gIndex, snap){
-        const teamEvent = TEAM_FORMATS.has(fmt);
-        const dayLabel  = (day==='day1')?'Day 1':'Day 2';
-        const sideLabel = (side==='front')?'Front 9':'Back 9';
-        const groupNum  = gIndex+1;
-        const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
-        const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
-        const names = g.map(id=>byId.get(String(id)));
+  const teamEvent = TEAM_FORMATS.has(fmt);
+  const dayLabel  = (day==='day1')?'Day 1':'Day 2';
+  const sideLabel = (side==='front')?'Front 9':'Back 9';
+  const groupNum  = gIndex+1;
+  const g = snap.groups?.[day]?.[side]?.[gIndex] || [];
+  const byId = new Map((snap.players||[]).map(p=>[String(p.id), p]));
+  const names = g.map(id=>byId.get(String(id)));
 
-        const res = evaluateGroup(day, side, fmt, gIndex);
+  const res = evaluateGroup(day, side, fmt, gIndex);
 
-        const chipOz = `<span class="teamChip oz"><span class="dot oz"></span>Ozark</span>`;
-        const chipVa = `<span class="teamChip va"><span class="dot va"></span>Valley</span>`;
+  const chipOz = `<span class="teamChip oz"><span class="dot oz"></span>Ozark</span>`;
+  const chipVa = `<span class="teamChip va"><span class="dot va"></span>Valley</span>`;
 
-        const roundTag = `
-          <div class="roundTag">
-            <span class="tag">${dayLabel}</span>
-            <span class="tag">${sideLabel}</span>
-            <span class="tag fmt">${fmt}</span>
-            <span class="tag">Group ${groupNum}</span>
+  const roundTag = `
+    <div class="roundTag">
+      <span class="tag">${dayLabel}</span>
+      <span class="tag">${sideLabel}</span>
+      <span class="tag fmt">${fmt}</span>
+      <span class="tag">Group ${groupNum}</span>
+    </div>
+  `;
+
+  // 🔗 Link to the correct scorecard round
+  const linkHref = `scorecard.html?day=${encodeURIComponent(day)}&side=${encodeURIComponent(side)}&group=${groupNum}`;
+  const linkOpen = `<a class="match-link" href="${linkHref}" target="_blank" rel="noopener">`;
+  const linkClose = `</a>`;
+
+  if (teamEvent){
+    const ozNames = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ') || '—';
+    const vaNames = [names[2],names[3]].filter(Boolean).map(playerName).join(' & ') || '—';
+
+    const [winner, ozTot, vaTot] = res.results;
+
+    let cardClass = '';
+    let pillClass = 'scorePill partial';
+    let pillText  = 'Awaiting scores';
+    if (winner === 'ozark'){ cardClass='win-oz'; pillClass='scorePill win'; pillText=`${ozTot} – ${vaTot}`; }
+    else if (winner === 'valley'){ cardClass='win-va'; pillClass='scorePill win'; pillText=`${vaTot} – ${ozTot}`; }
+    else if (winner === 'tie'){ cardClass='tie'; pillClass='scorePill tie'; pillText=`${ozTot} – ${vaTot} (Tie)`; }
+    else if (Number.isFinite(ozTot) || Number.isFinite(vaTot)){
+      pillText=`${Number.isFinite(ozTot)?ozTot:'—'} – ${Number.isFinite(vaTot)?vaTot:'—'}`;
+    }
+
+    return `
+      ${linkOpen}
+        <div class="match-card ${cardClass}">
+          <div class="ribbon">${winner==='ozark'?'Ozark':winner==='valley'?'Valley':winner==='tie'?'Tie':''}</div>
+          <div class="mc-head">${roundTag}<span class="${pillClass}">${pillText}</span></div>
+          <div class="mc-body">
+            <div class="teams">
+              <div class="pair">
+                <div class="name">${ozNames}</div>
+                ${chipOz}
+              </div>
+              <div class="vs">VS</div>
+              <div class="pair" style="text-align:right; align-items:flex-end">
+                <div class="name">${vaNames}</div>
+                ${chipVa}
+              </div>
+            </div>
           </div>
-        `;
+        </div>
+      ${linkClose}
+    `;
+  } else {
+    const [r1, r2, m1, m2] = res.results;
+    const mkRow = (A,B,r,m) => {
+      const pill =
+        r==='ozark' ? `<span class="scorePill win">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'}</span>` :
+        r==='valley'? `<span class="scorePill win">${Number.isFinite(m?.b)?m.b:'—'} – ${Number.isFinite(m?.a)?m.a:'—'}</span>` :
+        r==='tie'   ? `<span class="scorePill tie">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'} (Tie)</span>` :
+                      `<span class="scorePill partial">${Number.isFinite(m?.a)?m.a:'—'} – ${Number.isFinite(m?.b)?m.b:'—'}</span>`;
+      return `
+        <div class="row">
+          <div class="pair">
+            <div class="name small">${playerName(A)||'—'}</div>
+            ${chipOz}
+          </div>
+          <div class="vs">${pill}</div>
+          <div class="pair" style="text-align:right; align-items:flex-end">
+            <div class="name small">${playerName(B)||'—'}</div>
+            ${chipVa}
+          </div>
+        </div>`;
+    };
+
+    let cls='';
+    if (res.pointsOz > res.pointsVa) cls='win-oz';
+    else if (res.pointsVa > res.pointsOz) cls='win-va';
+    else if (res.pointsOz === res.pointsVa && (r1||r2)) cls='tie';
+
+    return `
+      ${linkOpen}
+        <div class="match-card ${cls}">
+          <div class="ribbon">${cls==='win-oz'?'Ozark':cls==='win-va'?'Valley':cls==='tie'?'Tie':''}</div>
+          <div class="mc-head">${roundTag}<span class="tag">Singles</span></div>
+          <div class="mc-body">
+            <div class="singles">
+              ${mkRow(names[0], names[1], r1, m1)}
+              ${mkRow(names[2], names[3], r2, m2)}
+            </div>
+          </div>
+        </div>
+      ${linkClose}
+    `;
+  }
+}
+
 
         if (teamEvent){
           const ozNames = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ') || '—';
