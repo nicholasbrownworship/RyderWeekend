@@ -566,7 +566,7 @@
       ];
     }
 
-        /* ======= Avatar helpers (more forgiving) ======= */
+    /* ======= Avatar helpers (more forgiving, locked to images/players/) ======= */
     function slugify(first, last){
       const f = String(first||"").trim().toLowerCase()
         .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -575,40 +575,67 @@
       return [f,l].filter(Boolean).join("-");
     }
 
+    // Normalize any "photo" value:
+    // - Keep absolute URLs intact
+    // - Strip leading slashes
+    // - Strip any "images/players/" or "images/" prefixes
+    // - Normalize backslashes to "/"
     function normalizePhotoValue(v){
       if (!v) return "";
       let s = String(v).trim();
       if (!s) return "";
-      s = s.replace(/^\/+/, "");         // strip leading slash
-      s = s.replace(/\\/g, "/");         // windows -> forward slash
+
+      // Windows-style -> forward slashes
+      s = s.replace(/\\/g, "/");
+
+      // If it's an absolute URL, keep as-is
+      if (/^https?:\/\//i.test(s)) return s;
+
+      // Strip leading slashes
+      s = s.replace(/^\/+/, "");
+
+      // Strip repo-relative prefixes
+      s = s.replace(/^images\/players\//i, "").replace(/^images\//i, "");
+
       return s;
     }
 
+    // Build the actual URLs we will try when rendering avatars
     function buildCandidatePhotoURLs(p){
       const candidates = [];
 
-      // 1) Explicit photo / image fields first
-      const raw = normalizePhotoValue(
-        p.photo || p.Photo || p.photourl || p.PhotoURL || p.image || p.Image || ""
-      );
-      if (raw) {
-        if (/^https?:\/\//i.test(raw)) {
-          // Absolute URL
-          candidates.push(raw);
-        } else {
-          // Strip any existing "images/players/" prefix so we don't double it
-          const bare = raw.replace(/^images\/players\//i, "").replace(/^\/+/, "");
-          candidates.push(PHOTO_BASE.replace(/\/+$/,"") + "/" + bare);
-          // Also try exactly what was stored, just in case
-          candidates.push(raw);
-        }
+      const rawVal =
+        p.photo || p.Photo || p.photourl || p.PhotoURL || p.image || p.Image || "";
+
+      if (!rawVal) return candidates;
+
+      const normalized = normalizePhotoValue(rawVal);
+
+      // Absolute URL case (normalizePhotoValue leaves these untouched)
+      if (/^https?:\/\//i.test(normalized)) {
+        candidates.push(normalized);
+        return candidates;
       }
 
-      // 2) Slug-based guesses from first/last name
+      if (!normalized) return candidates;
+
+      const filename = normalized;
+
+      // 1) Canonical: images/players/<filename>
+      const base = PHOTO_BASE.replace(/\/+$/,"");
+      candidates.push(base + "/" + filename);
+
+      // 2) Fallback: images/<filename>
+      candidates.push("images/" + filename);
+
+      // 3) Fallback: bare filename next to HTML
+      candidates.push(filename);
+
+      // 4) Slug-based guesses from first/last name
       const slug = slugify(p.firstName, p.lastName);
       if (slug) {
         DEFAULT_EXT_ORDER.forEach(ext => {
-          candidates.push(`${PHOTO_BASE}${slug}.${ext}`);
+          candidates.push(`${base}/${slug}.${ext}`);
         });
       }
 
@@ -630,7 +657,7 @@
 
       const initials = ((p?.firstName?.[0]||"") + (p?.lastName?.[0]||"")).toUpperCase() || "??";
 
-      // If we have a cached decision for this player, respect it
+      // If we have a cached decision for this player, use it
       if (p?.id && AVATAR_CACHE.has(p.id)) {
         const url = AVATAR_CACHE.get(p.id);
         if (url) {
@@ -644,7 +671,7 @@
         return wrap;
       }
 
-      // Default: show initials while we try to load an image
+      // Default state: show initials while we try to load an image
       wrap.textContent = initials;
 
       const candidates = buildCandidatePhotoURLs(p || {});
@@ -678,7 +705,6 @@
 
       return wrap;
     }
-
 
     function normalizePlayer(p){
       const obj = {...p};
@@ -883,7 +909,7 @@
             return arr;
           });
 
-          if(!state.results) state.results = {day1:{front:[],back:[]}, day2:{front:[],back:[]}};
+          if(!state.results) state.results = {day1:{front:[],back:[]}, day2:{front:[],back:[]} };
           if(!Array.isArray(state.results[day][side])) state.results[day][side] = [];
           while(state.results[day][side].length < state.numGroups) state.results[day][side].push(null);
           state.results[day][side] = state.results[day][side].slice(0, state.numGroups);
