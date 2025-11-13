@@ -811,7 +811,89 @@ Notes: ${notes}`.trim());
 })();
 
 // =======================
-// 9) FEATURED PLAYERS (homepage random snapshot)
+// 9) HEADER TEAM SCORE WIDGET (uses shared snapshot)
+// =======================
+(function(){
+  // We reuse your shared snapshot bridge if present
+  const readShared =
+    (window.OZARK && window.OZARK.readSharedSnapshot) ||
+    function(){
+      try {
+        const raw = localStorage.getItem(SHARED_KEY || "ozarkShared_v1");
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    };
+
+  function getTeamScores(){
+    const snap = readShared() || {};
+    // Preferred: explicit teamScores written by scoreboard
+    if (snap.teamScores &&
+        typeof snap.teamScores.ozark === "number" &&
+        typeof snap.teamScores.valley === "number") {
+      return {
+        ozark: snap.teamScores.ozark,
+        valley: snap.teamScores.valley
+      };
+    }
+    // Fallback: no scores yet
+    return { ozark: 0, valley: 0 };
+  }
+
+  function renderTeamScoreWidget(){
+    const root = document.getElementById("teamScoreWidget");
+    if (!root) return; // header not loaded yet
+
+    const scores = getTeamScores();
+    const noScores = scores.ozark === 0 && scores.valley === 0;
+
+    root.innerHTML = `
+      <div class="team-score-pill">
+        <span class="score-team score-team-oz">Ozark</span>
+        <span class="score-num">${scores.ozark}</span>
+        <span class="score-divider">–</span>
+        <span class="score-num">${scores.valley}</span>
+        <span class="score-team score-team-va">Valley</span>
+      </div>
+      <div class="score-label">
+        ${noScores ? "No scores yet" : "Total team points"}
+      </div>
+    `;
+  }
+
+  // Exposed so header-loader (after fetch) can boot it
+  window.initTeamScoreWidget = function(){
+    renderTeamScoreWidget();
+
+    // Re-render when shared snapshot changes (e.g., scoreboard page updates totals)
+    window.addEventListener("storage", (e)=>{
+      if (!e.key) return;
+      if (e.key === (window.OZARK ? window.OZARK.SHARED_KEY : "ozarkShared_v1")) {
+        renderTeamScoreWidget();
+        const root = document.getElementById("teamScoreWidget");
+        if (root) {
+          root.classList.add("score-updated");
+          setTimeout(()=> root.classList.remove("score-updated"), 500);
+        }
+      }
+    });
+  };
+
+  // If header is already on the page (no fetch), attempt auto-boot
+  if (document.readyState !== "loading") {
+    if (document.getElementById("teamScoreWidget")) {
+      window.initTeamScoreWidget();
+    }
+  } else {
+    document.addEventListener("DOMContentLoaded", ()=>{
+      if (document.getElementById("teamScoreWidget")) {
+        window.initTeamScoreWidget();
+      }
+    });
+  }
+})();
+
+// =======================
+// 10) FEATURED PLAYERS (homepage random snapshot)
 // =======================
 (function () {
   const grid = document.getElementById("featuredGrid");
