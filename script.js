@@ -370,8 +370,8 @@ function onWheelScroll(){
 (function safeBootWheel(){
   const boot = () => {
     const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-    renderWheel(activeTeam);      // score/admin pages
-    renderTeamSummary();          // homepage (no-op elsewhere)
+    renderWheel(activeTeam);   // no-op on pages without the wheel
+    renderTeamSummary();       // no-op on pages without #teamSummary
   };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot, { once: true });
