@@ -566,39 +566,72 @@
       ];
     }
 
-    /* ======= Avatar helpers ======= */
+        /* ======= Avatar helpers (more forgiving) ======= */
     function slugify(first, last){
-      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      const f = String(first||"").trim().toLowerCase()
+        .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      const l = String(last ||"").trim().toLowerCase()
+        .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
       return [f,l].filter(Boolean).join("-");
     }
+
     function normalizePhotoValue(v){
       if (!v) return "";
       let s = String(v).trim();
       if (!s) return "";
-      s = s.replace(/^\/+/, "");
-      if (/^https?:\/\//i.test(s)) return s;
+      s = s.replace(/^\/+/, "");         // strip leading slash
+      s = s.replace(/\\/g, "/");         // windows -> forward slash
       return s;
     }
+
     function buildCandidatePhotoURLs(p){
-      const explicit = normalizePhotoValue(p.photo || p.photourl || p.image || "");
-      if (explicit) {
-        if (!/^https?:\/\//i.test(explicit) && !explicit.startsWith(PHOTO_BASE)) {
-          return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit.replace(/^\/+/,"")];
+      const candidates = [];
+
+      // 1) Explicit photo / image fields first
+      const raw = normalizePhotoValue(
+        p.photo || p.Photo || p.photourl || p.PhotoURL || p.image || p.Image || ""
+      );
+      if (raw) {
+        if (/^https?:\/\//i.test(raw)) {
+          // Absolute URL
+          candidates.push(raw);
+        } else {
+          // Strip any existing "images/players/" prefix so we don't double it
+          const bare = raw.replace(/^images\/players\//i, "").replace(/^\/+/, "");
+          candidates.push(PHOTO_BASE.replace(/\/+$/,"") + "/" + bare);
+          // Also try exactly what was stored, just in case
+          candidates.push(raw);
         }
-        return [explicit];
       }
+
+      // 2) Slug-based guesses from first/last name
       const slug = slugify(p.firstName, p.lastName);
-      if (!slug) return [];
-      return DEFAULT_EXT_ORDER.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
+      if (slug) {
+        DEFAULT_EXT_ORDER.forEach(ext => {
+          candidates.push(`${PHOTO_BASE}${slug}.${ext}`);
+        });
+      }
+
+      // Remove duplicates while preserving order
+      const seen = new Set();
+      return candidates.filter(url => {
+        if (!url || seen.has(url)) return false;
+        seen.add(url);
+        return true;
+      });
     }
-    const AVATAR_CACHE = new Map();
+
+    const AVATAR_CACHE = new Map(); // id -> url or ""
 
     function makeAvatarEl(p, size=28){
       const wrap = document.createElement('div');
       wrap.className = 'av';
       wrap.style.width = wrap.style.height = size + "px";
-      if (AVATAR_CACHE.has(p?.id)) {
+
+      const initials = ((p?.firstName?.[0]||"") + (p?.lastName?.[0]||"")).toUpperCase() || "??";
+
+      // If we have a cached decision for this player, respect it
+      if (p?.id && AVATAR_CACHE.has(p.id)) {
         const url = AVATAR_CACHE.get(p.id);
         if (url) {
           const img = document.createElement('img');
@@ -606,15 +639,15 @@
           img.src = url;
           wrap.appendChild(img);
         } else {
-          wrap.textContent = (p.firstName?.[0]||"").toUpperCase() + (p.lastName?.[0]||"").toUpperCase();
+          wrap.textContent = initials;
         }
         return wrap;
       }
 
-      const initials = ((p?.firstName?.[0]||"") + (p?.lastName?.[0]||"")).toUpperCase() || "??";
+      // Default: show initials while we try to load an image
       wrap.textContent = initials;
 
-      const candidates = p ? buildCandidatePhotoURLs(p) : [];
+      const candidates = buildCandidatePhotoURLs(p || {});
       if (!candidates.length) {
         if (p?.id) AVATAR_CACHE.set(p.id, "");
         return wrap;
@@ -645,6 +678,7 @@
 
       return wrap;
     }
+
 
     function normalizePlayer(p){
       const obj = {...p};
