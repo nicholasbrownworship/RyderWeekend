@@ -17,6 +17,11 @@
   <link rel="preload" as="image" href="images/logo.png" />
 
   <!-- App script -->
+  <script>
+  // Ensure the homepage has a players array so script.js doesn't crash
+  window.players = window.players || [];
+</script>
+
   <script src="script.js?v=2" defer></script>
 
   <!-- Page-scoped CSS (hero, gallery, featured players helpers) -->
