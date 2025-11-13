@@ -144,8 +144,89 @@ function playerInitials(p){
   return (f + l).toUpperCase();
 }
 
-// Circular avatar: image if it loads, otherwise initials.
-function renderAvatar(p, size=56){
+// =======================
+// SHARED PHOTO HELPERS (match players.html)
+// =======================
+const PHOTO_BASE = "images/players/";
+const PHOTO_EXTS = ["png", "jpg", "jpeg", "webp"];
+const AVATAR_CACHE = new Map(); // id -> url or ""
+
+// Normalizes various forms like "./x", "/x", "images/players/x.png", etc.
+function normalizePhotoValue(v) {
+  if (!v) return "";
+  return String(v)
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^\.\//, "");
+}
+
+// If you already have slugifyName(p) in script.js, you can reuse that.
+// Otherwise, you can drop this in:
+function slugify(first, last) {
+  const f = String(first || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const l = String(last || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return [f, l].filter(Boolean).join("-");
+}
+
+function candidatePhotoURLs(p) {
+  // Prefer explicit photo-ish fields
+  const explicit = normalizePhotoValue(
+    p.photo || p.photourl || p.image || ""
+  );
+  if (explicit) {
+    if (/^https?:\/\//i.test(explicit)) return [explicit];      // absolute URL
+    if (explicit.includes("/")) return [explicit];              // already a path
+    // bare filename -> make it under images/players
+    return [PHOTO_BASE.replace(/\/+$/, "") + "/" + explicit];
+  }
+
+  // Otherwise build from first/last name slug with multiple extensions
+  const slug =
+    typeof slugifyName === "function"
+      ? slugifyName(p)
+      : slugify(p.firstName, p.lastName);
+  if (!slug) return [];
+
+  return PHOTO_EXTS.map((ext) => `${PHOTO_BASE}${slug}.${ext}`);
+}
+
+function loadImage(url) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(url);
+    img.onerror = rej;
+    img.src = url;
+  });
+}
+
+async function resolvePhotoURL(p) {
+  if (!p || !p.id) return "";
+  if (AVATAR_CACHE.has(p.id)) return AVATAR_CACHE.get(p.id);
+
+  const candidates = candidatePhotoURLs(p);
+  for (const url of candidates) {
+    try {
+      await loadImage(url);
+      AVATAR_CACHE.set(p.id, url);
+      return url;
+    } catch {
+      // try next
+    }
+  }
+  AVATAR_CACHE.set(p.id, ""); // remember failure
+  return "";
+}
+
+function renderAvatar(p, size = 56) {
   const wrap = document.createElement("div");
   wrap.className = "avatar";
   wrap.style.width = wrap.style.height = size + "px";
@@ -160,28 +241,31 @@ function renderAvatar(p, size=56){
 
   const initials = document.createElement("span");
   initials.className = "avatar-initials";
-  initials.textContent = playerInitials(p);
+  initials.textContent = playerInitials(p); // you already have playerInitials(p)
   wrap.appendChild(initials);
 
-  const url = getPlayerPhotoURL(p);
-  if (url){
+  // Now resolve the actual photo using the same logic as players.html
+  resolvePhotoURL(p).then((url) => {
+    if (!url) return; // keep initials only
     const img = new Image();
     img.loading = "lazy";
     img.decoding = "async";
-    img.alt = `${p.firstName||""} ${p.lastName||""}`.trim();
+    img.alt = `${p.firstName || ""} ${p.lastName || ""}`.trim();
     img.src = url;
     img.style.width = "100%";
     img.style.height = "100%";
     img.style.objectFit = "cover";
-    img.addEventListener("error", ()=> {/* keep initials */});
-    img.addEventListener("load", ()=> {
+
+    img.addEventListener("error", () => {
+      // do nothing; keep initials
+    });
+
+    img.addEventListener("load", () => {
       wrap.innerHTML = "";
       wrap.appendChild(img);
     });
-  } else {
-    initials.style.fontSize = "clamp(12px, 40%, 16px)";
-    initials.style.letterSpacing = ".04em";
-  }
+  });
+
   return wrap;
 }
 
