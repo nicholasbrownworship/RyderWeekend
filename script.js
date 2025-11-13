@@ -190,6 +190,71 @@ function attachPhotoIfMissing(p){
 for (let i=0;i<players.length;i++){ players[i] = attachPhotoIfMissing(players[i]); }
 
 // =======================
+// 4b) TEAM COUNTS + FIELD SUMMARY (homepage widget)
+// =======================
+function computeTeamCounts() {
+  const counts = {
+    ozark: 0,
+    valley: 0,
+    other: 0,
+    total: 0,
+  };
+
+  players.forEach(p => {
+    const team = (p.team || "").toLowerCase();
+    if (team === "ozark") counts.ozark++;
+    else if (team === "valley") counts.valley++;
+    else counts.other++;
+    counts.total++;
+  });
+
+  return counts;
+}
+
+function renderTeamSummary() {
+  const host = document.getElementById("teamSummary");
+  if (!host) return; // not on this page
+
+  const counts = computeTeamCounts();
+  const MAX_PLAYERS = 24; // tweak this if you change field size
+  const remaining = Math.max(0, MAX_PLAYERS - counts.total);
+  const pct = Math.max(0, Math.min(100, (counts.total / MAX_PLAYERS) * 100));
+
+  const ozarkLabel = TEAM_LABELS?.ozark || "Team Ozark";
+  const valleyLabel = TEAM_LABELS?.valley || "Team Valley";
+
+  host.innerHTML = `
+    <div class="team-summary-card">
+      <h3>${ozarkLabel}</h3>
+      <div class="count">${counts.ozark}</div>
+      <div class="label">Players locked in</div>
+      <div class="meta">Includes seeded players &amp; online signups.</div>
+    </div>
+
+    <div class="team-summary-card">
+      <h3>${valleyLabel}</h3>
+      <div class="count">${counts.valley}</div>
+      <div class="label">Players locked in</div>
+      <div class="meta">Captains can shift players later if needed.</div>
+    </div>
+
+    <div class="team-summary-card">
+      <h3>Total Field</h3>
+      <div class="count">${counts.total}</div>
+      <div class="label">of ${MAX_PLAYERS} spots</div>
+      <div class="team-progress">
+        <div class="team-progress-inner" style="width:${pct}%;"></div>
+      </div>
+      <div class="meta">
+        ${remaining > 0
+          ? `${remaining} spots remaining.`
+          : `Field is full (or over target).`}
+      </div>
+    </div>
+  `;
+}
+
+// =======================
 // 5) PLAYERS WHEEL (safe no-op if homepage doesn't have it)
 // =======================
 function makeWheelTile(p){
@@ -305,7 +370,8 @@ function onWheelScroll(){
 (function safeBootWheel(){
   const boot = () => {
     const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
-    renderWheel(activeTeam);
+    renderWheel(activeTeam);      // score/admin pages
+    renderTeamSummary();          // homepage (no-op elsewhere)
   };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot, { once: true });
@@ -313,6 +379,7 @@ function onWheelScroll(){
     boot();
   }
 })();
+
 
 // =======================
 // 6) SIGNUP FORM (nickname + team + optional photo; submit via fetch; NO REDIRECT)
