@@ -247,7 +247,7 @@
       </div>
     </section>
 
-    <!-- FEATURED PLAYERS -->
+    <!-- FEATURED PLAYERS (cards + images are driven by script.js) -->
     <section id="featured" class="section section-tight">
       <div class="section-head center">
         <h2>Featured Players</h2>
@@ -612,7 +612,7 @@
     lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
     lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
 
-    // Wheel to zoom
+    // Wheel to zoom (Ctrl/Cmd not required)
     dlg.addEventListener("wheel", (e)=>{
       e.preventDefault();
       const delta = -Math.sign(e.deltaY);
@@ -671,135 +671,6 @@
         .catch(err => console.error("SW registration failed:", err));
     });
   }
-  </script>
-
-  <!-- FEATURED PLAYERS: fixed nickname logic -->
-  <script>
-  (function(){
-    const FEATURED_CONTAINER_ID = "featuredGrid";
-    const FEATURED_COUNT = 4;
-
-    const SHARED_KEY  = "ozarkShared_v1";
-    const STORAGE_KEY = "ozarkPairings_v3_twoDays";
-    const SIGNUPS_KEY = "ozarkSignups_v1";
-
-    const TEAM_LABELS = {
-      ozark: "Team Ozark",
-      valley: "Team Valley"
-    };
-
-    function displayName(p){
-      const nick = p.nickname && p.nickname.trim().length
-        ? ` "${p.nickname.trim()}"`
-        : "";
-      return `${p.firstName||""}${nick} ${p.lastName||""}`
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    function initials(p){
-      const a = (p.firstName||"")[0] || "";
-      const b = (p.lastName ||"")[0] || "";
-      return (a + b).toUpperCase() || "?";
-    }
-
-    function loadSnapshot(){
-      try {
-        const raw = localStorage.getItem(SHARED_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    }
-
-    function loadRoster(){
-      const snap = loadSnapshot();
-      if (snap && Array.isArray(snap.players)) {
-        return snap.players.slice();
-      }
-
-      try {
-        const st = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-        if (st && Array.isArray(st.players)) {
-          return st.players.slice();
-        }
-      } catch {}
-
-      try {
-        const su = JSON.parse(localStorage.getItem(SIGNUPS_KEY) || "null");
-        if (Array.isArray(su) && su.length) {
-          return su.map(p => ({
-            id:        p.id || (crypto.randomUUID?.() || Math.random().toString(36).slice(2)),
-            firstName: p.firstName || (p.name||"").split(" ")[0] || "",
-            lastName:  p.lastName  || (p.name||"").split(" ").slice(1).join(" "),
-            nickname:  p.nickname || "", // correct nickname source
-            team:      (p.team||"").toLowerCase().includes("val") ? "valley" : "ozark",
-            email:     p.email || "",
-            phone:     p.phone || "",
-            handicap:  Number.isFinite(+p.handicap) ? +p.handicap : null,
-          }));
-        }
-      } catch {}
-
-      return [];
-    }
-
-    function shufflePick(arr, count){
-      const a = arr.slice();
-      for (let i = a.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a.slice(0, count);
-    }
-
-    function renderFeatured(){
-      const box = document.getElementById(FEATURED_CONTAINER_ID);
-      if (!box) return;
-
-      const roster = loadRoster();
-      if (!roster.length){
-        box.innerHTML = `<p class="muted">No players yet.</p>`;
-        return;
-      }
-
-      const picks = shufflePick(roster, Math.min(FEATURED_COUNT, roster.length));
-
-      box.innerHTML = picks.map(p => {
-        const name = displayName(p);
-        const nick = p.nickname && p.nickname.trim().length
-          ? `“${p.nickname.trim()}”`
-          : "";
-        const team = TEAM_LABELS[p.team] || "";
-        const hcp  = Number.isFinite(p.handicap) ? `HCP ${p.handicap}` : "";
-
-        return `
-          <article class="fp-card">
-            <div class="fp-avatar">
-              <div class="fp-init">${initials(p)}</div>
-            </div>
-            <div class="fp-meta">
-              <div class="fp-name">${name}</div>
-              ${nick ? `<div class="fp-nick">${nick}</div>` : ""}
-              <div class="fp-chips">
-                ${team ? `<span class="fp-chip">${team}</span>` : ""}
-                ${hcp  ? `<span class="fp-chip">${hcp}</span>`  : ""}
-              </div>
-            </div>
-          </article>
-        `;
-      }).join("");
-    }
-
-    window.addEventListener("storage", (e)=>{
-      if ([SHARED_KEY, STORAGE_KEY, SIGNUPS_KEY].includes(e.key)){
-        renderFeatured();
-      }
-    });
-
-    document.addEventListener("DOMContentLoaded", renderFeatured);
-  })();
   </script>
 
 </body>
