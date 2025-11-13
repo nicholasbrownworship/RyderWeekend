@@ -725,3 +725,91 @@ Notes: ${notes}`.trim());
   const snap = readSharedSnapshot();
   if (!snap) writeSharedSnapshot({ eventName: "Ozark Invitational" });
 })();
+
+// =======================
+// 9) FEATURED PLAYERS (homepage random snapshot)
+// =======================
+(function () {
+  const grid = document.getElementById("featuredGrid");
+  if (!grid || !Array.isArray(window.players)) return; // only runs on homepage
+
+  const FEATURED_COUNT = 6; // how many players to show
+
+  function shuffleCopy(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function makeFeaturedCard(p) {
+    const card = document.createElement("article");
+    card.className = "player-card featured";
+
+    const header = document.createElement("div");
+    header.className = "pc-header";
+
+    const avatar = renderAvatar(p, 56);
+    avatar.classList.add("pc-avatar");
+
+    const meta = document.createElement("div");
+    meta.className = "pc-meta";
+
+    const nameEl = document.createElement("div");
+    nameEl.className = "pc-name";
+    nameEl.textContent = formatPlayerName(p);
+
+    const subEl = document.createElement("div");
+    subEl.className = "pc-sub";
+
+    const bits = [];
+    if (p.team) {
+      bits.push(
+        (p.team || "").toLowerCase() === "ozark" ? "Team Ozark" :
+        (p.team || "").toLowerCase() === "valley" ? "Team Valley" :
+        p.team
+      );
+    }
+    if (p.handicap !== undefined && p.handicap !== null && p.handicap !== "") {
+      bits.push(`Hcp ${p.handicap}`);
+    }
+    subEl.textContent = bits.join(" • ");
+
+    meta.appendChild(nameEl);
+    meta.appendChild(subEl);
+
+    header.appendChild(avatar);
+    header.appendChild(meta);
+    card.appendChild(header);
+
+    return card;
+  }
+
+  function renderFeatured() {
+    grid.innerHTML = ""; // clear "Loading..." text
+
+    // Only show players assigned to a team
+    const eligible = players.filter(p => (p.team || "").trim() !== "");
+    if (!eligible.length) {
+      grid.innerHTML = `<p class="muted">No players to show yet.</p>`;
+      return;
+    }
+
+    const shuffled = shuffleCopy(eligible);
+    const chosen = shuffled.slice(0, Math.min(FEATURED_COUNT, shuffled.length));
+
+    chosen.forEach(p => {
+      grid.appendChild(makeFeaturedCard(p));
+    });
+  }
+
+  // Run once when the DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderFeatured, { once: true });
+  } else {
+    renderFeatured();
+  }
+})();
+
