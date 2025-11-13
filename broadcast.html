@@ -66,6 +66,9 @@
       box-shadow: var(--shadow);
       border: 1px solid var(--line);
       padding: 1rem 1.1rem;
+      position: relative;
+      overflow: hidden; /* FIX: keep contents inside rounded card */
+      max-width: 100%;
     }
 
     .broadcast-card-header {
@@ -95,6 +98,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      flex-shrink: 0;
     }
 
     .broadcast-badge-live::before {
@@ -121,6 +125,7 @@
       background: #000;
       aspect-ratio: 16 / 9;
       margin-bottom: 0.75rem;
+      max-width: 100%;
     }
 
     .broadcast-video-wrap video {
@@ -156,6 +161,7 @@
       letter-spacing: 0.08em;
       color: var(--muted);
       background: rgba(0,0,0,0.015);
+      white-space: nowrap;
     }
 
     .btn-ghost {
@@ -168,6 +174,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      white-space: nowrap;
     }
 
     .btn-ghost:hover {
@@ -192,6 +199,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 0.6rem;
+      max-width: 100%;
     }
 
     .broadcast-featured-card {
@@ -203,6 +211,7 @@
       align-items: center;
       gap: 0.5rem;
       font-size: 0.8rem;
+      min-width: 0; /* FIX: allow content to shrink within card */
     }
 
     .broadcast-featured-card img {
@@ -229,6 +238,8 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
+      table-layout: fixed;       /* FIX: table can't grow past card width */
+      max-width: 100%;
     }
 
     .broadcast-leaderboard thead {
@@ -243,7 +254,10 @@
       padding: 0.35rem 0.25rem;
       border-bottom: 1px solid var(--line);
       text-align: left;
-      white-space: nowrap;
+      /* FIX: allow wrapping so we don't blow out the card width */
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
     }
 
     .broadcast-leaderboard tbody tr:nth-child(odd) {
@@ -265,6 +279,7 @@
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.09em;
+      display: inline-block;
     }
 
     .badge-ozark {
@@ -295,6 +310,7 @@
       border: 1px solid var(--line);
       background: var(--green-dark);
       color: #fefcf7;
+      max-width: 100%;
     }
 
     .broadcast-ticker-label {
@@ -334,7 +350,7 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- Topbar – adjust links to match your actual site if needed -->
+  <!-- Topbar – shared header -->
   <header class="topbar">
     <div class="topbar-inner">
       <a href="index.html" class="brand">
