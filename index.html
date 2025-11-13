@@ -28,96 +28,34 @@
       overflow: clip;
       background: radial-gradient(1200px 600px at 10% -10%, #132022 0%, #0b0f0d 45%, #0b0f0d 100%);
     }
-    .hero.video .hero-video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: .9;
-    }
+    .hero.video .hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
     .hero.video .hero-overlay {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      place-items: start;
-      gap: .7rem;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14vh 16px 12vh;
-      color: #f5f0e6;
-      text-shadow: 0 10px 30px rgba(0,0,0,.55);
+      position: relative; z-index: 1; display: grid; place-items: start; gap: .7rem;
+      max-width: 1100px; margin: 0 auto; padding: 14vh 16px 12vh; color: #f5f0e6; text-shadow: 0 10px 30px rgba(0,0,0,.55);
     }
-    .hero.video h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 900;
-      letter-spacing: .02em;
-    }
-    .hero.video .lead {
-      margin: 0;
-      opacity: .95;
-      max-width: 60ch;
-    }
-    .hero.video .hero-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
+    .hero.video h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; letter-spacing: .02em; }
+    .hero.video .lead { margin: 0; opacity: .95; max-width: 60ch; }
+    .hero.video .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .hero.video .pill {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: .4rem .6rem;
-      border-radius: 999px;
-      background: rgba(0,0,0,.35);
-      color: #eaf6f0;
-      border: 1px solid rgba(255,255,255,.2);
+      display: inline-flex; gap: 8px; align-items: center; padding: .4rem .6rem; border-radius: 999px;
+      background: rgba(0,0,0,.35); color: #eaf6f0; border: 1px solid rgba(255,255,255,.2);
     }
-    .hero.video .pill-label {
-      opacity: .8;
-      font-weight: 600;
-    }
-    .hero.video .pill-value {
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
-    .hero.video .hero-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .hero.video .btn.primary {
-      background: #d1a14b;
-      color: #1a1407;
-      border: 1px solid #8f6a29;
-    }
-    .hero.video .btn.ghost {
-      background: rgba(0,0,0,.4);
-      color: #f5f0e6;
-      border: 1px solid rgba(255,255,255,.25);
-    }
-    .hero.video .hero-footnote {
-      margin-top: 6px;
-      opacity: .85;
-    }
+    .hero.video .pill-label { opacity: .8; font-weight: 600; }
+    .hero.video .pill-value { font-weight: 800; letter-spacing: .02em; }
+    .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .hero.video .btn.primary { background: #d1a14b; color: #1a1407; border: 1px solid #8f6a29; }
+    .hero.video .btn.ghost { background: rgba(0,0,0,.4); color: #f5f0e6; border: 1px solid rgba(255,255,255,.25); }
+    .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
 
     /* Gallery grid */
     .section .gallery {
-      display: grid;
-      gap: 12px;
+      display: grid; gap: 12px;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      max-width: 1100px;
-      margin: 0 auto;
+      max-width: 1100px; margin: 0 auto;
     }
     .gallery img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #e7e0d1;
-      background: #fff;
+      width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+      border-radius: 12px; border: 1px solid #e7e0d1; background: #fff;
       box-shadow: 0 14px 38px rgba(0,0,0,0.06);
     }
 
@@ -129,11 +67,8 @@
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat center/contain,
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat left/contain,
         url('images/placeholders/ph-sponsor-3x1.svg') no-repeat right/contain;
-      height: 90px;
-      opacity: .65;
-      filter: saturate(.7);
-      border: 1px dashed #e7e0d1;
-      border-radius: 12px;
+      height: 90px; opacity: .65; filter: saturate(.7);
+      border: 1px dashed #e7e0d1; border-radius: 12px;
     }
   </style>
 </head>
@@ -152,7 +87,7 @@
           if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
         });
 
-        // Boot the header score widget if available
+        // header score widget
         if (window.initTeamScoreWidget) {
           window.initTeamScoreWidget();
         }
@@ -162,11 +97,8 @@
   <!-- HERO (video background enabled) -->
   <section class="hero video" id="top-hero">
     <video class="hero-video" autoplay muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
-      <!-- Primary video file -->
       <source src="media/placeholder-vid.mp4" type="video/mp4">
-      <!-- Optional WebM (future-proof; ignored if missing) -->
       <source src="media/placeholder-vid.webm" type="video/webm">
-      <!-- Fallback message -->
       Your browser does not support the video tag.
     </video>
 
@@ -179,18 +111,9 @@
       </p>
 
       <div class="hero-pills">
-        <div class="pill">
-          <span class="pill-label">Dates</span>
-          <span class="pill-value">May 23–24, 2026</span>
-        </div>
-        <div class="pill">
-          <span class="pill-label">Venue</span>
-          <span class="pill-value">DHCC – Diamond City, AR</span>
-        </div>
-        <div class="pill">
-          <span class="pill-label">Entry</span>
-          <span class="pill-value">$150 (lunch incl.)</span>
-        </div>
+        <div class="pill"><span class="pill-label">Dates</span><span class="pill-value">May 23–24, 2026</span></div>
+        <div class="pill"><span class="pill-label">Venue</span><span class="pill-value">DHCC – Diamond City, AR</span></div>
+        <div class="pill"><span class="pill-label">Entry</span><span class="pill-value">$150 (lunch incl.)</span></div>
       </div>
 
       <div class="hero-actions">
@@ -199,7 +122,7 @@
       </div>
 
       <p class="hero-footnote">
-        Spots limited to family &amp; invited guests • Captains announced closer to event.
+        Spots limited to family & invited guests • Captains announced closer to event.
       </p>
     </div>
   </section>
@@ -214,7 +137,7 @@
 
       <div class="info-row">
         <article class="info-card">
-          <h3>Date &amp; Location</h3>
+          <h3>Date & Location</h3>
           <p class="muted">Locked, not tentative.</p>
           <ul>
             <li><strong>Saturday, May 23, 2026</strong> – Rounds 1–2</li>
@@ -235,19 +158,19 @@
         </article>
 
         <article class="info-card">
-          <h3>Cost &amp; Inclusions</h3>
+          <h3>Cost & Inclusions</h3>
           <p class="muted">Straightforward pricing.</p>
           <ul>
             <li><strong>$150 per player</strong></li>
             <li>Greens fees + cart both days</li>
             <li>Lunch (Day 1)</li>
-            <li>Prizes &amp; traveling trophy</li>
+            <li>Prizes & traveling trophy</li>
           </ul>
         </article>
       </div>
     </section>
 
-    <!-- FEATURED PLAYERS (cards + images are driven by script.js) -->
+    <!-- FEATURED PLAYERS -->
     <section id="featured" class="section section-tight">
       <div class="section-head center">
         <h2>Featured Players</h2>
@@ -275,7 +198,7 @@
         <div class="schedule-day active" id="day1">
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
-            <h3>Check-in &amp; Range</h3>
+            <h3>Check-in & Range</h3>
             <p>Grab carts, hit balls, team photos.</p>
           </div>
           <div class="sched-card">
@@ -290,7 +213,7 @@
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">12:30 PM</span>
-            <h3>Lunch &amp; Day 1 Scoring</h3>
+            <h3>Lunch & Day 1 Scoring</h3>
             <p>Included. Scores posted to main board.</p>
           </div>
         </div>
@@ -298,7 +221,7 @@
         <div class="schedule-day" id="day2" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
-            <h3>Warm-up &amp; Singles Pairings</h3>
+            <h3>Warm-up & Singles Pairings</h3>
             <p>Captains finalize Day 2 rotation.</p>
           </div>
           <div class="sched-card">
@@ -313,7 +236,7 @@
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">1:00 PM</span>
-            <h3>Trophy &amp; Photos</h3>
+            <h3>Trophy & Photos</h3>
             <p>Winning team name engraved, family photo, wrap-up.</p>
           </div>
         </div>
@@ -381,7 +304,6 @@
             <span class="muted">Join the Ozark Invitational</span>
           </div>
 
-          <!-- No action/method; handled by script.js -->
           <form id="signupForm" novalidate>
             <div style="position: absolute; left: -5000px;" aria-hidden="true">
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
@@ -455,7 +377,7 @@
     <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
   </footer>
 
-  <!-- Tabs helper (safe if script.js also handles tabs) -->
+  <!-- Tabs helper (schedule) -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -495,7 +417,91 @@
     })();
   </script>
 
-  <!-- Gallery + carousel + lightbox -->
+  <!-- FEATURED PLAYERS FIX -->
+  <script>
+    window.addEventListener('load', function () {
+      const grid = document.getElementById('featuredGrid');
+      if (!grid) return;
+
+      // Pull from shared state if present
+      let players = [];
+      if (window.state && Array.isArray(window.state.players)) {
+        players = window.state.players.slice();
+      } else if (Array.isArray(window.seededPlayers)) {
+        players = window.seededPlayers.slice();
+      }
+
+      if (!players.length) {
+        grid.innerHTML = '<p class="muted">Players will appear here once the field is loaded.</p>';
+        return;
+      }
+
+      // Shuffle
+      for (let i = players.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [players[i], players[j]] = [players[j], players[i]];
+      }
+
+      const COUNT = Math.min(6, players.length);
+      const picks = players.slice(0, COUNT);
+
+      function teamLabel(team) {
+        if (team === 'ozark') return 'Team Ozark';
+        if (team === 'valley') return 'Team Valley';
+        return 'Unassigned';
+      }
+      function teamClass(team) {
+        if (team === 'ozark') return 'pill team-ozark';
+        if (team === 'valley') return 'pill team-valley';
+        return 'pill';
+      }
+
+      function photoFor(p) {
+        if (p.photoUrl) return p.photoUrl;
+        if (typeof p.photo === 'string' && p.photo.trim()) return p.photo;
+        if (p.id) return `images/players/${p.id}.jpg`;
+        const slug = (`${p.firstName || ''}-${p.lastName || ''}`.trim() || 'placeholder')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-');
+        return `images/players/${slug}.jpg`;
+      }
+
+      const html = picks.map(p => {
+        const name = (`${p.firstName || ''} ${p.lastName || ''}`).trim() || 'TBD Player';
+        const nickname = p.nickname && p.nickname.trim().length
+          ? ` “${p.nickname.trim()}”`
+          : '';
+        const handicap = (p.handicap ?? p.hcap ?? '').toString();
+        const hcapLabel = handicap ? `HCP ${handicap}` : '';
+        const tLabel = teamLabel(p.team);
+        const tClass = teamClass(p.team);
+        const src = photoFor(p);
+
+        return `
+          <article class="player-card">
+            <div class="player-photo">
+              <img src="${src}"
+                   alt="${name}${nickname}"
+                   loading="lazy"
+                   decoding="async"
+                   onerror="this.src='images/placeholders/ph-player-4x5.svg'">
+            </div>
+            <div class="player-meta">
+              <h3 class="player-name">${name}${nickname}</h3>
+              <div class="player-tags">
+                <span class="${tClass}">${tLabel}</span>
+                ${hcapLabel ? `<span class="pill pill-soft">${hcapLabel}</span>` : ''}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      grid.innerHTML = html;
+    });
+  </script>
+
+  <!-- Gallery + lightbox -->
   <script>
   (function(){
     /* ---------- Config ---------- */
@@ -512,7 +518,6 @@
     const rail = document.getElementById("galleryRail");
     if (!rail) return;
 
-    /* ---------- Build candidate URLs ---------- */
     function candidatesForIndex(i){
       if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
         return [window.__GALLERY_FILES__[i-1]];
@@ -538,7 +543,6 @@
       img.src = url;
     }
 
-    /* ---------- Render carousel items ---------- */
     const items = [];
     for (let i = 1; i <= COUNT; i++){
       const wrap = document.createElement("button");
@@ -547,8 +551,7 @@
       wrap.setAttribute("aria-label", `Open image ${i} larger`);
       const img = document.createElement("img");
       img.alt = `gallery image ${i}`;
-      img.loading = "lazy";
-      img.decoding = "async";
+      img.loading = "lazy"; img.decoding = "async";
 
       const tries = candidatesForIndex(i);
       let k = 0;
@@ -560,7 +563,6 @@
       items.push({wrap, img});
     }
 
-    /* ---------- Carousel nav ---------- */
     const prev = document.getElementById("galPrev");
     const next = document.getElementById("galNext");
 
@@ -571,13 +573,11 @@
     prev.addEventListener("click", ()=> scrollByAmount(-1));
     next.addEventListener("click", ()=> scrollByAmount( 1));
 
-    // Keyboard support when the rail is focused
     rail.addEventListener("keydown", (e)=>{
       if (e.key === "ArrowLeft") { e.preventDefault(); scrollByAmount(-1); }
       if (e.key === "ArrowRight"){ e.preventDefault(); scrollByAmount( 1); }
     });
 
-    /* ---------- Lightbox (zoom & pan) ---------- */
     const dlg = document.getElementById("lightbox");
     const lbImg = document.getElementById("lbImg");
     const lbClose = document.getElementById("lbClose");
@@ -586,7 +586,7 @@
     const lbReset = document.getElementById("lbReset");
 
     let currentIndex = 0;
-    let scale = 1, tx = 0, ty = 0; // transform
+    let scale = 1, tx = 0, ty = 0;
 
     function applyTransform(){
       lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
@@ -595,24 +595,21 @@
 
     function openLightbox(idx){
       currentIndex = idx;
-      lbImg.src = items[idx].img.src; // use the resolved src
+      lbImg.src = items[idx].img.src;
       resetTransform();
       dlg.showModal();
     }
     function closeLightbox(){ dlg.close(); }
 
-    // Click any tile to open
     items.forEach((it, idx)=>{
       it.wrap.addEventListener("click", ()=> openLightbox(idx));
     });
 
-    // Controls
     lbClose.addEventListener("click", closeLightbox);
     lbReset.addEventListener("click", resetTransform);
     lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
     lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
 
-    // Wheel to zoom (Ctrl/Cmd not required)
     dlg.addEventListener("wheel", (e)=>{
       e.preventDefault();
       const delta = -Math.sign(e.deltaY);
@@ -626,7 +623,6 @@
       applyTransform();
     }, {passive:false});
 
-    // Drag to pan
     let dragging = false, sx=0, sy=0, stx=0, sty=0;
     lbImg.addEventListener("mousedown", (e)=>{
       dragging = true; sx = e.clientX; sy = e.clientY; stx = tx; sty = ty; e.preventDefault();
@@ -639,22 +635,12 @@
     });
     window.addEventListener("mouseup", ()=> dragging = false);
 
-    // Swap images with arrow keys in lightbox
     dlg.addEventListener("keydown", (e)=>{
       if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight") {
-        currentIndex = (currentIndex+1) % items.length;
-        lbImg.src = items[currentIndex].img.src;
-        resetTransform();
-      }
-      if (e.key === "ArrowLeft")  {
-        currentIndex = (currentIndex-1+items.length) % items.length;
-        lbImg.src = items[currentIndex].img.src;
-        resetTransform();
-      }
+      if (e.key === "ArrowRight") { currentIndex = (currentIndex+1) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
+      if (e.key === "ArrowLeft")  { currentIndex = (currentIndex-1+items.length) % items.length; lbImg.src = items[currentIndex].img.src; resetTransform(); }
     });
 
-    // Click backdrop to close
     dlg.addEventListener("click", (e)=>{
       const r = dlg.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeLightbox();
@@ -664,13 +650,13 @@
 
   <!-- Service worker -->
   <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./sw.js")
-        .catch(err => console.error("SW registration failed:", err));
-    });
-  }
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .catch(err => console.error("SW registration failed:", err));
+      });
+    }
   </script>
 
 </body>
