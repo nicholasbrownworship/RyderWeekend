@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Big Board – Ozark Invitational</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Big-screen team scoreboard view for the Ozark Invitational." />
+
+  <!-- Shared site styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root {
+      /* fallback if not already defined */
+      --tv-bg: #0f1814;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(1100px 600px at 15% -10%, #244f3c 0%, #0a1210 55%, #050706 100%);
+      color: #fdf9f0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      padding-top: 70px; /* keep content below sticky header */
+    }
+
+    main.tv-shell {
+      min-height: calc(100vh - 70px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem 2rem;
+    }
+
+    .tv-board {
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 24px;
+      border: 1px solid rgba(209,161,75,0.3);
+      background: linear-gradient(135deg, rgba(15,24,20,0.96), rgba(12,16,14,0.98));
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      padding: 1.5rem 1.75rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .tv-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .tv-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.75rem;
+      color: rgba(250,248,240,0.75);
+      font-weight: 600;
+    }
+
+    .tv-session {
+      font-size: 0.85rem;
+      color: rgba(250,248,240,0.7);
+      text-align: right;
+    }
+
+    .tv-session span {
+      opacity: 0.8;
+    }
+
+    .tv-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 1.75rem;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .tv-board {
+        padding: 1.2rem 1.1rem 1.5rem;
+      }
+      .tv-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+      }
+    }
+
+    .tv-team {
+      padding: 0.75rem 0.9rem;
+      border-radius: 18px;
+      background: radial-gradient(circle at top left, rgba(209,161,75,0.18), transparent 60%);
+      border: 1px solid rgba(248,244,230,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .tv-team.valley {
+      background: radial-gradient(circle at top right, rgba(52,152,219,0.22), transparent 60%);
+    }
+
+    .tv-team-name {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.85rem;
+      font-weight: 700;
+      opacity: 0.85;
+    }
+
+    .tv-team-name.ozark {
+      color: #e9f8ef;
+    }
+
+    .tv-team-name.valley {
+      color: #dbeeff;
+    }
+
+    .tv-team-points {
+      font-size: clamp(3rem, 8vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .tv-team-meta {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .tv-vs {
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.75rem;
+      opacity: 0.75;
+    }
+
+    .tv-vs-main {
+      font-size: 0.9rem;
+      margin-top: 0.15rem;
+    }
+
+    .tv-footer-note {
+      font-size: 0.75rem;
+      opacity: 0.75;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <!-- Shared JS (state, etc.) -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Shared header include -->
+  <div id="siteHeader"></div>
+  <script>
+    fetch("header.html")
+      .then(res => res.text())
+      .then(html => {
+        const host = document.getElementById("siteHeader");
+        host.innerHTML = html;
+
+        // highlight nav link
+        const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        host.querySelectorAll('.nav a').forEach(a => {
+          const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+          if (target.toLowerCase() === here) {
+            a.setAttribute('aria-current','page');
+          }
+        });
+
+        // mobile menu toggle
+        const btn = host.querySelector('#navToggle');
+        const nav = host.querySelector('.nav');
+        if (btn && nav) {
+          btn.addEventListener('click', () => {
+            const open = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', String(!open));
+            nav.classList.toggle('open', !open);
+          });
+        }
+
+        if (window.initTeamScoreWidget) {
+          window.initTeamScoreWidget();
+        }
+      })
+      .catch(err => console.error("Failed to load header:", err));
+  </script>
+
+  <main class="tv-shell">
+    <section class="tv-board">
+      <div class="tv-header-row">
+        <div>
+          <div class="tv-eyebrow">Big Board</div>
+          <h1 style="margin:0.1rem 0 0; font-size:1rem; font-weight:600; opacity:0.9;">
+            Ozark vs Valley – Team Points
+          </h1>
+        </div>
+        <div class="tv-session">
+          <div id="tvSessionLabel"><span>Session:</span> TBD</div>
+          <div id="tvRoundLabel" style="font-size:0.8rem; opacity:0.8;">Round: TBD</div>
+        </div>
+      </div>
+
+      <div class="tv-grid">
+        <article class="tv-team ozark">
+          <div class="tv-team-name ozark">Team Ozark</div>
+          <div class="tv-team-points" id="tvOzPoints">0</div>
+          <div class="tv-team-meta" id="tvOzMeta">Matches scored: —</div>
+        </article>
+
+        <div class="tv-vs">
+          <div>Vs</div>
+          <div class="tv-vs-main" id="tvStatus">Ryder Cup style match play</div>
+        </div>
+
+        <article class="tv-team valley">
+          <div class="tv-team-name valley">Team Valley</div>
+          <div class="tv-team-points" id="tvValPoints">0</div>
+          <div class="tv-team-meta" id="tvValMeta">Matches scored: —</div>
+        </article>
+      </div>
+
+      <div class="tv-footer-note">
+        <span>Wins / halves converted to team points as matches finish.</span>
+        <span id="tvFooterExtra">Scores unofficial until verified.</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ozEl   = document.getElementById('tvOzPoints');
+      const valEl  = document.getElementById('tvValPoints');
+      const ozMeta = document.getElementById('tvOzMeta');
+      const valMeta= document.getElementById('tvValMeta');
+      const statusEl = document.getElementById('tvStatus');
+      const sessionEl = document.getElementById('tvSessionLabel');
+      const roundEl   = document.getElementById('tvRoundLabel');
+      const footerExtraEl = document.getElementById('tvFooterExtra');
+
+      const SHARED_KEY = "ozarkShared_v1";
+
+      function readShared() {
+        try {
+          const raw = localStorage.getItem(SHARED_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      function deriveFromPlayers(players) {
+        let ozark = 0, valley = 0, ozMatches = 0, valMatches = 0;
+        players.forEach(p => {
+          const t = (p.team || p.Team || "").toString().toLowerCase();
+          const rawPts = p.points ?? p.Points ?? p.matchPoints ?? p.pts;
+          const pts = Number(rawPts);
+          const valid = Number.isNaN(pts) ? 0 : pts;
+          if (t === 'ozark') {
+            ozark += valid;
+            if (!Number.isNaN(pts)) ozMatches++;
+          } else if (t === 'valley') {
+            valley += valid;
+            if (!Number.isNaN(pts)) valMatches++;
+          }
+        });
+        return { ozark, valley, ozMatches, valMatches };
+      }
+
+      function getPlayersFromShared(shared) {
+        if (!shared) return [];
+        if (Array.isArray(shared.players)) return shared.players;
+        if (Array.isArray(shared)) return shared;
+        return [];
+      }
+
+      function getPoints() {
+        // 1) Prefer live JS state.teamPoints if present
+        if (window.state && window.state.teamPoints) {
+          const tp = window.state.teamPoints;
+          return {
+            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
+            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
+            ozMatches: tp.ozMatches ?? undefined,
+            valMatches: tp.valMatches ?? undefined
+          };
+        }
+
+        // 2) Check shared snapshot
+        const shared = readShared();
+        if (shared && shared.teamPoints) {
+          const tp = shared.teamPoints;
+          return {
+            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
+            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
+            ozMatches: tp.ozMatches ?? undefined,
+            valMatches: tp.valMatches ?? undefined
+          };
+        }
+
+        // 3) Derive from players
+        const players = getPlayersFromShared(shared);
+        if (players.length) {
+          return deriveFromPlayers(players);
+        }
+
+        return { ozark: 0, valley: 0, ozMatches: undefined, valMatches: undefined };
+      }
+
+      function getLabels() {
+        let session = "TBD";
+        let round = "TBD";
+        let status = "Ryder Cup style match play";
+
+        if (window.state) {
+          if (window.state.sessionLabel) session = window.state.sessionLabel;
+          if (window.state.roundLabel) round = window.state.roundLabel;
+          if (window.state.tvStatus) status = window.state.tvStatus;
+        }
+
+        const shared = readShared();
+        if (shared) {
+          if (shared.sessionLabel) session = shared.sessionLabel;
+          if (shared.roundLabel) round = shared.roundLabel;
+          if (shared.tvStatus) status = shared.tvStatus;
+        }
+
+        return { session, round, status };
+      }
+
+      function render() {
+        const tp = getPoints();
+        const labels = getLabels();
+
+        ozEl.textContent = tp.ozark;
+        valEl.textContent = tp.valley;
+
+        ozMeta.textContent =
+          "Matches scored: " + (tp.ozMatches === undefined ? "—" : tp.ozMatches);
+        valMeta.textContent =
+          "Matches scored: " + (tp.valMatches === undefined ? "—" : tp.valMatches);
+
+        sessionEl.innerHTML = `<span>Session:</span> ${labels.session}`;
+        roundEl.textContent = `Round: ${labels.round}`;
+        statusEl.textContent = labels.status;
+
+        footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
+      }
+
+      render();
+
+      // if you broadcast updates via localStorage, this will pick them up
+      window.addEventListener('storage', (e) => {
+        if (e.key === SHARED_KEY && e.newValue) {
+          render();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
