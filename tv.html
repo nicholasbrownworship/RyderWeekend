@@ -43,7 +43,7 @@
       flex-direction: column;
       gap: 1.1rem;
 
-      /* 🔍 Zoom the whole board and nudge it up */
+      /* 🔍 Zoom the whole board and nudge it up a bit */
       transform: scale(2);
       transform-origin: center center;
       margin-top: -6vh;
@@ -190,7 +190,7 @@
 
     .tv-ticker-inner {
       display: inline-block;
-      padding-left: 100%;          /* start off-screen to the right */
+      /* simple, reliable scroll: start fully off-screen to the right, end fully off-screen to the left */
       animation: tv-ticker-scroll 28s linear infinite;
       font-size: 0.78rem;
       color: rgba(249,246,236,0.9);
@@ -202,7 +202,7 @@
     }
 
     @keyframes tv-ticker-scroll {
-      0%   { transform: translateX(0); }
+      0%   { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
   </style>
@@ -394,45 +394,27 @@
         return { session, round, status };
       }
 
-      // Build ticker messages WITHOUT ever summarizing numeric scores
-      function buildTickerMessages(labels, shared) {
-        const msgs = [];
+      // Build ticker messages WITHOUT ever summarizing numeric scores,
+      // and ALWAYS include a full base set so it's never "just one".
+      function buildTickerMessages(shared) {
+        const msgs = [
+          "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
+          "Reminder: hydrate, have fun, and keep pace with the group ahead.",
+          "Ryder Cup format: wins and halves earn team points as matches finish.",
+          "Special thanks to family and friends for supporting this weekend.",
+          "Scores are unofficial until verified by the committee."
+        ];
 
-        // Context: event & round/session, but no numbers
+        // Optional extra: event name up front
         if (shared && shared.eventName) {
-          msgs.push(shared.eventName + " at Diamond Hills Country Club.");
+          msgs.unshift(shared.eventName + " at Diamond Hills Country Club.");
         }
 
-        if (labels.session && labels.session !== "TBD") {
-          msgs.push("Current session: " + labels.session + ".");
-        }
-
-        if (labels.round && labels.round !== "TBD") {
-          msgs.push("Current round in play: " + labels.round + ".");
-        }
-
-        if (labels.status && labels.status !== "Ryder Cup style match play") {
-          msgs.push(labels.status);
-        }
-
-        // Optional: custom ticker messages stored in shared
+        // Optional custom tickerMessages from shared snapshot
         if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
           shared.tickerMessages.forEach(m => {
-            if (m && typeof m === "string") {
-              msgs.push(m);
-            }
+            if (m && typeof m === "string") msgs.push(m);
           });
-        }
-
-        // Defaults if nothing else
-        if (!msgs.length) {
-          msgs.push(
-            "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
-            "Reminder: hydrate, have fun, and keep pace with the group ahead.",
-            "Ryder Cup format: wins and halves earn team points as matches finish.",
-            "Special thanks to family and friends for supporting this weekend.",
-            "Scores are unofficial until verified by the committee."
-          );
         }
 
         return msgs;
@@ -458,9 +440,9 @@
 
         footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
 
-        // Ticker content (no number-based summaries)
+        // Ticker content (multi-message line)
         if (tickerInner) {
-          const msgs = buildTickerMessages(labels, shared);
+          const msgs = buildTickerMessages(shared);
           tickerInner.innerHTML = msgs.map(msg => `<span>${msg}</span>`).join("");
         }
       }
