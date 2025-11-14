@@ -280,7 +280,20 @@
       }
 
       function getPoints() {
-        // 1) Prefer live JS state.teamPoints if present
+        const shared = readShared();
+
+        // 0) Prefer leaderboard-computed teamScores from shared snapshot
+        if (shared && shared.teamScores) {
+          const ts = shared.teamScores;
+          return {
+            ozark: Number(ts.ozark ?? ts.Ozark ?? 0) || 0,
+            valley: Number(ts.valley ?? ts.Valley ?? 0) || 0,
+            ozMatches: shared.ozMatches ?? undefined,
+            valMatches: shared.valMatches ?? undefined
+          };
+        }
+
+        // 1) If you manually set window.state.teamPoints, respect that
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
           return {
@@ -291,19 +304,7 @@
           };
         }
 
-        // 2) Check shared snapshot
-        const shared = readShared();
-        if (shared && shared.teamPoints) {
-          const tp = shared.teamPoints;
-          return {
-            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
-            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
-            ozMatches: tp.ozMatches ?? undefined,
-            valMatches: tp.valMatches ?? undefined
-          };
-        }
-
-        // 3) Derive from players
+        // 2) Otherwise, derive from players in shared snapshot
         const players = getPlayersFromShared(shared);
         if (players.length) {
           return deriveFromPlayers(players);
@@ -317,17 +318,17 @@
         let round = "TBD";
         let status = "Ryder Cup style match play";
 
-        if (window.state) {
-          if (window.state.sessionLabel) session = window.state.sessionLabel;
-          if (window.state.roundLabel) round = window.state.roundLabel;
-          if (window.state.tvStatus) status = window.state.tvStatus;
-        }
-
         const shared = readShared();
         if (shared) {
           if (shared.sessionLabel) session = shared.sessionLabel;
           if (shared.roundLabel) round = shared.roundLabel;
           if (shared.tvStatus) status = shared.tvStatus;
+        }
+
+        if (window.state) {
+          if (window.state.sessionLabel) session = window.state.sessionLabel;
+          if (window.state.roundLabel) round = window.state.roundLabel;
+          if (window.state.tvStatus) status = window.state.tvStatus;
         }
 
         return { session, round, status };
@@ -354,7 +355,7 @@
 
       render();
 
-      // if you broadcast updates via localStorage, this will pick them up
+      // pick up updates when leaderboard / other pages rewrite shared snapshot
       window.addEventListener('storage', (e) => {
         if (e.key === SHARED_KEY && e.newValue) {
           render();
