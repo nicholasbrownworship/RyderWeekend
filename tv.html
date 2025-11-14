@@ -38,10 +38,10 @@
       border: 1px solid rgba(209,161,75,0.3);
       background: linear-gradient(135deg, rgba(15,24,20,0.96), rgba(12,16,14,0.98));
       box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-      padding: 1.5rem 1.75rem 1.75rem;
+      padding: 1.5rem 1.75rem 1.35rem;
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1.1rem;
     }
 
     .tv-header-row {
@@ -78,7 +78,7 @@
 
     @media (max-width: 720px) {
       .tv-board {
-        padding: 1.2rem 1.1rem 1.5rem;
+        padding: 1.2rem 1.1rem 1.1rem;
       }
       .tv-grid {
         grid-template-columns: minmax(0, 1fr);
@@ -147,6 +147,49 @@
       justify-content: space-between;
       gap: 0.75rem;
       flex-wrap: wrap;
+    }
+
+    /* ===== TICKER ===== */
+    .tv-ticker-shell {
+      margin-top: 0.4rem;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(248,244,230,0.16);
+      background: rgba(3,7,6,0.92);
+    }
+
+    .tv-ticker-label {
+      padding: 0.35rem 0.9rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 600;
+      background: rgba(248,244,230,0.06);
+      color: rgba(252,250,244,0.9);
+    }
+
+    .tv-ticker {
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 0.35rem 0;
+    }
+
+    .tv-ticker-inner {
+      display: inline-block;
+      padding-left: 100%;
+      animation: tv-ticker-scroll 28s linear infinite;
+      font-size: 0.78rem;
+      color: rgba(249,246,236,0.9);
+    }
+
+    .tv-ticker-inner span {
+      margin-right: 3rem;
+    }
+
+    @keyframes tv-ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 
@@ -228,6 +271,14 @@
         <span>Wins / halves converted to team points as matches finish.</span>
         <span id="tvFooterExtra">Scores unofficial until verified.</span>
       </div>
+
+      <!-- NEW: Ticker -->
+      <section class="tv-ticker-shell">
+        <div class="tv-ticker-label">Live updates</div>
+        <div class="tv-ticker">
+          <div class="tv-ticker-inner" id="tvTickerInner"></div>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -241,6 +292,7 @@
       const sessionEl = document.getElementById('tvSessionLabel');
       const roundEl   = document.getElementById('tvRoundLabel');
       const footerExtraEl = document.getElementById('tvFooterExtra');
+      const tickerInner = document.getElementById('tvTickerInner');
 
       const SHARED_KEY = "ozarkShared_v1";
 
@@ -279,21 +331,8 @@
         return [];
       }
 
-      function getPoints() {
-        const shared = readShared();
-
-        // 0) Prefer leaderboard-computed teamScores from shared snapshot
-        if (shared && shared.teamScores) {
-          const ts = shared.teamScores;
-          return {
-            ozark: Number(ts.ozark ?? ts.Ozark ?? 0) || 0,
-            valley: Number(ts.valley ?? ts.Valley ?? 0) || 0,
-            ozMatches: shared.ozMatches ?? undefined,
-            valMatches: shared.valMatches ?? undefined
-          };
-        }
-
-        // 1) If you manually set window.state.teamPoints, respect that
+      function getPoints(shared) {
+        // 1) Prefer live JS state.teamPoints if present
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
           return {
@@ -304,7 +343,18 @@
           };
         }
 
-        // 2) Otherwise, derive from players in shared snapshot
+        // 2) Check shared snapshot
+        if (shared && shared.teamPoints) {
+          const tp = shared.teamPoints;
+          return {
+            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
+            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
+            ozMatches: tp.ozMatches ?? undefined,
+            valMatches: tp.valMatches ?? undefined
+          };
+        }
+
+        // 3) Derive from players
         const players = getPlayersFromShared(shared);
         if (players.length) {
           return deriveFromPlayers(players);
@@ -313,17 +363,10 @@
         return { ozark: 0, valley: 0, ozMatches: undefined, valMatches: undefined };
       }
 
-      function getLabels() {
+      function getLabels(shared) {
         let session = "TBD";
         let round = "TBD";
         let status = "Ryder Cup style match play";
-
-        const shared = readShared();
-        if (shared) {
-          if (shared.sessionLabel) session = shared.sessionLabel;
-          if (shared.roundLabel) round = shared.roundLabel;
-          if (shared.tvStatus) status = shared.tvStatus;
-        }
 
         if (window.state) {
           if (window.state.sessionLabel) session = window.state.sessionLabel;
@@ -331,37 +374,59 @@
           if (window.state.tvStatus) status = window.state.tvStatus;
         }
 
+        if (shared) {
+          if (shared.sessionLabel) session = shared.sessionLabel;
+          if (shared.roundLabel) round = shared.roundLabel;
+          if (shared.tvStatus) status = shared.tvStatus;
+        }
+
         return { session, round, status };
       }
 
-      function render() {
-        const tp = getPoints();
-        const labels = getLabels();
+      // Build ticker messages WITHOUT ever summarizing numeric scores
+      function buildTickerMessages(labels, shared) {
+        const msgs = [];
 
-        ozEl.textContent = tp.ozark;
-        valEl.textContent = tp.valley;
+        // Dynamic context labels (no actual numbers)
+        if (shared && shared.eventName) {
+          msgs.push(shared.eventName + " at Diamond Hills Country Club.");
+        }
 
-        ozMeta.textContent =
-          "Matches scored: " + (tp.ozMatches === undefined ? "—" : tp.ozMatches);
-        valMeta.textContent =
-          "Matches scored: " + (tp.valMatches === undefined ? "—" : tp.valMatches);
+        if (labels.session && labels.session !== "TBD") {
+          msgs.push("Current session: " + labels.session + ".");
+        }
 
-        sessionEl.innerHTML = `<span>Session:</span> ${labels.session}`;
-        roundEl.textContent = `Round: ${labels.round}`;
-        statusEl.textContent = labels.status;
+        if (labels.round && labels.round !== "TBD") {
+          msgs.push("Current round in play: " + labels.round + ".");
+        }
 
-        footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
+        if (labels.status && labels.status !== "Ryder Cup style match play") {
+          msgs.push(labels.status);
+        }
+
+        // Custom, hand-written ticker lines from shared snapshot, if you ever add them:
+        // shared.tickerMessages = ["Group 3 is heating up on the back 9.", "Hydrate and keep pace with the group ahead.", ...]
+        if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
+          shared.tickerMessages.forEach(m => {
+            if (m && typeof m === "string") msgs.push(m);
+          });
+        }
+
+        // Friendly defaults if nothing else
+        if (!msgs.length) {
+          msgs.push(
+            "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
+            "Reminder: hydrate, have fun, and keep pace with the group ahead.",
+            "Ryder Cup format: wins and halves earn team points as matches finish.",
+            "Special thanks to family and friends for supporting this weekend.",
+            "Scores are unofficial until verified by the committee."
+          );
+        }
+
+        return msgs;
       }
 
-      render();
-
-      // pick up updates when leaderboard / other pages rewrite shared snapshot
-      window.addEventListener('storage', (e) => {
-        if (e.key === SHARED_KEY && e.newValue) {
-          render();
-        }
-      });
-    });
-  </script>
-</body>
-</html>
+      function render() {
+        const shared = readShared();
+        const tp = getPoints(shared);
+        const label
