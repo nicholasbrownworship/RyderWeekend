@@ -11,10 +11,20 @@
 
   <style>
     /* ===== BROADCAST PAGE LAYOUT ===== */
+    :root{
+      --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
+      --panel:#ffffff; --line:#e7e0d1;
+      --radius:16px; --shadow:0 14px 38px rgba(0,0,0,.06);
+      --muted:#6b7280;
+    }
+
+    html,body{height:100%}
     body {
+      margin: 0;
+      padding-top: 100px; /* keep clear of sticky header */
       background: var(--bg);
       color: var(--text);
-      padding-top: 160px; /* keep content below sticky header */
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .broadcast-shell {
@@ -234,6 +244,22 @@
       color: var(--muted);
     }
 
+    /* badges for team text */
+    .badge-ozark,
+    .badge-valley {
+      display:inline-flex;
+      align-items:center;
+      gap:0.25rem;
+      border-radius:999px;
+      border:1px solid var(--line);
+      padding:0.1rem 0.45rem;
+      font-size:0.7rem;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+    }
+    .badge-ozark { border-color:rgba(46,204,113,.45); }
+    .badge-valley{ border-color:rgba(52,152,219,.45); }
+
     /* ===== RYDER-CUP TEAM SCOREBOARD ===== */
     .broadcast-teams-score {
       display: grid;
@@ -363,41 +389,26 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <!-- Shared header include -->
+  <!-- Shared site header / nav (same pattern as leaderboard) -->
   <div id="siteHeader"></div>
   <script>
     fetch("header.html")
       .then(res => res.text())
       .then(html => {
-        const host = document.getElementById("siteHeader");
-        host.innerHTML = html;
+        document.getElementById("siteHeader").innerHTML = html;
 
-        // Highlight current page in nav
+        // Highlight current page link
         const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-        host.querySelectorAll('.nav a').forEach(a => {
+        document.querySelectorAll('.nav a').forEach(a => {
           const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
-          if (target.toLowerCase() === here) {
-            a.setAttribute('aria-current', 'page');
-          }
+          if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
         });
 
-        // Mobile menu toggle
-        const btn = host.querySelector('#navToggle');
-        const nav = host.querySelector('.nav');
-        if (btn && nav) {
-          btn.addEventListener('click', () => {
-            const open = btn.getAttribute('aria-expanded') === 'true';
-            btn.setAttribute('aria-expanded', String(!open));
-            nav.classList.toggle('open', !open);
-          });
-        }
-
-        // Header score widget
+        // Kick header widget if script.js exposes it
         if (window.initTeamScoreWidget) {
           window.initTeamScoreWidget();
         }
-      })
-      .catch(err => console.error("Failed to load header:", err));
+      });
   </script>
 
   <main class="broadcast-shell">
@@ -530,7 +541,23 @@
       const SHARED_KEY = "ozarkShared_v1";
       const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
 
-      // ============== Data helpers ==============
+      let sharedSnap = null;
+
+      // ============== Shared snapshot helpers ==============
+      function loadSharedSnapshot() {
+        try {
+          const raw = localStorage.getItem(SHARED_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch (e) {
+          console.warn("[broadcast] Failed to parse shared snapshot", e);
+          return null;
+        }
+      }
+
+      sharedSnap = loadSharedSnapshot();
+
+      // ============== Data helpers (players) ==============
       function loadPlayersFromStorage() {
         // 1) Shared tournament state
         try {
@@ -575,8 +602,8 @@
       function playerDisplayName(p) {
         if (p.Nickname) return p.Nickname;
         if (p.nickname) return p.nickname;
-        const first = p.FirstName || p.first || "";
-        const last = p.LastName || p.last || "";
+        const first = p.FirstName || p.firstName || p.first || "";
+        const last = p.LastName || p.lastName || p.last || "";
         const name = (first + " " + last).trim();
         return name || "Player";
       }
@@ -650,18 +677,29 @@
         return a;
       }
 
-      // Ryder-style team points
-      function deriveTeamPoints(players) {
-        // If you later set window.state.teamPoints = { ozark: X, valley: Y }, we respect that first.
+      // Ryder-style team points – now prefers leaderboard-computed totals
+      function deriveTeamPoints(players, shared) {
+        // 0) Prefer leaderboard-computed teamScores from shared snapshot
+        if (shared && shared.teamScores) {
+          const ts = shared.teamScores;
+          return {
+            ozark:  Number(ts.ozark  ?? ts.Ozark  ?? 0) || 0,
+            valley: Number(ts.valley ?? ts.Valley ?? 0) || 0,
+            ozMatches: shared.ozMatches ?? null,
+            valMatches: shared.valMatches ?? null
+          };
+        }
+
+        // 1) If you later set window.state.teamPoints, respect that
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
           return {
-            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
+            ozark:  Number(tp.ozark  ?? tp.Ozark  ?? 0) || 0,
             valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
           };
         }
 
-        // Otherwise, sum per-player points fields by team
+        // 2) Otherwise, sum per-player points fields by team
         let ozark = 0;
         let valley = 0;
         let ozMatches = 0;
@@ -690,11 +728,16 @@
         };
       }
 
-      // Try to guess round/session labels from state if it exists
-      if (window.state && window.state.roundLabel) {
+      // ===== Round/session labels: shared first, then state =====
+      if (sharedSnap && sharedSnap.roundLabel) {
+        roundLabel.textContent = sharedSnap.roundLabel;
+      } else if (window.state && window.state.roundLabel) {
         roundLabel.textContent = window.state.roundLabel;
       }
-      if (window.state && window.state.sessionLabel) {
+
+      if (sharedSnap && sharedSnap.sessionLabel) {
+        sessionLabel.textContent = sharedSnap.sessionLabel;
+      } else if (window.state && window.state.sessionLabel) {
         sessionLabel.textContent = window.state.sessionLabel;
       }
 
@@ -708,7 +751,7 @@
       }
 
       // ============== Featured players ==============
-      const players = safePlayers();
+      let players = safePlayers();
       console.log("[broadcast] players available:", players.length);
 
       if (!players.length) {
@@ -738,7 +781,7 @@
       }
 
       // ============== Ryder Cup team scoreboard ==============
-      const tp = deriveTeamPoints(players);
+      const tp = deriveTeamPoints(players, sharedSnap);
       const ozPoints = tp.ozark || 0;
       const valPoints = tp.valley || 0;
       const ozMatches = tp.ozMatches ?? "—";
@@ -781,6 +824,28 @@
 
       const tickerMessages = baseMessages.concat(topThree);
       tickerInner.innerHTML = tickerMessages.map(msg => `<span>${msg}</span>`).join("");
+
+      // ============== Live updates when leaderboard writes new totals ==============
+      window.addEventListener('storage', (e) => {
+        if (e.key !== SHARED_KEY || !e.newValue) return;
+        try {
+          sharedSnap = JSON.parse(e.newValue);
+        } catch {
+          return;
+        }
+
+        // Re-derive team points from latest snapshot
+        players = safePlayers(); // refresh in case state changed
+        const tpNow = deriveTeamPoints(players, sharedSnap);
+
+        const ozPointsNow = tpNow.ozark || 0;
+        const valPointsNow = tpNow.valley || 0;
+
+        teamOzPointsEl.textContent = ozPointsNow;
+        teamValPointsEl.textContent = valPointsNow;
+        teamOzMatchesEl.textContent = "Matches scored: " + (tpNow.ozMatches ?? "—");
+        teamValMatchesEl.textContent = "Matches scored: " + (tpNow.valMatches ?? "—");
+      });
     });
   </script>
 </body>
