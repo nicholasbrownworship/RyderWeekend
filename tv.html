@@ -43,9 +43,18 @@
       flex-direction: column;
       gap: 1.1rem;
 
-      /* 2x zoom + shift up slightly */
-      transform: translateY(-4vh) scale(2);
+      /* 🔍 Zoom the whole board and nudge it up */
+      transform: scale(2);
       transform-origin: center center;
+      margin-top: -6vh;
+    }
+
+    @media (max-width: 900px) {
+      /* On small screens, don't zoom; keep it usable */
+      .tv-board {
+        transform: none;
+        margin-top: 0;
+      }
     }
 
     .tv-header-row {
@@ -83,8 +92,6 @@
     @media (max-width: 720px) {
       .tv-board {
         padding: 1.2rem 1.1rem 1.1rem;
-        /* turn off crazy zoom for small screens */
-        transform: none;
       }
       .tv-grid {
         grid-template-columns: minmax(0, 1fr);
@@ -183,7 +190,8 @@
 
     .tv-ticker-inner {
       display: inline-block;
-      animation: tv-ticker-scroll 40s linear infinite;
+      white-space: nowrap;
+      animation: tv-ticker-scroll 28s linear infinite;
       font-size: 0.78rem;
       color: rgba(249,246,236,0.9);
     }
@@ -192,9 +200,10 @@
       margin-right: 3rem;
     }
 
+    /* For seamless loop we animate half the duplicated content */
     @keyframes tv-ticker-scroll {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
   </style>
 
@@ -229,10 +238,6 @@
             btn.setAttribute('aria-expanded', String(!open));
             nav.classList.toggle('open', !open);
           });
-        }
-
-        if (window.initTeamScoreWidget) {
-          window.initTeamScoreWidget();
         }
       })
       .catch(err => console.error("Failed to load header:", err));
@@ -336,7 +341,8 @@
         return [];
       }
 
-      function getPoints() {
+      // Prefer live state, then shared snapshot, then derived
+      function getPoints(shared) {
         // 1) Prefer live JS state.teamPoints if present
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
@@ -348,8 +354,7 @@
           };
         }
 
-        // 2) Check shared snapshot (leaderboard writes teamScores here)
-        const shared = readShared();
+        // 2) Check shared snapshot: teamScores (from leaderboard) or teamPoints
         if (shared && (shared.teamScores || shared.teamPoints)) {
           const tp = shared.teamScores || shared.teamPoints;
           return {
@@ -369,7 +374,7 @@
         return { ozark: 0, valley: 0, ozMatches: undefined, valMatches: undefined };
       }
 
-      function getLabels() {
+      function getLabels(shared) {
         let session = "TBD";
         let round = "TBD";
         let status = "Ryder Cup style match play";
@@ -380,7 +385,6 @@
           if (window.state.tvStatus) status = window.state.tvStatus;
         }
 
-        const shared = readShared();
         if (shared) {
           if (shared.sessionLabel) session = shared.sessionLabel;
           if (shared.roundLabel) round = shared.roundLabel;
@@ -411,8 +415,8 @@
           msgs.push(labels.status);
         }
 
-        // Optional: custom ticker messages you might add to the shared snapshot
-        // shared.tickerMessages = ["Group 3 heating up on the back 9.", "Hydrate and keep pace with the group ahead.", ...]
+        // Optional: custom ticker messages stored in shared
+        // shared.tickerMessages = ["Group 3 heating up on the back 9.", ...]
         if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
           shared.tickerMessages.forEach(m => {
             if (m && typeof m === "string") {
@@ -437,8 +441,8 @@
 
       function render() {
         const shared = readShared();
-        const tp = getPoints();
-        const labels = getLabels();
+        const tp = getPoints(shared);
+        const labels = getLabels(shared);
 
         // Main numbers / labels
         ozEl.textContent = tp.ozark;
@@ -458,9 +462,9 @@
         // Ticker content (no number-based summaries)
         if (tickerInner) {
           const msgs = buildTickerMessages(labels, shared);
-          const pass = msgs.map(msg => `<span>${msg}</span>`).join("");
-          // duplicate so all messages loop cleanly
-          tickerInner.innerHTML = pass + pass;
+          const html = msgs.map(msg => `<span>${msg}</span>`).join("");
+          // Duplicate content so the scroll loops seamlessly
+          tickerInner.innerHTML = html + html;
         }
       }
 
