@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rulebook – Ozark Invitational</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Official 2026 Invitational Rulebook for the Ozark Invitational at Diamond Hills Country Club." />
+
+  <!-- Site-wide styles & scripts -->
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+
+  <style>
+    /* ========= RULEBOOK PAGE LAYOUT ========= */
+    :root {
+      /* Use your existing variables if already defined in styles.css;
+         these are just fallbacks in case this file is viewed standalone. */
+      --green: #244f3c;
+      --green-dark: #163023;
+      --gold: #d1a14b;
+      --cream: #f5f0e6;
+      --bg: #fcfaf6;
+      --text: #222;
+      --radius: 16px;
+      --shadow: 0 14px 38px rgba(0,0,0,.06);
+    }
+
+    body.rulebook-body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .rulebook-shell {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 100px 16px 64px; /* top padding to clear sticky header */
+    }
+
+    .rulebook-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 24px 40px;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .rulebook-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding-bottom: 16px;
+    }
+
+    .rulebook-header small {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .rulebook-header h1 {
+      font-size: 1.75rem;
+      margin: 0 0 4px;
+      color: var(--green-dark);
+    }
+
+    .rulebook-header .subtitle {
+      font-size: 0.95rem;
+      color: #4b5563;
+      margin: 0;
+    }
+
+    .rulebook-meta {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    .rulebook-toc {
+      margin: 24px 0 32px;
+      padding: 16px 16px 8px;
+      background: var(--cream);
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .rulebook-toc h2 {
+      font-size: 1rem;
+      margin: 0 0 8px;
+      color: var(--green-dark);
+    }
+
+    .rulebook-toc ol {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 0.9rem;
+    }
+
+    .rulebook-toc a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .rulebook-toc a:hover {
+      text-decoration: underline;
+    }
+
+    .rulebook-section {
+      margin-bottom: 32px;
+    }
+
+    .rulebook-section h2 {
+      font-size: 1.3rem;
+      margin: 0 0 8px;
+      color: var(--green-dark);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding-bottom: 4px;
+    }
+
+    .rulebook-section h3 {
+      font-size: 1.05rem;
+      margin: 16px 0 4px;
+      color: var(--green);
+    }
+
+    .rulebook-section p {
+      margin: 6px 0;
+      font-size: 0.95rem;
+    }
+
+    .rulebook-section ul,
+    .rulebook-section ol {
+      margin: 6px 0 6px 20px;
+      font-size: 0.95rem;
+    }
+
+    .rulebook-tagline {
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 12px;
+    }
+
+    .rulebook-callout {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(0,0,0,0.05);
+      margin: 10px 0;
+    }
+
+    .rulebook-footer-note {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 24px;
+      text-align: right;
+    }
+
+    /* ========= PRINT (BOOKLET-STYLE) ========= */
+    @media print {
+      body.rulebook-body {
+        background: #fff;
+      }
+      .rulebook-shell {
+        max-width: 100%;
+        padding: 20mm 15mm;
+      }
+      .rulebook-card {
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+        padding: 0;
+      }
+      .rulebook-toc {
+        page-break-after: always;
+      }
+      .rulebook-section {
+        page-break-inside: avoid;
+      }
+      .rulebook-section h2 {
+        page-break-after: avoid;
+      }
+      .rulebook-footer-note {
+        page-break-before: always;
+      }
+      /* Hide site header/nav on print if needed */
+      .topbar,
+      #siteHeader {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="rulebook-body">
+  <!-- Optional header include: script.js can populate this with header.html -->
+  <div id="siteHeader"></div>
+
+  <main class="rulebook-shell">
+    <div class="rulebook-card">
+      <header class="rulebook-header">
+        <small>Official Rules</small>
+        <h1>2026 Invitational Rulebook</h1>
+        <p class="subtitle">Diamond Hills Country Club &bullet; Diamond City, Arkansas</p>
+        <p class="rulebook-meta">Event Dates: May 23–24, 2026 &nbsp;&middot;&nbsp; Subject to annual review and revision.</p>
+      </header>
+
+      <!-- Table of Contents -->
+      <nav class="rulebook-toc">
+        <h2>Table of Contents</h2>
+        <ol>
+          <li><a href="#section-1">Event Overview</a></li>
+          <li><a href="#section-2">Teams &amp; Captains</a></li>
+          <li><a href="#section-3">Match Format &amp; Scoring</a></li>
+          <li><a href="#section-4">Pressure Holes System</a></li>
+          <li><a href="#section-5">Advantage Tokens</a></li>
+          <li><a href="#section-6">Broadcast &amp; Media Guidelines</a></li>
+          <li><a href="#section-7">Player Conduct &amp; Pace of Play</a></li>
+          <li><a href="#section-8">Tiebreaker Procedures</a></li>
+          <li><a href="#section-9">Awards &amp; Traditions</a></li>
+          <li><a href="#section-10">Future Expansion Roadmap (Non-Binding)</a></li>
+        </ol>
+      </nav>
+
+      <!-- 1. EVENT OVERVIEW -->
+      <section id="section-1" class="rulebook-section">
+        <h2>1. Event Overview</h2>
+        <p>
+          The Invitational is a multi-format, Ryder Cup–style golf competition played at Diamond Hills Country Club.
+          Players compete in 9-hole matches using a variety of formats to earn points for their team.
+        </p>
+        <p>
+          While competitive, the event emphasizes:
+        </p>
+        <ul>
+          <li>Sportsmanship and fair play</li>
+          <li>Family participation and a welcoming atmosphere</li>
+          <li>Entertaining commentary and media coverage</li>
+          <li>Growing traditions and memorable moments</li>
+        </ul>
+        <p class="rulebook-tagline">
+          This rulebook applies to the 2026 edition and may be updated in future years as the event grows.
+        </p>
+      </section>
+
+      <!-- 2. TEAMS & CAPTAINS -->
+      <section id="section-2" class="rulebook-section">
+        <h2>2. Teams &amp; Captains</h2>
+
+        <h3>Team Structure</h3>
+        <p>
+          The field is divided into two teams with an equal number of players. Official permanent team names will be
+          established after the inaugural event. Until then, teams are referred to as <strong>Team A</strong> and
+          <strong>Team B</strong> in this rulebook.
+        </p>
+
+        <h3>Captains</h3>
+        <p>
+          Each team selects a Captain prior to the event. Captains are responsible for:
+        </p>
+        <ul>
+          <li>Selecting pairings and lineups for each session</li>
+          <li>Deciding when to use Advantage Tokens</li>
+          <li>Representing the team in any rules discussions or disputes</li>
+          <li>Helping establish team identity, including walk-up lines or future catchphrases</li>
+        </ul>
+      </section>
+
+      <!-- 3. MATCH FORMAT & SCORING -->
+      <section id="section-3" class="rulebook-section">
+        <h2>3. Match Format &amp; Scoring</h2>
+
+        <h3>Formats Used</h3>
+        <p>
+          Across the event, the following 9-hole formats may be used:
+        </p>
+        <ul>
+          <li><strong>Scramble</strong></li>
+          <li><strong>Best Ball</strong></li>
+          <li><strong>Alternate Shot</strong></li>
+          <li><strong>Singles Match Play</strong></li>
+        </ul>
+        <p>
+          The specific schedule of formats and pairings will be determined by the event organizer and Captains.
+        </p>
+
+        <h3>Scoring System</h3>
+        <ul>
+          <li>Each 9-hole match is worth <strong>1 point</strong>.</li>
+          <li>If a match is tied after 9 holes, each team earns <strong>½ point</strong>.</li>
+          <li>Points from all matches and sessions are added together.</li>
+          <li>The team with the highest total points at the end of the event wins the Invitational.</li>
+        </ul>
+
+        <h3>Concessions</h3>
+        <ul>
+          <li>A putt, hole, or entire match may be conceded at any time.</li>
+          <li>Once something is conceded, it <strong>cannot be declined</strong>.</li>
+        </ul>
+      </section>
+
+      <!-- 4. PRESSURE HOLES SYSTEM -->
+      <section id="section-4" class="rulebook-section">
+        <h2>4. Pressure Holes System</h2>
+        <p>
+          Pressure Holes create high-stakes moments that reward clutch performance without creating runaway advantages.
+          They are tied directly to Advantage Tokens that can be used later in the round.
+        </p>
+
+        <h3>Designated Pressure Holes (at Diamond Hills)</h3>
+        <p>
+          For 9-hole rounds played under this rulebook, the Pressure Holes are:
+        </p>
+        <ul>
+          <li><strong>Hole 1</strong></li>
+          <li><strong>Hole 4</strong></li>
+          <li><strong>Hole 7</strong></li>
+        </ul>
+
+        <h3>Pressure Hole Rewards</h3>
+        <ul>
+          <li>Winning <strong>Hole 1</strong> &rarr; earns a <strong>Front Tee Token</strong>.</li>
+          <li>Winning <strong>Hole 4</strong> &rarr; earns a <strong>Front Tee Token</strong>.</li>
+          <li>Winning <strong>Hole 7</strong> &rarr; earns a <strong>Mulligan Token</strong>.</li>
+        </ul>
+        <p>
+          If a Pressure Hole is tied, no token is awarded for that hole.
+        </p>
+      </section>
+
+      <!-- 5. ADVANTAGE TOKENS -->
+      <section id="section-5" class="rulebook-section">
+        <h2>5. Advantage Tokens</h2>
+        <p>
+          Advantage Tokens are strategic tools teams can earn by winning designated Pressure Holes. There are two types:
+          the <strong>Front Tee Token</strong> and the <strong>Mulligan Token</strong>.
+        </p>
+
+        <h3>A. Front Tee Token</h3>
+        <p class="rulebook-callout">
+          <strong>Earned On:</strong> Winning Pressure Hole <strong>1</strong> or <strong>4</strong>.
+        </p>
+
+        <h4>Usage Rules</h4>
+        <ul>
+          <li>Must be used on the <strong>next non–par-3 hole</strong> after it is earned.</li>
+          <li>Cannot be used on a par 3.</li>
+          <li>Cannot be used on a Pressure Hole.</li>
+          <li>Must be used within the same 9-hole match.</li>
+          <li>Must be declared on the tee before either team hits.</li>
+          <li>Only one Front Tee Token may be used per round by a team.</li>
+        </ul>
+
+        <h4>Effect</h4>
+        <p>
+          When used, the team that earned the Token plays the designated hole from the forward tees. The opposing team
+          plays from the standard tees. No additional strokes are added or removed.
+        </p>
+
+        <h4>Purpose</h4>
+        <p>
+          The Front Tee Token rewards clutch performance on Pressure Holes and creates exciting momentum swings early
+          and mid-round without affecting the final hole.
+        </p>
+
+        <h3>B. Mulligan Token</h3>
+        <p class="rulebook-callout">
+          <strong>Earned On:</strong> Winning Pressure Hole <strong>7</strong>.
+        </p>
+
+        <h4>Usage Rules</h4>
+        <ul>
+          <li>Must be used before the end of the same 9-hole round.</li>
+          <li>May be used on any stroke <strong>except a putt on the green</strong>.</li>
+          <li>Must be declared before the next stroke is played.</li>
+          <li>Only one Mulligan Token may be used on a single hole.</li>
+          <li>Cannot be combined with a Front Tee Token on the same hole.</li>
+        </ul>
+
+        <h4>Effect</h4>
+        <p>
+          The player replays the chosen shot. The second shot <strong>must</strong> be used, even if it is worse than the original.
+        </p>
+
+        <h4>Purpose</h4>
+        <p>
+          The Mulligan Token provides a late-round strategic advantage, encourages aggressive play, and adds drama
+          without altering teeing grounds on the closing holes.
+        </p>
+      </section>
+
+      <!-- 6. BROADCAST & MEDIA GUIDELINES -->
+      <section id="section-6" class="rulebook-section">
+        <h2>6. Broadcast &amp; Media Guidelines</h2>
+        <p>
+          On-course media coverage and commentary are core parts of the Invitational’s identity. The goal is to create a
+          fun, engaging experience for players, families, and viewers.
+        </p>
+
+        <h3>Broadcast Crew</h3>
+        <p>
+          A basic broadcast crew consists of:
+        </p>
+        <ul>
+          <li><strong>2 Commentary Hosts</strong> (golfers or non-golfers; comedic commentary encouraged)</li>
+          <li><strong>1 Field Reporter</strong></li>
+          <li><strong>1 Cameraman</strong></li>
+        </ul>
+
+        <h3>Recommended 2026 Trial Equipment</h3>
+        <ul>
+          <li>Up to 4 GoPro-style cameras</li>
+          <li>Up to 4 lavalier microphones</li>
+          <li>Optional handheld camera for field shots</li>
+          <li>Audio recorders for commentary capture</li>
+        </ul>
+
+        <h3>Content Types</h3>
+        <ul>
+          <li>Pre-round introductions</li>
+          <li>On-course interviews and walk-and-talk segments</li>
+          <li>Desk-style live updates</li>
+          <li>Match recaps and post-round reactions</li>
+          <li>Lighthearted or comedic commentary, especially from non-golfers</li>
+        </ul>
+      </section>
+
+      <!-- 7. PLAYER CONDUCT & PACE OF PLAY -->
+      <section id="section-7" class="rulebook-section">
+        <h2>7. Player Conduct &amp; Pace of Play</h2>
+
+        <h3>Conduct Expectations</h3>
+        <p>
+          All participants are expected to:
+        </p>
+        <ul>
+          <li>Respect fellow players, volunteers, spectators, and media crew</li>
+          <li>Care for the course (repair divots, fix ball marks, rake bunkers)</li>
+          <li>Avoid dangerous or reckless behavior</li>
+          <li>Uphold the spirit of friendly competition</li>
+        </ul>
+
+        <h3>Pace of Play</h3>
+        <p>
+          The Invitational follows traditional <strong>honors-based play</strong>:
+        </p>
+        <ul>
+          <li>The side that wins a hole has the honor on the next tee.</li>
+          <li>The ball farthest from the hole plays first.</li>
+          <li>Groups may mutually agree to “ready golf” in certain situations, but honors remain the default.</li>
+        </ul>
+      </section>
+
+      <!-- 8. TIEBREAKER PROCEDURES -->
+      <section id="section-8" class="rulebook-section">
+        <h2>8. Tiebreaker Procedures</h2>
+        <p>
+          If total points are tied at the end of all scheduled matches, the winner will be determined as follows:
+        </p>
+
+        <h3>Step 1 &mdash; Captains’ Putt-Off</h3>
+        <p>
+          Each Captain attempts a putt from a designated distance (for example, 20 feet). The closest ball to the hole
+          wins. If both holed or both miss at the same distance, the organizer may repeat from a different location.
+        </p>
+
+        <h3>Step 2 &mdash; Sudden-Death Chip-Off</h3>
+        <p>
+          If still tied after the putt-off, each team selects one representative to hit a chip from a designated spot
+          off the green. Closest to the hole wins.
+        </p>
+
+        <h3>Step 3 &mdash; Coin Flip</h3>
+        <p>
+          If still tied after both challenges, a simple coin flip between Captains will determine the winner for that
+          year.
+        </p>
+      </section>
+
+      <!-- 9. AWARDS & TRADITIONS -->
+      <section id="section-9" class="rulebook-section">
+        <h2>9. Awards &amp; Traditions</h2>
+
+        <h3>Major Awards</h3>
+        <ul>
+          <li><strong>Traveling Trophy (Cup)</strong> &mdash; awarded to the winning team’s Captain.</li>
+          <li><strong>MVP</strong> &mdash; Most Valuable Player across the event.</li>
+          <li><strong>Most Improved Player</strong> &mdash; notable improvement or development.</li>
+          <li><strong>Clutch Performance Award</strong> &mdash; key shots or moments under pressure.</li>
+          <li><strong>Best Teammate Award</strong> &mdash; sportsmanship, support, and attitude.</li>
+        </ul>
+
+        <h3>Optional Fun Awards</h3>
+        <ul>
+          <li>Funniest Shot or Moment</li>
+          <li>Best Interview or Quote</li>
+          <li>Best Walk-Up Music (future Party Hole feature)</li>
+          <li>Most Chaotic Cart Cam Clip</li>
+        </ul>
+
+        <p>
+          Awards may evolve as the event grows, but the goal is always to celebrate both performance and personality.
+        </p>
+      </section>
+
+      <!-- 10. FUTURE EXPANSION ROADMAP -->
+      <section id="section-10" class="rulebook-section">
+        <h2>10. Future Expansion Roadmap (Non-Binding)</h2>
+        <p>
+          The following ideas are not part of the 2026 rules but serve as a long-term vision for how the Invitational
+          may grow in future years.
+        </p>
+
+        <h3>A. Course &amp; On-Course Enhancements</h3>
+        <ul>
+          <li>Designated “Party Hole” with seating, music, and live commentary.</li>
+          <li>Full tee-box signage kit showing formats, sponsors, and hole info.</li>
+          <li>Pin position sheets for each round.</li>
+          <li>Volunteer spotters and marshals on select holes.</li>
+          <li>Hole flyover videos integrated into the broadcast.</li>
+        </ul>
+
+        <h3>B. Broadcast &amp; Media Upgrades</h3>
+        <ul>
+          <li>Drone coverage for intros, highlights, and key holes.</li>
+          <li>Dedicated broadcast desk with branded backdrop.</li>
+          <li>Replay system or basic shot-tracer effects.</li>
+          <li>Wireless mic packs for featured groups.</li>
+          <li>Additional field reporters and camera operators.</li>
+          <li>Live scoring app feeding directly into the broadcast and website.</li>
+          <li>Official highlight reel production for each year.</li>
+        </ul>
+
+        <h3>C. Website &amp; Digital Expansion</h3>
+        <ul>
+          <li>Full player profile database with photos, bios, and stats.</li>
+          <li>Historical archive of past results, champions, and big moments.</li>
+          <li>Interactive brackets for a future Singles Invitational.</li>
+          <li>Enhanced broadcast hub page with integrated video and ticker.</li>
+          <li>Sponsor dashboard for logos, mentions, and hole partnerships.</li>
+        </ul>
+
+        <h3>D. Tournament Format Development</h3>
+        <ul>
+          <li>Large-field Singles Invitational (e.g., 64–128 players).</li>
+          <li>Official Par-3 Shootout with spectators and prizes.</li>
+          <li>Team Draft Night event, possibly live-streamed.</li>
+          <li>Skills Challenge Festival: long drive, flop wall, chipping ladder, putting gauntlet.</li>
+          <li>All-Star Challenge featuring past MVPs and notable personalities.</li>
+        </ul>
+
+        <h3>E. Equipment &amp; Production Enhancements</h3>
+        <ul>
+          <li>Permanent cart-mounted camera rigs with power solutions.</li>
+          <li>Centralized lav mic rack and charging station.</li>
+          <li>DJ/PA system for Party Hole and ceremonies.</li>
+          <li>Professional lighting and backdrop for interviews and awards.</li>
+          <li>Earpieces and simple comms for the broadcast team.</li>
+        </ul>
+
+        <h3>F. Event Logistics &amp; Experience</h3>
+        <ul>
+          <li>Opening Ceremonies with player introductions and Captain speeches.</li>
+          <li>Closing Ceremonies with recap montage and full awards presentation.</li>
+          <li>Family Fan Zone with lawn games and viewing areas.</li>
+          <li>Merchandise (hats, shirts, pins, posters, scorecards).</li>
+          <li>Volunteer program for scoring, spotting, and media support.</li>
+        </ul>
+
+        <h3>G. Administration &amp; Governance</h3>
+        <ul>
+          <li>Permanent team names formally adopted after the inaugural event.</li>
+          <li>Annual Captains’ Meeting to review formats and rules.</li>
+          <li>Small Rules Committee to handle disputes.</li>
+          <li>Statistical tracking system for players and teams.</li>
+          <li>Qualification or invitation criteria as the field grows.</li>
+        </ul>
+      </section>
+
+      <p class="rulebook-footer-note">
+        2026 Invitational Rulebook &mdash; Draft for use with the Ozark Invitational at Diamond Hills Country Club.
+      </p>
+    </div>
+  </main>
+</body>
+</html>
