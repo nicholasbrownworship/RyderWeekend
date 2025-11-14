@@ -272,7 +272,7 @@
         <span id="tvFooterExtra">Scores unofficial until verified.</span>
       </div>
 
-      <!-- NEW: Ticker -->
+      <!-- Ticker -->
       <section class="tv-ticker-shell">
         <div class="tv-ticker-label">Live updates</div>
         <div class="tv-ticker">
@@ -331,8 +331,8 @@
         return [];
       }
 
-      // 🔥 This is the original getPoints logic that was working before
-      function getPoints() {
+      // Read points with all the fallbacks
+      function getPoints(shared) {
         // 1) Prefer live JS state.teamPoints if present
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
@@ -344,28 +344,32 @@
           };
         }
 
-        // 2) Check shared snapshot
-        const shared = readShared();
-        if (shared && shared.teamPoints) {
-          const tp = shared.teamPoints;
-          return {
-            ozark: Number(tp.ozark ?? tp.Ozark ?? 0) || 0,
-            valley: Number(tp.valley ?? tp.Valley ?? 0) || 0,
-            ozMatches: tp.ozMatches ?? undefined,
-            valMatches: tp.valMatches ?? undefined
-          };
+        // 2) Shared snapshot:
+        //    leaderboard writes `teamScores = { ozark, valley }`
+        //    but if you ever store `teamPoints` too, we'll use that as a fallback.
+        if (shared) {
+          const src = shared.teamScores || shared.teamPoints;
+          if (src) {
+            return {
+              ozark: Number(src.ozark ?? src.Ozark ?? 0) || 0,
+              valley: Number(src.valley ?? src.Valley ?? 0) || 0,
+              ozMatches: src.ozMatches ?? undefined,
+              valMatches: src.valMatches ?? undefined
+            };
+          }
         }
 
-        // 3) Derive from players
+        // 3) Derive from players if present
         const players = getPlayersFromShared(shared);
         if (players.length) {
           return deriveFromPlayers(players);
         }
 
+        // 4) Fallback
         return { ozark: 0, valley: 0, ozMatches: undefined, valMatches: undefined };
       }
 
-      function getLabels() {
+      function getLabels(shared) {
         let session = "TBD";
         let round = "TBD";
         let status = "Ryder Cup style match play";
@@ -376,7 +380,6 @@
           if (window.state.tvStatus) status = window.state.tvStatus;
         }
 
-        const shared = readShared();
         if (shared) {
           if (shared.sessionLabel) session = shared.sessionLabel;
           if (shared.roundLabel) round = shared.roundLabel;
@@ -407,8 +410,7 @@
           msgs.push(labels.status);
         }
 
-        // Optional: custom ticker messages you might add to the shared snapshot
-        // shared.tickerMessages = ["Group 3 heating up on the back 9.", "Hydrate and keep pace with the group ahead.", ...]
+        // Optional: custom ticker messages in shared.tickerMessages
         if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
           shared.tickerMessages.forEach(m => {
             if (m && typeof m === "string") {
@@ -433,8 +435,8 @@
 
       function render() {
         const shared = readShared();
-        const tp = getPoints();
-        const labels = getLabels();
+        const tp = getPoints(shared);
+        const labels = getLabels(shared);
 
         // Main numbers / labels
         ozEl.textContent = tp.ozark;
@@ -451,7 +453,7 @@
 
         footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
 
-        // Ticker content (no number-based summaries)
+        // Ticker content (no score summaries)
         if (tickerInner) {
           const msgs = buildTickerMessages(labels, shared);
           tickerInner.innerHTML = msgs.map(msg => `<span>${msg}</span>`).join("");
