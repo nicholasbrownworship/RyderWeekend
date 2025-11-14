@@ -331,7 +331,8 @@
         return [];
       }
 
-      function getPoints(shared) {
+      // 🔥 This is the original getPoints logic that was working before
+      function getPoints() {
         // 1) Prefer live JS state.teamPoints if present
         if (window.state && window.state.teamPoints) {
           const tp = window.state.teamPoints;
@@ -344,6 +345,7 @@
         }
 
         // 2) Check shared snapshot
+        const shared = readShared();
         if (shared && shared.teamPoints) {
           const tp = shared.teamPoints;
           return {
@@ -363,7 +365,7 @@
         return { ozark: 0, valley: 0, ozMatches: undefined, valMatches: undefined };
       }
 
-      function getLabels(shared) {
+      function getLabels() {
         let session = "TBD";
         let round = "TBD";
         let status = "Ryder Cup style match play";
@@ -374,6 +376,7 @@
           if (window.state.tvStatus) status = window.state.tvStatus;
         }
 
+        const shared = readShared();
         if (shared) {
           if (shared.sessionLabel) session = shared.sessionLabel;
           if (shared.roundLabel) round = shared.roundLabel;
@@ -387,7 +390,7 @@
       function buildTickerMessages(labels, shared) {
         const msgs = [];
 
-        // Dynamic context labels (no actual numbers)
+        // Context: event & round/session, but no numbers
         if (shared && shared.eventName) {
           msgs.push(shared.eventName + " at Diamond Hills Country Club.");
         }
@@ -404,15 +407,17 @@
           msgs.push(labels.status);
         }
 
-        // Custom, hand-written ticker lines from shared snapshot, if you ever add them:
-        // shared.tickerMessages = ["Group 3 is heating up on the back 9.", "Hydrate and keep pace with the group ahead.", ...]
+        // Optional: custom ticker messages you might add to the shared snapshot
+        // shared.tickerMessages = ["Group 3 heating up on the back 9.", "Hydrate and keep pace with the group ahead.", ...]
         if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
           shared.tickerMessages.forEach(m => {
-            if (m && typeof m === "string") msgs.push(m);
+            if (m && typeof m === "string") {
+              msgs.push(m);
+            }
           });
         }
 
-        // Friendly defaults if nothing else
+        // Defaults if nothing else
         if (!msgs.length) {
           msgs.push(
             "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
@@ -428,5 +433,40 @@
 
       function render() {
         const shared = readShared();
-        const tp = getPoints(shared);
-        const label
+        const tp = getPoints();
+        const labels = getLabels();
+
+        // Main numbers / labels
+        ozEl.textContent = tp.ozark;
+        valEl.textContent = tp.valley;
+
+        ozMeta.textContent =
+          "Matches scored: " + (tp.ozMatches === undefined ? "—" : tp.ozMatches);
+        valMeta.textContent =
+          "Matches scored: " + (tp.valMatches === undefined ? "—" : tp.valMatches);
+
+        sessionEl.innerHTML = `<span>Session:</span> ${labels.session}`;
+        roundEl.textContent = `Round: ${labels.round}`;
+        statusEl.textContent = labels.status;
+
+        footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
+
+        // Ticker content (no number-based summaries)
+        if (tickerInner) {
+          const msgs = buildTickerMessages(labels, shared);
+          tickerInner.innerHTML = msgs.map(msg => `<span>${msg}</span>`).join("");
+        }
+      }
+
+      render();
+
+      // pick up localStorage updates (e.g., from leaderboard)
+      window.addEventListener('storage', (e) => {
+        if (e.key === SHARED_KEY && e.newValue) {
+          render();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
