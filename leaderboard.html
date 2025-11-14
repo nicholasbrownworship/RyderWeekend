@@ -73,27 +73,41 @@
     select{padding:.5rem .7rem;border:1px solid #d9d2c4;border-radius:10px;background:#fff;font:inherit}
     .badge{border:1px solid #d9d2c4;border-radius:999px;padding:.2rem .5rem;background:#fff;font-size:.75rem}
 
-    /* ===== Match grid ===== */
+    /* ===== Match list (single-column, grouped) ===== */
     .matches-head{
       display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px
     }
     .note{font-size:.85rem;color:var(--muted)}
 
     .match-grid{
-      display:grid;
-      grid-template-columns:repeat(12, 1fr);
-      gap:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    @media (max-width: 1024px){ .match-grid{ grid-template-columns: repeat(8,1fr); } }
-    @media (max-width: 720px){  .match-grid{ grid-template-columns: repeat(4,1fr); } }
+
+    .round-section{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .round-section-title{
+      font-size:.85rem;
+      font-weight:600;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
 
     .match-card{
-      grid-column: span 6;
-      background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      box-shadow:var(--shadow);
       overflow:visible;                 /* allow ribbon to extend */
       position:relative;
+      transition:box-shadow .12s ease, transform .12s ease;
     }
-    @media (max-width: 720px){ .match-card{ grid-column: span 4; } }
 
     /* Corner ribbon */
     .ribbon{
@@ -435,9 +449,8 @@
 
         // 🔗 Link to the correct scorecard round
         const linkHref = `scorecard.html?day=${encodeURIComponent(day)}&side=${encodeURIComponent(side)}&group=${groupNum}`;
-const linkOpen = `<a class="match-link" href="${linkHref}">`;
-const linkClose = `</a>`;
-
+        const linkOpen = `<a class="match-link" href="${linkHref}">`;
+        const linkClose = `</a>`;
 
         if (teamEvent){
           const ozNames = [names[0],names[1]].filter(Boolean).map(playerName).join(' & ') || '—';
@@ -576,15 +589,24 @@ const linkClose = `</a>`;
 
         ['day1','day2'].forEach(day=>{
           if (considerDay!=='all' && considerDay!==day) return;
+          const dayLabel = (day==='day1' ? 'Day 1' : 'Day 2');
+
           ['front','back'].forEach(side=>{
             if (considerSide!=='all' && considerSide!==side) return;
 
+            const sideLabel = (side==='front' ? 'Front 9' : 'Back 9');
             const fmt = snap.format?.[day]?.[side] || 'Best Ball';
             const groups = snap.groups?.[day]?.[side] || [];
+            if (!groups.length) return;
+
+            html += `<div class="round-section"><div class="round-section-title">${dayLabel} • ${sideLabel}</div>`;
+
             for (let i=0;i<groups.length;i++){
               html += cardForTeam(day, side, fmt, i, snap);
               count++;
             }
+
+            html += `</div>`;
           });
         });
 
