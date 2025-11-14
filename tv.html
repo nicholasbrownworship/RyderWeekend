@@ -161,50 +161,6 @@
       gap: 0.75rem;
       flex-wrap: wrap;
     }
-
-    /* ===== TICKER ===== */
-    .tv-ticker-shell {
-      margin-top: 0.4rem;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(248,244,230,0.16);
-      background: rgba(3,7,6,0.92);
-    }
-
-    .tv-ticker-label {
-      padding: 0.35rem 0.9rem;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      font-weight: 600;
-      background: rgba(248,244,230,0.06);
-      color: rgba(252,250,244,0.9);
-    }
-
-    .tv-ticker {
-      position: relative;
-      overflow: hidden;
-      white-space: nowrap;
-      padding: 0.35rem 0;
-    }
-
-    .tv-ticker-inner {
-      display: inline-block;
-      /* simple, reliable scroll: start fully off-screen to the right, end fully off-screen to the left */
-      animation: tv-ticker-scroll 28s linear infinite;
-      font-size: 0.78rem;
-      color: rgba(249,246,236,0.9);
-      white-space: nowrap;
-    }
-
-    .tv-ticker-inner span {
-      margin-right: 3rem;
-    }
-
-    @keyframes tv-ticker-scroll {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
   </style>
 
   <!-- Shared JS (state, etc.) -->
@@ -281,14 +237,6 @@
         <span>Wins / halves converted to team points as matches finish.</span>
         <span id="tvFooterExtra">Scores unofficial until verified.</span>
       </div>
-
-      <!-- Ticker -->
-      <section class="tv-ticker-shell">
-        <div class="tv-ticker-label">Live updates</div>
-        <div class="tv-ticker">
-          <div class="tv-ticker-inner" id="tvTickerInner"></div>
-        </div>
-      </section>
     </section>
   </main>
 
@@ -302,7 +250,6 @@
       const sessionEl = document.getElementById('tvSessionLabel');
       const roundEl   = document.getElementById('tvRoundLabel');
       const footerExtraEl = document.getElementById('tvFooterExtra');
-      const tickerInner = document.getElementById('tvTickerInner');
 
       const SHARED_KEY = "ozarkShared_v1";
 
@@ -354,7 +301,7 @@
           };
         }
 
-        // 2) Check shared snapshot: teamScores (from leaderboard) or teamPoints
+        // 2) From leaderboard’s shared snapshot: teamScores (preferred) or teamPoints
         if (shared && (shared.teamScores || shared.teamPoints)) {
           const tp = shared.teamScores || shared.teamPoints;
           return {
@@ -394,32 +341,6 @@
         return { session, round, status };
       }
 
-      // Build ticker messages WITHOUT ever summarizing numeric scores,
-      // and ALWAYS include a full base set so it's never "just one".
-      function buildTickerMessages(shared) {
-        const msgs = [
-          "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
-          "Reminder: hydrate, have fun, and keep pace with the group ahead.",
-          "Ryder Cup format: wins and halves earn team points as matches finish.",
-          "Special thanks to family and friends for supporting this weekend.",
-          "Scores are unofficial until verified by the committee."
-        ];
-
-        // Optional extra: event name up front
-        if (shared && shared.eventName) {
-          msgs.unshift(shared.eventName + " at Diamond Hills Country Club.");
-        }
-
-        // Optional custom tickerMessages from shared snapshot
-        if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
-          shared.tickerMessages.forEach(m => {
-            if (m && typeof m === "string") msgs.push(m);
-          });
-        }
-
-        return msgs;
-      }
-
       function render() {
         const shared = readShared();
         const tp = getPoints(shared);
@@ -439,12 +360,6 @@
         statusEl.textContent = labels.status;
 
         footerExtraEl.textContent = "Refresh this screen if you update scores on this device.";
-
-        // Ticker content (multi-message line)
-        if (tickerInner) {
-          const msgs = buildTickerMessages(shared);
-          tickerInner.innerHTML = msgs.map(msg => `<span>${msg}</span>`).join("");
-        }
       }
 
       render();
