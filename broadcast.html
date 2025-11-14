@@ -14,6 +14,7 @@
     body {
       background: var(--bg);
       color: var(--text);
+      padding-top: 70px; /* keep content below sticky header */
     }
 
     .broadcast-shell {
@@ -363,7 +364,41 @@
 </head>
 <body>
   <!-- Shared header include -->
-  <div id="siteHeader" data-include="header.html"></div>
+  <div id="siteHeader"></div>
+  <script>
+    fetch("header.html")
+      .then(res => res.text())
+      .then(html => {
+        const host = document.getElementById("siteHeader");
+        host.innerHTML = html;
+
+        // Highlight current page in nav
+        const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        host.querySelectorAll('.nav a').forEach(a => {
+          const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+          if (target.toLowerCase() === here) {
+            a.setAttribute('aria-current', 'page');
+          }
+        });
+
+        // Mobile menu toggle
+        const btn = host.querySelector('#navToggle');
+        const nav = host.querySelector('.nav');
+        if (btn && nav) {
+          btn.addEventListener('click', () => {
+            const open = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', String(!open));
+            nav.classList.toggle('open', !open);
+          });
+        }
+
+        // Header score widget
+        if (window.initTeamScoreWidget) {
+          window.initTeamScoreWidget();
+        }
+      })
+      .catch(err => console.error("Failed to load header:", err));
+  </script>
 
   <main class="broadcast-shell">
     <header class="broadcast-header">
@@ -495,9 +530,7 @@
       const SHARED_KEY = "ozarkShared_v1";
       const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
 
-      // ==============
-      // Data helpers
-      // ==============
+      // ============== Data helpers ==============
       function loadPlayersFromStorage() {
         // 1) Shared tournament state
         try {
@@ -665,9 +698,7 @@
         sessionLabel.textContent = window.state.sessionLabel;
       }
 
-      // ==============
-      // Mute button
-      // ==============
+      // ============== Mute button ==============
       if (video && btnToggleMute) {
         video.muted = false;
         btnToggleMute.addEventListener('click', () => {
@@ -676,9 +707,7 @@
         });
       }
 
-      // ==============
-      // Featured players
-      // ==============
+      // ============== Featured players ==============
       const players = safePlayers();
       console.log("[broadcast] players available:", players.length);
 
@@ -708,9 +737,7 @@
         }).join("");
       }
 
-      // ==============
-      // Ryder Cup team scoreboard
-      // ==============
+      // ============== Ryder Cup team scoreboard ==============
       const tp = deriveTeamPoints(players);
       const ozPoints = tp.ozark || 0;
       const valPoints = tp.valley || 0;
@@ -737,9 +764,7 @@
           "Points will appear here once match play results are entered on the main scoreboard.";
       }
 
-      // ==============
-      // Ticker
-      // ==============
+      // ============== Ticker ==============
       const baseMessages = [
         "Welcome to the Ozark Invitational at Diamond Hills Country Club.",
         "Reminder: hydrate and keep pace with the group ahead.",
