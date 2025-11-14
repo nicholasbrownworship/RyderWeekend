@@ -190,20 +190,20 @@
 
     .tv-ticker-inner {
       display: inline-block;
-      white-space: nowrap;
+      padding-left: 100%;          /* start off-screen to the right */
       animation: tv-ticker-scroll 28s linear infinite;
       font-size: 0.78rem;
       color: rgba(249,246,236,0.9);
+      white-space: nowrap;
     }
 
     .tv-ticker-inner span {
       margin-right: 3rem;
     }
 
-    /* For seamless loop we animate half the duplicated content */
     @keyframes tv-ticker-scroll {
       0%   { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 
@@ -416,7 +416,6 @@
         }
 
         // Optional: custom ticker messages stored in shared
-        // shared.tickerMessages = ["Group 3 heating up on the back 9.", ...]
         if (shared && Array.isArray(shared.tickerMessages) && shared.tickerMessages.length) {
           shared.tickerMessages.forEach(m => {
             if (m && typeof m === "string") {
@@ -462,9 +461,7 @@
         // Ticker content (no number-based summaries)
         if (tickerInner) {
           const msgs = buildTickerMessages(labels, shared);
-          const html = msgs.map(msg => `<span>${msg}</span>`).join("");
-          // Duplicate content so the scroll loops seamlessly
-          tickerInner.innerHTML = html + html;
+          tickerInner.innerHTML = msgs.map(msg => `<span>${msg}</span>`).join("");
         }
       }
 
