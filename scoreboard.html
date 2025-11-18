@@ -138,7 +138,7 @@
     .pool-controls{display:flex;gap:8px;flex-wrap:wrap}
     .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#101717;color:#bfe7ea;font-size:12px;cursor:pointer;user-select:none}
     .pill.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
-    .players{display:grid;grid-template-columns:1fr;gap:6px;min-height:80px}
+    .players{display:grid;grid-template-columns:1fr;gap:6px;min-height:80px;flex:1 1 auto}
     .player{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);padding:8px;border-radius:12px;cursor:grab}
     .player:active{cursor:grabbing}
     .player .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#203134;color:#bfe7ea;font-weight:800;font-size:12px}
@@ -211,6 +211,32 @@
       color: #c9fbff;
       text-align: center;
     }
+
+    /* === Player Pool: make buttons stay visible at bottom === */
+    .panel .body.pool{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      overflow:auto; /* scroll within the panel; sticky footer uses this as container */
+    }
+    .pool-controls,
+    .legend{
+      flex:0 0 auto;
+    }
+    .pool-actions{
+      position:sticky;
+      bottom:0;
+      flex:0 0 auto;
+      padding-top:8px;
+      margin-top:8px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(11,15,13,0),
+          rgba(11,15,13,0.96)
+        );
+      z-index:1;
+    }
   </style>
 </head>
 <body>
@@ -262,7 +288,7 @@
           <div class="swatch" style="background:#3498db"></div> Team Valley
         </div>
         <div id="players" class="players" aria-live="polite"></div>
-        <div class="row">
+        <div class="row pool-actions">
           <button id="btnReloadPool" class="btn">Reload from previous site</button>
           <button id="btnAddManual" class="btn">Add player</button>
         </div>
