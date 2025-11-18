@@ -123,6 +123,14 @@
     .panel .head h2{font-size:14px;letter-spacing:.4px;margin:0;color:#cfe6e8;text-transform:uppercase}
     .panel .body{padding:12px;overflow:auto}
 
+    /* Make the Player Pool body a flex column with its own scroll region for the list */
+    .panel .body.pool{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      overflow:hidden; /* tools stay fixed; only players scroll */
+    }
+
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .row + .row{margin-top:8px}
     label{font-size:12px;color:var(--hint)}
@@ -135,10 +143,56 @@
 
     /* Player Pool & cards */
     .pool{display:flex;flex-direction:column;gap:10px}
-    .pool-controls{display:flex;gap:8px;flex-wrap:wrap}
+
+    .pool-card{
+      background:#0d1314;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:8px 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex:0 0 auto;
+    }
+
+    .pool-controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pool-controls input{
+      flex:1;
+    }
+
     .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#101717;color:#bfe7ea;font-size:12px;cursor:pointer;user-select:none}
     .pill.active{background:#17393d;border-color:#2a6f77;color:#dcffff}
-    .players{display:grid;grid-template-columns:1fr;gap:6px;min-height:80px;flex:1 1 auto}
+
+    .legend{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-size:12px;
+      color:var(--hint);
+    }
+
+    .pool-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .players{
+      flex:1 1 auto;
+      overflow:auto;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:6px;
+      padding-right:4px;
+      min-height:80px;
+    }
+
     .player{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);padding:8px;border-radius:12px;cursor:grab}
     .player:active{cursor:grabbing}
     .player .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#203134;color:#bfe7ea;font-weight:800;font-size:12px}
@@ -170,7 +224,6 @@
     .slot .av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#26383b;color:#cfe6e8;font-weight:800;font-size:12px;flex:0 0 auto}
     .slot .av img{width:100%;height:100%;object-fit:cover;display:block}
 
-    .legend{display:flex;gap:10px;align-items:center;font-size:12px;color:#a7b1b2}
     .legend .swatch{width:10px;height:10px;border-radius:50%}
 
     .side .body{display:flex;flex-direction:column;gap:10px}
@@ -210,32 +263,6 @@
       font-weight: 700;
       color: #c9fbff;
       text-align: center;
-    }
-
-    /* === Player Pool: make buttons stay visible at bottom === */
-    .panel .body.pool{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      overflow:auto; /* scroll within the panel; sticky footer uses this as container */
-    }
-    .pool-controls,
-    .legend{
-      flex:0 0 auto;
-    }
-    .pool-actions{
-      position:sticky;
-      bottom:0;
-      flex:0 0 auto;
-      padding-top:8px;
-      margin-top:8px;
-      background:
-        linear-gradient(
-          180deg,
-          rgba(11,15,13,0),
-          rgba(11,15,13,0.96)
-        );
-      z-index:1;
     }
   </style>
 </head>
@@ -279,19 +306,24 @@
     <section class="panel">
       <div class="head"><h2>Player Pool</h2></div>
       <div class="body pool">
-        <div class="pool-controls">
-          <input id="search" type="text" placeholder="Search name or nickname" style="flex:1" />
-          <div id="teamFilters" class="row"></div>
+        <!-- Tools card: search + filters + legend + buttons -->
+        <div class="pool-card">
+          <div class="pool-controls">
+            <input id="search" type="text" placeholder="Search name or nickname" />
+            <div id="teamFilters" class="row"></div>
+          </div>
+          <div class="legend">
+            <div class="swatch" style="background:#2ecc71"></div> Team Ozark
+            <div class="swatch" style="background:#3498db"></div> Team Valley
+          </div>
+          <div class="pool-actions">
+            <button id="btnReloadPool" class="btn">Reload from previous site</button>
+            <button id="btnAddManual" class="btn">Add player</button>
+          </div>
         </div>
-        <div class="legend">
-          <div class="swatch" style="background:#2ecc71"></div> Team Ozark
-          <div class="swatch" style="background:#3498db"></div> Team Valley
-        </div>
+
+        <!-- Scrollable player list -->
         <div id="players" class="players" aria-live="polite"></div>
-        <div class="row pool-actions">
-          <button id="btnReloadPool" class="btn">Reload from previous site</button>
-          <button id="btnAddManual" class="btn">Add player</button>
-        </div>
       </div>
     </section>
 
