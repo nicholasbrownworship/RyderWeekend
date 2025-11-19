@@ -157,10 +157,29 @@
   font-size: 0.75rem !important;
   line-height: 1 !important;
   font-weight: 600 !important;
+
+    /* Force Ozark & Valley team chips to be identical size */
+.teamChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 0.18rem 0.7rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 600;
+
+  border-radius: 999px;
+  white-space: nowrap;
+
+  /* 🔥 Key bit: make both bubbles the same width */
+  min-width: 120px;
 }
+
 .teamChip .dot {
-  width: 10px !important;
-  height: 10px !important;
+  width: 10px;
+  height: 10px;
 }
 
     .teamChip.oz{ border-color: rgba(46,204,113,.35) }
