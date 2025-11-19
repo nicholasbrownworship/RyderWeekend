@@ -181,6 +181,15 @@
   width: 10px;
   height: 10px;
 }
+      .teamChip {
+  align-self: flex-start !important;   /* Prevents flex parent from stretching it */
+  height: 22px !important;             /* Force identical bubble height */
+  padding-top: 0;                      /* Ensures vertical alignment identical */
+  padding-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
 
     .teamChip.oz{ border-color: rgba(46,204,113,.35) }
     .teamChip.va{ border-color: rgba(52,152,219,.35) }
