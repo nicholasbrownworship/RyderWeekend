@@ -1,1 +1,9 @@
-
+{
+  "name": "Ozark Invitational",
+  "short_name": "OzarkApp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fcfaf6",
+  "theme_color": "#244f3c",
+  "icons": []
+}
