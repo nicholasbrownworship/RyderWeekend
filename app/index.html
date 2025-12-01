@@ -16,26 +16,118 @@
   <div id="app">
     <header>Ozark Invitational</header>
 
+    <!-- HOME SCREEN -->
     <main id="screen-home" class="screen active">
-      <h1>Welcome</h1>
-      <p>This is the Ozark Invitational Mobile App.</p>
+      <section class="hero">
+        <h1>Ozark Invitational</h1>
+        <p class="subtitle">Family Ryder Cup Weekend • Diamond Hills CC</p>
+      </section>
+
+      <section class="card">
+        <h2>Today</h2>
+        <p id="todayText">Loading...</p>
+      </section>
+
+      <section class="card">
+        <h2>Quick Actions</h2>
+        <div class="button-row">
+          <button class="primary" data-screen-jump="scorecard">Start a Round</button>
+          <button class="ghost" data-screen-jump="rounds">View My Rounds</button>
+        </div>
+      </section>
     </main>
 
+    <!-- SCORECARD SCREEN -->
     <main id="screen-scorecard" class="screen">
-      <h1>Scorecard</h1>
-      <p>Score entry coming soon.</p>
+      <section class="card">
+        <h1>Scorecard</h1>
+        <p class="muted">Track an 18-hole round and save it to your phone.</p>
+
+        <div class="field-row">
+          <label>
+            Course
+            <select id="courseSelect">
+              <option value="Diamond Hills CC">Diamond Hills CC</option>
+              <option value="Harrison CC">Harrison CC</option>
+              <option value="Holiday Island">Holiday Island</option>
+            </select>
+          </label>
+          <label>
+            Tees
+            <select id="teesSelect">
+              <option value="Back">Back</option>
+              <option value="Middle">Middle</option>
+              <option value="Forward">Forward</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="scorecard-grid">
+          <div class="scorecard-header">Hole</div>
+          <div class="scorecard-header">Score</div>
+
+          <!-- 18 holes -->
+          <div class="scorecard-hole">1</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="1" />
+          <div class="scorecard-hole">2</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="2" />
+          <div class="scorecard-hole">3</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="3" />
+          <div class="scorecard-hole">4</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="4" />
+          <div class="scorecard-hole">5</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="5" />
+          <div class="scorecard-hole">6</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="6" />
+          <div class="scorecard-hole">7</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="7" />
+          <div class="scorecard-hole">8</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="8" />
+          <div class="scorecard-hole">9</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="9" />
+
+          <div class="scorecard-hole">10</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="10" />
+          <div class="scorecard-hole">11</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="11" />
+          <div class="scorecard-hole">12</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="12" />
+          <div class="scorecard-hole">13</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="13" />
+          <div class="scorecard-hole">14</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="14" />
+          <div class="scorecard-hole">15</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="15" />
+          <div class="scorecard-hole">16</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="16" />
+          <div class="scorecard-hole">17</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="17" />
+          <div class="scorecard-hole">18</div><input type="number" min="1" max="10" inputmode="numeric" class="score-input" data-hole="18" />
+        </div>
+
+        <div class="total-row">
+          <span>Total:</span>
+          <span id="scoreTotal">—</span>
+        </div>
+
+        <button class="primary full-width" id="saveRoundBtn">Save Round</button>
+        <p class="muted small" id="saveStatus"></p>
+      </section>
     </main>
 
+    <!-- MY ROUNDS SCREEN -->
     <main id="screen-rounds" class="screen">
-      <h1>My Rounds</h1>
-      <p>Saved rounds will appear here.</p>
+      <section class="card">
+        <h1>My Rounds</h1>
+        <p class="muted">Rounds saved on this device will appear below.</p>
+      </section>
+
+      <section id="roundsList" class="list"></section>
     </main>
 
+    <!-- INFO SCREEN -->
     <main id="screen-info" class="screen">
-      <h1>Info</h1>
-      <p>Rules, schedule, and more coming soon.</p>
+      <section class="card">
+        <h1>Info</h1>
+        <p>Ozark Invitational – family Ryder Cup-style weekend at Diamond Hills CC in Diamond City, AR.</p>
+      </section>
+
+      <section class="card">
+        <h2>Planned Features</h2>
+        <ul class="muted">
+          <li>Per-player stats and performance tracking</li>
+          <li>GPS-powered hole views</li>
+          <li>Live team points during the event</li>
+        </ul>
+      </section>
     </main>
 
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
       <button data-screen="home">🏠</button>
       <button data-screen="scorecard">📝</button>
