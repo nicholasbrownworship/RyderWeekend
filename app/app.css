@@ -1,12 +1,21 @@
 :root {
   --green: #244f3c;
+  --green-dark: #163023;
   --cream: #f5f0e6;
   --bg: #fcfaf6;
+  --panel: #ffffff;
+  --muted: #6b7280;
+  --radius: 14px;
+  --shadow: 0 10px 26px rgba(0,0,0,0.08);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   background: var(--bg);
   color: #222;
   height: 100vh;
@@ -17,19 +26,28 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
+/* HEADER */
+
 header {
-  background: var(--green);
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
   color: white;
   text-align: center;
-  padding: 1rem;
-  font-weight: bold;
+  padding: 0.9rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
 }
+
+/* SCREENS */
 
 .screen {
   display: none;
   padding: 1rem;
+  padding-bottom: 4.5rem; /* space for nav */
   flex: 1;
   overflow-y: auto;
 }
@@ -38,12 +56,186 @@ header {
   display: block;
 }
 
+/* CARDS */
+
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.hero {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* TEXT UTILS */
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+/* BUTTONS */
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+button {
+  font-family: inherit;
+}
+
+.primary {
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:active {
+  transform: translateY(1px);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--green);
+  border-radius: 999px;
+  border: 1px solid var(--green);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* FIELDS */
+
+.field-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.field-row label {
+  flex: 1;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #d4d4d4;
+  font-size: 0.9rem;
+}
+
+/* SCORECARD GRID */
+
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+}
+
+.scorecard-header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scorecard-hole {
+  font-weight: 600;
+}
+
+.score-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #d4d4d4;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.75rem 0;
+  font-weight: 600;
+}
+
+/* ROUNDS LIST */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.round-card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.round-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.round-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* BOTTOM NAV */
+
 .bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-around;
-  background: white;
-  border-top: 2px solid var(--green);
-  padding: 0.5rem 0;
+  background: #ffffff;
+  border-top: 1px solid #d1d5db;
+  padding: 0.35rem 0;
 }
 
 .bottom-nav button {
@@ -51,4 +243,5 @@ header {
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0.2rem 0.4rem;
 }
