@@ -1,1 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ozark Invitational App</title>
 
+  <!-- App Styles -->
+  <link rel="stylesheet" href="app.css" />
+
+  <!-- Manifest = makes this installable -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#244f3c" />
+</head>
+<body>
+  <div id="app">
+    <header>Ozark Invitational</header>
+
+    <main id="screen-home" class="screen active">
+      <h1>Welcome</h1>
+      <p>This is the Ozark Invitational Mobile App.</p>
+    </main>
+
+    <main id="screen-scorecard" class="screen">
+      <h1>Scorecard</h1>
+      <p>Score entry coming soon.</p>
+    </main>
+
+    <main id="screen-rounds" class="screen">
+      <h1>My Rounds</h1>
+      <p>Saved rounds will appear here.</p>
+    </main>
+
+    <main id="screen-info" class="screen">
+      <h1>Info</h1>
+      <p>Rules, schedule, and more coming soon.</p>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-screen="home">🏠</button>
+      <button data-screen="scorecard">📝</button>
+      <button data-screen="rounds">📊</button>
+      <button data-screen="info">ℹ️</button>
+    </nav>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
