@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Player Tools – Ozark Invitational</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Personal golf lab for tracking rounds and performance – scores, fairways, greens, putts, and notes." />
+  <meta name="description" content="Player performance lab for the Ozark Invitational – per-player rounds, trends, and stats." />
 
   <!-- Shared site styles & scripts (header, buttons, etc.) -->
   <link rel="stylesheet" href="styles.css" />
@@ -34,7 +34,7 @@
     }
 
     .page-header {
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.25rem;
     }
 
     .eyebrow {
@@ -86,7 +86,7 @@
     .card-header {
       display:flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 1rem;
       margin-bottom: 0.75rem;
     }
@@ -122,6 +122,24 @@
       height: 7px;
       border-radius: 50%;
       background: #2ecc71;
+    }
+
+    .player-select-card {
+      margin-bottom: 1.25rem;
+    }
+
+    .player-select-wrap {
+      display:flex;
+      flex-direction:column;
+      gap: 0.2rem;
+      min-width: 200px;
+    }
+
+    .player-select-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
     }
 
     /* FORM */
@@ -202,6 +220,7 @@
       align-items:center;
       margin-top: 0.4rem;
       gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .muted {
@@ -284,10 +303,11 @@
 
     .metrics-top {
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content: space-between;
       gap: 0.75rem;
       margin-bottom: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .filter-chip-row {
@@ -391,7 +411,6 @@
     .delete-btn:hover {
       transform:scale(1.05);
     }
-
   </style>
 </head>
 <body>
@@ -402,10 +421,31 @@
       <div class="eyebrow">Player Lab</div>
       <div class="page-title">Player Tools & Performance Tracker</div>
       <p class="page-subtitle">
-        Log your rounds, track trends, and see how your game is changing over time.
-        Everything here is stored locally in your browser – no servers, no accounts, just your own data.
+        Select a player from your Ozark Invitational roster, log their rounds, and see how their game trends over time.
+        Data is stored locally in this browser – no servers, no accounts, just your own sandbox.
       </p>
     </header>
+
+    <!-- ACTIVE PLAYER SELECTOR (pulls from Ozark player pool in localStorage) -->
+    <section class="card player-select-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Select Player</div>
+          <div class="card-kicker">
+            Choose which player you're analyzing. The stats below will filter to this player.
+          </div>
+        </div>
+        <div class="player-select-wrap">
+          <span class="player-select-label">Active player</span>
+          <select id="activePlayer" class="filter-select">
+            <!-- Populated via JS from localStorage player pool -->
+          </select>
+        </div>
+      </div>
+      <p class="muted" id="activePlayerSummary">
+        Loading players from your Ozark Invitational roster…
+      </p>
+    </section>
 
     <section class="layout">
       <!-- LEFT: ROUND ENTRY -->
@@ -413,7 +453,9 @@
         <div class="card-header">
           <div>
             <div class="card-title">Log a Round</div>
-            <div class="card-kicker">Quick capture of the basics – you can always delete or add more later.</div>
+            <div class="card-kicker">
+              Quick capture of the basics for the active player – delete or tweak anytime.
+            </div>
           </div>
           <span class="tag-pill">
             <span class="tag-dot"></span>
@@ -487,16 +529,16 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-              <span>Save Round</span>
+              <span>Save Round for Player</span>
             </button>
             <button type="button" class="btn btn-ghost" id="clearAllBtn">
               Clear all data
             </button>
+            <span class="muted">
+              Stored under <code>ozarkPlayerRounds_v1</code> per browser.
+            </span>
           </div>
         </form>
-        <p class="muted" style="margin-top:0.4rem;">
-          Data is stored in this browser only (<code>ozarkPlayerRounds_v1</code>). Clearing it wipes everything for this page.
-        </p>
       </article>
 
       <!-- RIGHT: METRICS / SUMMARY -->
@@ -504,19 +546,22 @@
         <div class="card-header">
           <div>
             <div class="card-title">Trends & Averages</div>
-            <div class="card-kicker">Pulled from your saved rounds. Use the filter to focus on one course.</div>
+            <div class="card-kicker">
+              Pulled from rounds for the active player. Use filters to focus on one course.
+            </div>
           </div>
         </div>
 
         <div class="metrics-top">
           <div class="filter-chip-row">
-            <span class="muted">Filter by course:</span>
+            <span class="muted">Course:</span>
             <select id="courseFilter" class="filter-select">
               <option value="all">All courses</option>
             </select>
           </div>
           <span class="pill-small">
-            Rounds tracked: <span id="roundCount" style="margin-left:0.2rem;">0</span>
+            Rounds tracked for player:
+            <span id="roundCount" style="margin-left:0.2rem;">0</span>
           </span>
         </div>
 
@@ -565,7 +610,9 @@
       <div class="card-header">
         <div>
           <div class="card-title">Round Log</div>
-          <div class="card-kicker">All saved rounds in one place. Delete any that are junk or test entries.</div>
+          <div class="card-kicker">
+            All saved rounds for the active player. Delete anything that's junk or a test.
+          </div>
         </div>
       </div>
 
@@ -574,6 +621,7 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Player</th>
               <th>Course</th>
               <th>Tees</th>
               <th>Holes</th>
@@ -587,8 +635,8 @@
           </thead>
           <tbody id="roundsTableBody">
             <tr>
-              <td colspan="10" class="empty-state">
-                No rounds logged yet. Add one above to get started.
+              <td colspan="11" class="empty-state">
+                No rounds logged yet for this player. Add one above to get started.
               </td>
             </tr>
           </tbody>
@@ -600,6 +648,11 @@
   <script>
     (function() {
       const STORAGE_KEY = 'ozarkPlayerRounds_v1';
+      const PLAYER_POOL_KEY = 'ozarkPlayers_v3'; // TODO: set this to whatever key your player pool uses
+
+      let playerPool = [];
+      let playerIndex = new Map();
+      let activePlayerId = null;
 
       function loadRounds() {
         try {
@@ -616,6 +669,86 @@
 
       function saveRounds(rounds) {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rounds));
+      }
+
+      function loadPlayerPool() {
+        try {
+          const raw = window.localStorage.getItem(PLAYER_POOL_KEY);
+          if (!raw) return [];
+          const data = JSON.parse(raw);
+
+          if (Array.isArray(data)) return data;
+          if (data && Array.isArray(data.players)) return data.players;
+
+          return [];
+        } catch (e) {
+          console.warn('Failed to load player pool from localStorage', e);
+          return [];
+        }
+      }
+
+      function getPlayerDisplayName(p) {
+        const nickname = (p.nickname || '').trim();
+        const first = (p.firstName || '').trim();
+        const last = (p.lastName || '').trim();
+
+        if (nickname) return nickname;
+        const full = (first + ' ' + last).trim();
+        if (full) return full;
+        return 'Unnamed Player';
+      }
+
+      function updateActivePlayerSummary() {
+        const el = document.getElementById('activePlayerSummary');
+        if (!el) return;
+
+        const info = playerIndex.get(activePlayerId);
+        if (info) {
+          el.textContent = 'Currently viewing: ' + info.label;
+        } else {
+          el.textContent = 'No player selected. Using solo mode.';
+        }
+      }
+
+      function initPlayerSelect() {
+        const select = document.getElementById('activePlayer');
+        if (!select) return;
+
+        select.innerHTML = '';
+        playerIndex = new Map();
+
+        if (!playerPool || !playerPool.length) {
+          // Fallback "solo" mode if no roster exists
+          playerPool = [{ id: 'solo-player', firstName: 'Solo', lastName: 'Player' }];
+        }
+
+        playerPool.forEach((p, index) => {
+          const id =
+            p.id ||
+            (p.nickname && ('nick_' + p.nickname)) ||
+            ((p.firstName || 'player') + '_' + (p.lastName || index) + '_' + index);
+
+          const label = getPlayerDisplayName(p);
+          playerIndex.set(id, { label, data: p });
+
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = label;
+          select.appendChild(opt);
+        });
+
+        activePlayerId = select.value;
+        updateActivePlayerSummary();
+
+        select.addEventListener('change', function() {
+          activePlayerId = select.value;
+          updateActivePlayerSummary();
+          applyFilterAndRender();
+        });
+      }
+
+      function getActivePlayerId() {
+        return activePlayerId;
       }
 
       function formatDateForDisplay(str) {
@@ -665,7 +798,6 @@
           puttsTotal += Number(r.putts) || 0;
         });
 
-        // Recent trend (last up to 3)
         const recent = rounds.slice(-3);
         let recentAvg = null;
         if (recent.length) {
@@ -692,14 +824,16 @@
 
       function renderRoundsTable(rounds) {
         const tbody = document.getElementById('roundsTableBody');
+        if (!tbody) return;
+
         tbody.innerHTML = '';
 
         if (!rounds.length) {
           const tr = document.createElement('tr');
           const td = document.createElement('td');
-          td.colSpan = 10;
+          td.colSpan = 11;
           td.className = 'empty-state';
-          td.textContent = 'No rounds logged yet. Add one above to get started.';
+          td.textContent = 'No rounds logged yet for this player. Add one above to get started.';
           tr.appendChild(td);
           tbody.appendChild(tr);
           return;
@@ -710,6 +844,9 @@
 
           const dateTd = document.createElement('td');
           dateTd.textContent = formatDateForDisplay(r.date);
+
+          const playerTd = document.createElement('td');
+          playerTd.textContent = r.playerName || '—';
 
           const courseTd = document.createElement('td');
           courseTd.textContent = r.course || '—';
@@ -748,24 +885,39 @@
           btn.title = 'Delete this round';
           btn.addEventListener('click', () => {
             if (confirm('Delete this round?')) {
-              const rounds = loadRounds().filter(x => x.id !== r.id);
-              saveRounds(rounds);
+              const remaining = loadRounds().filter(x => x.id !== r.id);
+              saveRounds(remaining);
               applyFilterAndRender();
             }
           });
           delTd.appendChild(btn);
 
-          [dateTd, courseTd, teesTd, holesTd, scoreTd, fwTd, girTd, puttsTd, notesTd, delTd].forEach(td => tr.appendChild(td));
+          [
+            dateTd,
+            playerTd,
+            courseTd,
+            teesTd,
+            holesTd,
+            scoreTd,
+            fwTd,
+            girTd,
+            puttsTd,
+            notesTd,
+            delTd
+          ].forEach(td => tr.appendChild(td));
+
           tbody.appendChild(tr);
         });
       }
 
-      function populateCourseFilter(allRounds) {
+      function populateCourseFilter(playerRounds) {
         const select = document.getElementById('courseFilter');
+        if (!select) return;
+
         const current = select.value || 'all';
 
         const courses = Array.from(new Set(
-          allRounds
+          (playerRounds || [])
             .map(r => (r.course || '').trim())
             .filter(Boolean)
         )).sort((a,b) => a.localeCompare(b));
@@ -785,17 +937,30 @@
 
       function applyFilterAndRender() {
         const allRounds = loadRounds();
-        populateCourseFilter(allRounds);
+        const currentPlayerId = getActivePlayerId();
 
-        const courseFilter = document.getElementById('courseFilter').value;
-        const filtered = courseFilter === 'all'
-          ? allRounds
-          : allRounds.filter(r => (r.course || '').trim() === courseFilter);
+        // Filter by active player first
+        let playerRounds = allRounds;
+        if (currentPlayerId) {
+          playerRounds = allRounds.filter(r => r.playerId === currentPlayerId);
+        }
+
+        populateCourseFilter(playerRounds);
+
+        const courseFilterEl = document.getElementById('courseFilter');
+        const courseFilterValue = courseFilterEl ? courseFilterEl.value : 'all';
+
+        const filtered = courseFilterValue === 'all'
+          ? playerRounds
+          : playerRounds.filter(r => (r.course || '').trim() === courseFilterValue);
 
         const metrics = computeMetrics(filtered);
 
-        // Round count
-        document.getElementById('roundCount').textContent = metrics.count.toString();
+        // Round count (for this player, after course filter)
+        const roundCountEl = document.getElementById('roundCount');
+        if (roundCountEl) {
+          roundCountEl.textContent = metrics.count.toString();
+        }
 
         // Best score
         const bestScoreEl = document.getElementById('bestScore');
@@ -803,7 +968,10 @@
         if (metrics.bestScore != null && metrics.bestRound) {
           bestScoreEl.textContent = metrics.bestScore.toFixed(0);
           const br = metrics.bestRound;
-          bestDetailEl.textContent = `${br.course || 'Unknown course'} (${formatDateForDisplay(br.date)})`;
+          const labelParts = [];
+          if (br.course) labelParts.push(br.course);
+          if (br.date) labelParts.push(formatDateForDisplay(br.date));
+          bestDetailEl.textContent = labelParts.join(' • ') || 'Best recorded round';
         } else {
           bestScoreEl.textContent = '—';
           bestDetailEl.textContent = 'No rounds yet';
@@ -811,10 +979,12 @@
 
         // Average score
         const avgScoreEl = document.getElementById('avgScore');
-        if (metrics.avgScore != null) {
-          avgScoreEl.textContent = metrics.avgScore.toFixed(1);
-        } else {
-          avgScoreEl.textContent = '—';
+        if (avgScoreEl) {
+          if (metrics.avgScore != null) {
+            avgScoreEl.textContent = metrics.avgScore.toFixed(1);
+          } else {
+            avgScoreEl.textContent = '—';
+          }
         }
 
         // Fairways
@@ -831,20 +1001,26 @@
 
         // GIR
         const girAvgEl = document.getElementById('girAvg');
-        if (metrics.count && metrics.girTotal) {
-          girAvgEl.textContent = (metrics.girTotal / metrics.count).toFixed(1);
-        } else {
-          girAvgEl.textContent = '—';
+        if (girAvgEl) {
+          if (metrics.count && metrics.girTotal) {
+            girAvgEl.textContent = (metrics.girTotal / metrics.count).toFixed(1);
+          } else if (metrics.count && metrics.girTotal === 0) {
+            girAvgEl.textContent = '0.0';
+          } else {
+            girAvgEl.textContent = '—';
+          }
         }
 
         // Putts
         const puttsAvgEl = document.getElementById('puttsAvg');
-        if (metrics.count && metrics.puttsTotal) {
-          puttsAvgEl.textContent = (metrics.puttsTotal / metrics.count).toFixed(1);
-        } else if (metrics.count && metrics.puttsTotal === 0) {
-          puttsAvgEl.textContent = '0.0';
-        } else {
-          puttsAvgEl.textContent = '—';
+        if (puttsAvgEl) {
+          if (metrics.count && metrics.puttsTotal) {
+            puttsAvgEl.textContent = (metrics.puttsTotal / metrics.count).toFixed(1);
+          } else if (metrics.count && metrics.puttsTotal === 0) {
+            puttsAvgEl.textContent = '0.0';
+          } else {
+            puttsAvgEl.textContent = '—';
+          }
         }
 
         // Recent trend
@@ -869,66 +1045,87 @@
       }
 
       document.addEventListener('DOMContentLoaded', function() {
+        // Load player pool from your existing Ozark Invitational data
+        playerPool = loadPlayerPool();
+        initPlayerSelect();
+
         const form = document.getElementById('roundForm');
         const clearBtn = document.getElementById('clearAllBtn');
         const courseFilter = document.getElementById('courseFilter');
 
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
+        if (form) {
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-          const date = document.getElementById('date').value;
-          const course = document.getElementById('course').value.trim();
-          const tees = document.getElementById('tees').value;
-          const holes = document.getElementById('holes').value;
-          const scoreVal = document.getElementById('score').value;
+            const currentPlayerId = getActivePlayerId();
+            if (!currentPlayerId) {
+              alert('Please select a player before saving a round.');
+              return;
+            }
 
-          if (!date || !course || !tees || !holes || !scoreVal) {
-            alert('Please fill in the required fields (date, course, tees, holes, score).');
-            return;
-          }
+            const playerInfo = playerIndex.get(currentPlayerId);
+            const playerName = playerInfo ? playerInfo.label : 'Unknown Player';
 
-          const score = Number(scoreVal);
-          const fairwaysHit = Number(document.getElementById('fairwaysHit').value || 0);
-          const fairwaysTotal = Number(document.getElementById('fairwaysTotal').value || 0);
-          const gir = Number(document.getElementById('gir').value || 0);
-          const putts = Number(document.getElementById('putts').value || 0);
-          const notes = document.getElementById('notes').value.trim();
+            const date = document.getElementById('date').value;
+            const course = document.getElementById('course').value.trim();
+            const tees = document.getElementById('tees').value;
+            const holes = document.getElementById('holes').value;
+            const scoreVal = document.getElementById('score').value;
 
-          const rounds = loadRounds();
-          const newRound = {
-            id: 'r_' + Date.now() + '_' + Math.floor(Math.random()*9999),
-            date,
-            course,
-            tees,
-            holes,
-            score,
-            fairwaysHit,
-            fairwaysTotal,
-            gir,
-            putts,
-            notes
-          };
+            if (!date || !course || !tees || !holes || !scoreVal) {
+              alert('Please fill in the required fields (date, course, tees, holes, score).');
+              return;
+            }
 
-          rounds.push(newRound);
-          saveRounds(rounds);
+            const score = Number(scoreVal);
+            const fairwaysHit = Number(document.getElementById('fairwaysHit').value || 0);
+            const fairwaysTotal = Number(document.getElementById('fairwaysTotal').value || 0);
+            const gir = Number(document.getElementById('gir').value || 0);
+            const putts = Number(document.getElementById('putts').value || 0);
+            const notes = document.getElementById('notes').value.trim();
 
-          form.reset();
-          applyFilterAndRender();
-        });
+            const rounds = loadRounds();
+            const newRound = {
+              id: 'r_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
+              playerId: currentPlayerId,
+              playerName,
+              date,
+              course,
+              tees,
+              holes,
+              score,
+              fairwaysHit,
+              fairwaysTotal,
+              gir,
+              putts,
+              notes
+            };
 
-        clearBtn.addEventListener('click', function() {
-          if (!confirm('This will permanently remove all saved rounds for this page in this browser. Continue?')) {
-            return;
-          }
-          window.localStorage.removeItem(STORAGE_KEY);
-          applyFilterAndRender();
-        });
+            rounds.push(newRound);
+            saveRounds(rounds);
 
-        courseFilter.addEventListener('change', function() {
-          applyFilterAndRender();
-        });
+            form.reset();
+            applyFilterAndRender();
+          });
+        }
 
-        // Initialize
+        if (clearBtn) {
+          clearBtn.addEventListener('click', function() {
+            if (!confirm('This will permanently remove all saved rounds (for all players) in this browser. Continue?')) {
+              return;
+            }
+            window.localStorage.removeItem(STORAGE_KEY);
+            applyFilterAndRender();
+          });
+        }
+
+        if (courseFilter) {
+          courseFilter.addEventListener('change', function() {
+            applyFilterAndRender();
+          });
+        }
+
+        // Initial render
         applyFilterAndRender();
       });
     })();
