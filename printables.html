@@ -29,30 +29,36 @@
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--cream);
+      background: radial-gradient(circle at top, #fdf7eb 0, #f3efe7 40%, #e8decb 100%);
       color: var(--ink);
     }
 
-    /* main content wrapper – extra top padding so header doesn't overlap */
+    body {
+      min-height: 100vh;
+    }
+
+    /* MAIN WRAPPER – top padding tuned to fit header (192px in your range) */
     main {
-      max-width: 1120px;
+      max-width: 9.5in; /* lines up well with Letter width when printing */
       margin: 0 auto;
-      padding: 225px 1rem 2rem; /* bump this up/down if header overlap happens */
+      padding: 192px 0.75rem 2.25rem; /* top padding 185–205px range */
     }
 
     @media (max-width: 900px) {
       main {
-        padding-top: 110px;
+        padding-top: 198px; /* still in 185–205, gives a bit more on small screens */
+        padding-inline: 1rem;
       }
     }
 
     .no-print {
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
       padding: 0.75rem 1rem;
       border-radius: 10px;
       background: #f3ead4;
       border: 1px solid #e0d4b6;
       font-size: 0.9rem;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.04);
     }
 
     .no-print strong {
@@ -69,7 +75,7 @@
     h1 {
       font-size: 1.25rem;
       color: var(--green-dark);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     h2 {
@@ -85,29 +91,33 @@
     }
 
     .section {
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     .section-header {
       display: flex;
-      align-items: baseline;
+      align-items: flex-end;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
-      gap: 1rem;
+      gap: 1.25rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
     .section-header p {
       margin: 0;
       font-size: 0.85rem;
       color: var(--muted);
+      max-width: 16rem;
+      line-height: 1.5;
     }
 
     /* ===== MATCH CARDS ===== */
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(3.3in, 1fr));
-      gap: 0.5in;
+      grid-template-columns: repeat(auto-fit, minmax(3.4in, 1fr));
+      gap: 1.1rem;
       justify-content: center;
     }
 
@@ -115,7 +125,7 @@
       background: #fff;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      padding: 0.5in 0.45in;
+      padding: 0.45in 0.45in;
       box-shadow: 0 10px 25px rgba(0,0,0,0.06);
       display: flex;
       flex-direction: column;
@@ -128,7 +138,7 @@
     .match-card::before {
       content: "Ozark Invitational";
       position: absolute;
-      top: 0.3in;
+      top: 0.22in;
       right: 0.45in;
       font-size: 0.55rem;
       letter-spacing: 0.16em;
@@ -137,34 +147,34 @@
     }
 
     .match-card-header {
-      margin-bottom: 0.35in;
+      margin-bottom: 0.3in;
     }
 
     .match-meta {
       font-size: 0.75rem;
       color: var(--muted);
-      margin-top: 0.25rem;
+      margin-top: 0.18rem;
       line-height: 1.4;
     }
 
     .match-meta span {
       display: inline-block;
-      margin-right: 0.75rem;
+      margin-right: 0.55rem;
     }
 
     .teams-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-top: 0.35in;
+      align-items: flex-start;
+      margin-top: 0.3in;
       margin-bottom: 0.25in;
-      gap: 0.35in;
+      gap: 0.4in;
     }
 
     .team-block {
       flex: 1;
       border-top: 2px solid var(--green);
-      padding-top: 0.15in;
+      padding-top: 0.12in;
     }
 
     .team-name {
@@ -172,7 +182,7 @@
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 0.1in;
+      margin-bottom: 0.08in;
     }
 
     .team-name.ozark {
@@ -186,7 +196,7 @@
     .players-list {
       font-size: 0.8rem;
       line-height: 1.5;
-      min-height: 0.8in;
+      min-height: 0.7in;
     }
 
     .vs-label {
@@ -196,10 +206,11 @@
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
+      padding-top: 0.05in;
     }
 
     .card-lines {
-      margin-top: 0.15in;
+      margin-top: 0.12in;
       font-size: 0.75rem;
     }
 
@@ -208,7 +219,7 @@
       justify-content: space-between;
       align-items: flex-end;
       gap: 0.25in;
-      margin-bottom: 0.1in;
+      margin-bottom: 0.08in;
     }
 
     .card-line-label {
@@ -227,15 +238,17 @@
     }
 
     .result-row {
-      margin-top: 0.3in;
+      margin-top: 0.28in;
       border-top: 1px solid var(--line);
-      padding-top: 0.2in;
+      padding-top: 0.18in;
     }
 
     .result-options {
       display: flex;
       gap: 0.25in;
       font-size: 0.75rem;
+      margin-top: 0.08in;
+      flex-wrap: wrap;
     }
 
     .result-options span {
@@ -254,14 +267,19 @@
 
     /* ===== CAPTAIN SESSION SUMMARY ===== */
 
+    .captain-sheet-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
     .captain-sheet {
       background: #fff;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      padding: 0.6in;
+      padding: 0.55in 0.6in;
       box-shadow: 0 10px 25px rgba(0,0,0,0.06);
       max-width: 8.5in;
-      margin: 0 auto;
+      width: 100%;
       page-break-inside: avoid;
     }
 
@@ -270,7 +288,7 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 0.5in;
-      margin-bottom: 0.35in;
+      margin-bottom: 0.3in;
     }
 
     .captain-header-left h1 {
@@ -288,6 +306,7 @@
       font-size: 0.8rem;
       color: var(--muted);
       text-align: right;
+      min-width: 2.4in;
     }
 
     .captain-header-right .label {
@@ -299,8 +318,8 @@
 
     .captain-header-right .line {
       border-bottom: 1px solid var(--line);
-      min-width: 2.2in;
       height: 0.18in;
+      margin-bottom: 0.16in;
     }
 
     .session-table {
@@ -312,7 +331,7 @@
     .session-table th,
     .session-table td {
       border-bottom: 1px solid var(--line);
-      padding: 0.18in 0.08in;
+      padding: 0.13in 0.06in;
       vertical-align: middle;
     }
 
@@ -332,19 +351,19 @@
 
     .session-table th:nth-child(2),
     .session-table td:nth-child(2) {
-      width: 1in;
+      width: 0.8in;
     }
 
     .session-table th:nth-child(3),
     .session-table td:nth-child(3),
     .session-table th:nth-child(4),
     .session-table td:nth-child(4) {
-      width: 2.2in;
+      width: 2.1in;
     }
 
     .session-table th:nth-child(5),
     .session-table td:nth-child(5) {
-      width: 1.3in;
+      width: 1.4in;
       text-align: center;
     }
 
@@ -375,7 +394,7 @@
     }
 
     .session-footer {
-      margin-top: 0.35in;
+      margin-top: 0.32in;
       display: flex;
       justify-content: space-between;
       gap: 0.5in;
@@ -402,20 +421,19 @@
     /* ===== PRINT STYLES ===== */
 
     @media print {
-      body {
-        padding: 0.3in;
+      html, body {
         background: #fff;
       }
 
-      /* hide header + on-screen helper block when printing */
+      /* hide header + on-screen helper when printing */
       #site-header,
       .no-print {
         display: none !important;
       }
 
       main {
-        padding: 0;
-        max-width: unset;
+        max-width: none;
+        padding: 0.2in 0.4in 0.3in;
       }
 
       @page {
@@ -429,6 +447,12 @@
 
       .section:last-of-type {
         page-break-after: auto;
+      }
+
+      /* Print-specific tuning for cards: 2-up layout */
+      .cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4in;
       }
 
       .match-card,
@@ -526,7 +550,7 @@
           </div>
         </article>
 
-        <!-- MATCH CARD TEMPLATE #2 (SECOND COPY ON SAME PAGE) -->
+        <!-- MATCH CARD TEMPLATE #2 -->
         <article class="match-card">
           <div class="match-card-header">
             <h3>Day / Session</h3>
@@ -605,170 +629,171 @@
         <p>Use one sheet per session (e.g., Day 1 – Best Ball) to track all match results and team points at a glance.</p>
       </div>
 
-      <article class="captain-sheet">
-        <header class="captain-header">
-          <div class="captain-header-left">
-            <div class="captain-subtitle">Ozark Invitational</div>
-            <h1>Session Summary</h1>
-            <div class="match-meta">
-              Day: __________________ &nbsp;&nbsp; Session: __________________ (Format: __________________)
+      <div class="captain-sheet-wrapper">
+        <article class="captain-sheet">
+          <header class="captain-header">
+            <div class="captain-header-left">
+              <div class="captain-subtitle">Ozark Invitational</div>
+              <h1>Session Summary</h1>
+              <div class="match-meta">
+                Day: __________________ &nbsp;&nbsp; Session: __________________ (Format: __________________)
+              </div>
+            </div>
+            <div class="captain-header-right">
+              <div class="label">Captain</div>
+              <div class="line"></div>
+              <div class="label">Course / Notes</div>
+              <div class="line"></div>
+            </div>
+          </header>
+
+          <table class="session-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tee</th>
+                <th>Team Ozark</th>
+                <th>Team Valley</th>
+                <th>Result</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Repeat / extend rows as needed -->
+              <tr>
+                <td class="center">1</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+              <tr>
+                <td class="center">2</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+              <tr>
+                <td class="center">3</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+              <tr>
+                <td class="center">4</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+              <tr>
+                <td class="center">5</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+              <tr>
+                <td class="center">6</td>
+                <td>______</td>
+                <td>________________________________</td>
+                <td>________________________________</td>
+                <td class="checkbox-cell">
+                  <span class="checkbox-inline">
+                    <span class="box"></span> O
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> H
+                  </span>
+                  <span class="checkbox-inline">
+                    <span class="box"></span> V
+                  </span>
+                </td>
+                <td class="center">O: ___ &nbsp; V: ___</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="session-footer">
+            <div class="session-footer-block">
+              <div class="session-footer-label">Session points – Team Ozark</div>
+              <div class="session-footer-line"></div>
+            </div>
+            <div class="session-footer-block">
+              <div class="session-footer-label">Session points – Team Valley</div>
+              <div class="session-footer-line"></div>
             </div>
           </div>
-          <div class="captain-header-right">
-            <div class="label">Captain</div>
-            <div class="line"></div>
-            <div style="height: 0.1in"></div>
-            <div class="label">Course / Notes</div>
-            <div class="line"></div>
-          </div>
-        </header>
 
-        <table class="session-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Tee</th>
-              <th>Team Ozark</th>
-              <th>Team Valley</th>
-              <th>Result</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Repeat / extend rows as needed -->
-            <tr>
-              <td class="center">1</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-            <tr>
-              <td class="center">2</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-            <tr>
-              <td class="center">3</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-            <tr>
-              <td class="center">4</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-            <tr>
-              <td class="center">5</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-            <tr>
-              <td class="center">6</td>
-              <td>______</td>
-              <td>________________________________</td>
-              <td>________________________________</td>
-              <td class="checkbox-cell">
-                <span class="checkbox-inline">
-                  <span class="box"></span> O
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> H
-                </span>
-                <span class="checkbox-inline">
-                  <span class="box"></span> V
-                </span>
-              </td>
-              <td class="center">O: ___ &nbsp; V: ___</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="session-footer">
-          <div class="session-footer-block">
-            <div class="session-footer-label">Session points – Team Ozark</div>
-            <div class="session-footer-line"></div>
+          <div class="session-footer" style="margin-top: 0.25in;">
+            <div class="session-footer-block">
+              <div class="session-footer-label">Cumulative – Team Ozark</div>
+              <div class="session-footer-line"></div>
+            </div>
+            <div class="session-footer-block">
+              <div class="session-footer-label">Cumulative – Team Valley</div>
+              <div class="session-footer-line"></div>
+            </div>
           </div>
-          <div class="session-footer-block">
-            <div class="session-footer-label">Session points – Team Valley</div>
-            <div class="session-footer-line"></div>
-          </div>
-        </div>
-
-        <div class="session-footer" style="margin-top: 0.25in;">
-          <div class="session-footer-block">
-            <div class="session-footer-label">Cumulative – Team Ozark</div>
-            <div class="session-footer-line"></div>
-          </div>
-          <div class="session-footer-block">
-            <div class="session-footer-label">Cumulative – Team Valley</div>
-            <div class="session-footer-line"></div>
-          </div>
-        </div>
-      </article>
+        </article>
+      </div>
     </section>
   </main>
 
