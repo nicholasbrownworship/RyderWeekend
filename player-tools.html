@@ -414,7 +414,7 @@
   </style>
 </head>
 <body>
-  <!-- header.html gets injected here by script.js like your other pages -->
+  <!-- This is where header.html will be injected -->
   <div id="site-header"></div>
 
   <main>
@@ -646,6 +646,7 @@
     </section>
   </main>
 
+  <!-- PERFORMANCE ENGINE SCRIPT + explicit header loader -->
   <script>
     (function() {
       const STORAGE_KEY = 'ozarkPlayerRounds_v1';
@@ -938,7 +939,7 @@
 
       function applyFilterAndRender() {
         const allRounds = loadRounds();
-        const currentPlayerId = getActivePlayerId();
+        const currentPlayerId = activePlayerId;
 
         let playerRounds = allRounds;
         if (currentPlayerId) {
@@ -1037,6 +1038,18 @@
       }
 
       document.addEventListener('DOMContentLoaded', function() {
+        // 1) Explicitly load header.html into #site-header
+        const headerHost = document.getElementById('site-header');
+        if (headerHost) {
+          fetch('header.html')
+            .then(r => r.text())
+            .then(html => {
+              headerHost.innerHTML = html;
+            })
+            .catch(err => console.warn('Failed to load header.html', err));
+        }
+
+        // 2) Init player pool + performance engine
         playerPool = loadPlayerPool();
         initPlayerSelect();
 
@@ -1048,7 +1061,7 @@
           form.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const currentPlayerId = getActivePlayerId();
+            const currentPlayerId = activePlayerId;
             if (!currentPlayerId) {
               alert('Please select a player before saving a round.');
               return;
