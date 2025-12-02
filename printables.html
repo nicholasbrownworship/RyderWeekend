@@ -37,16 +37,16 @@
       min-height: 100vh;
     }
 
-    /* MAIN WRAPPER – top padding tuned to fit header (192px in your range) */
+    /* MAIN WRAPPER – top padding tuned to fit header (192px) */
     main {
-      max-width: 9.5in; /* lines up well with Letter width when printing */
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 192px 0.75rem 2.25rem; /* top padding 185–205px range */
+      padding: 192px 1rem 2.5rem; /* 192px is in your 185–205 window */
     }
 
     @media (max-width: 900px) {
       main {
-        padding-top: 198px; /* still in 185–205, gives a bit more on small screens */
+        padding-top: 198px; /* still in your safe range */
         padding-inline: 1rem;
       }
     }
@@ -108,16 +108,16 @@
       margin: 0;
       font-size: 0.85rem;
       color: var(--muted);
-      max-width: 16rem;
+      max-width: 18rem;
       line-height: 1.5;
     }
 
-    /* ===== MATCH CARDS ===== */
+    /* ===== MATCH CARDS (SCREEN) ===== */
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(3.4in, 1fr));
-      gap: 1.1rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
       justify-content: center;
     }
 
@@ -125,56 +125,58 @@
       background: #fff;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      padding: 0.45in 0.45in;
+      padding: 24px 22px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.06);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 4.5in; /* roughly 4x6 card */
+      min-height: 340px;
       page-break-inside: avoid;
       position: relative;
+      overflow: hidden; /* keep all text visually inside card */
     }
 
     .match-card::before {
       content: "Ozark Invitational";
       position: absolute;
-      top: 0.22in;
-      right: 0.45in;
+      top: 14px;
+      right: 22px;
       font-size: 0.55rem;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--muted);
+      opacity: 0.9;
     }
 
     .match-card-header {
-      margin-bottom: 0.3in;
+      margin-bottom: 16px;
     }
 
     .match-meta {
       font-size: 0.75rem;
       color: var(--muted);
-      margin-top: 0.18rem;
+      margin-top: 4px;
       line-height: 1.4;
     }
 
     .match-meta span {
       display: inline-block;
-      margin-right: 0.55rem;
+      margin-right: 10px;
     }
 
     .teams-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-top: 0.3in;
-      margin-bottom: 0.25in;
-      gap: 0.4in;
+      margin-top: 16px;
+      margin-bottom: 12px;
+      gap: 18px;
     }
 
     .team-block {
       flex: 1;
       border-top: 2px solid var(--green);
-      padding-top: 0.12in;
+      padding-top: 8px;
     }
 
     .team-name {
@@ -182,7 +184,7 @@
       font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 0.08in;
+      margin-bottom: 4px;
     }
 
     .team-name.ozark {
@@ -196,7 +198,8 @@
     .players-list {
       font-size: 0.8rem;
       line-height: 1.5;
-      min-height: 0.7in;
+      min-height: 52px;
+      word-wrap: break-word;
     }
 
     .vs-label {
@@ -206,11 +209,12 @@
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
-      padding-top: 0.05in;
+      padding-top: 6px;
+      white-space: nowrap;
     }
 
     .card-lines {
-      margin-top: 0.12in;
+      margin-top: 8px;
       font-size: 0.75rem;
     }
 
@@ -218,8 +222,8 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      gap: 0.25in;
-      margin-bottom: 0.08in;
+      gap: 10px;
+      margin-bottom: 6px;
     }
 
     .card-line-label {
@@ -233,39 +237,40 @@
     .card-line-blank {
       border-bottom: 1px solid var(--line);
       flex: 1;
-      min-width: 1.5in;
-      height: 0.18in;
+      min-width: 120px;
+      height: 14px;
     }
 
     .result-row {
-      margin-top: 0.28in;
+      margin-top: 14px;
       border-top: 1px solid var(--line);
-      padding-top: 0.18in;
+      padding-top: 10px;
     }
 
     .result-options {
       display: flex;
-      gap: 0.25in;
+      gap: 12px;
       font-size: 0.75rem;
-      margin-top: 0.08in;
+      margin-top: 6px;
       flex-wrap: wrap;
     }
 
     .result-options span {
       display: flex;
       align-items: center;
-      gap: 0.15in;
+      gap: 6px;
       white-space: nowrap;
     }
 
     .box {
-      width: 0.18in;
-      height: 0.18in;
+      width: 12px;
+      height: 12px;
       border: 1px solid var(--line);
       border-radius: 3px;
+      flex-shrink: 0;
     }
 
-    /* ===== CAPTAIN SESSION SUMMARY ===== */
+    /* ===== CAPTAIN SESSION SUMMARY (SCREEN) ===== */
 
     .captain-sheet-wrapper {
       display: flex;
@@ -276,9 +281,9 @@
       background: #fff;
       border-radius: var(--radius);
       border: 1px solid var(--line);
-      padding: 0.55in 0.6in;
+      padding: 32px 32px 26px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-      max-width: 8.5in;
+      max-width: 900px;
       width: 100%;
       page-break-inside: avoid;
     }
@@ -287,12 +292,12 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      gap: 0.5in;
-      margin-bottom: 0.3in;
+      gap: 32px;
+      margin-bottom: 20px;
     }
 
     .captain-header-left h1 {
-      margin-bottom: 0.15rem;
+      margin-bottom: 4px;
     }
 
     .captain-subtitle {
@@ -306,20 +311,20 @@
       font-size: 0.8rem;
       color: var(--muted);
       text-align: right;
-      min-width: 2.4in;
+      min-width: 200px;
     }
 
     .captain-header-right .label {
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-size: 0.7rem;
-      margin-bottom: 0.1rem;
+      margin-bottom: 3px;
     }
 
     .captain-header-right .line {
       border-bottom: 1px solid var(--line);
-      height: 0.18in;
-      margin-bottom: 0.16in;
+      height: 16px;
+      margin-bottom: 12px;
     }
 
     .session-table {
@@ -331,7 +336,7 @@
     .session-table th,
     .session-table td {
       border-bottom: 1px solid var(--line);
-      padding: 0.13in 0.06in;
+      padding: 8px 4px;
       vertical-align: middle;
     }
 
@@ -345,31 +350,31 @@
 
     .session-table th:nth-child(1),
     .session-table td:nth-child(1) {
-      width: 0.5in;
+      width: 40px;
       text-align: center;
     }
 
     .session-table th:nth-child(2),
     .session-table td:nth-child(2) {
-      width: 0.8in;
+      width: 60px;
     }
 
     .session-table th:nth-child(3),
     .session-table td:nth-child(3),
     .session-table th:nth-child(4),
     .session-table td:nth-child(4) {
-      width: 2.1in;
+      width: 190px;
     }
 
     .session-table th:nth-child(5),
     .session-table td:nth-child(5) {
-      width: 1.4in;
+      width: 150px;
       text-align: center;
     }
 
     .session-table th:nth-child(6),
     .session-table td:nth-child(6) {
-      width: 1.3in;
+      width: 130px;
       text-align: center;
     }
 
@@ -379,25 +384,26 @@
 
     .checkbox-cell {
       font-size: 0.7rem;
+      white-space: nowrap;
     }
 
     .checkbox-inline {
       display: inline-flex;
       align-items: center;
-      gap: 0.1in;
-      margin-right: 0.08in;
+      gap: 4px;
+      margin-right: 6px;
     }
 
     .checkbox-inline .box {
-      width: 0.15in;
-      height: 0.15in;
+      width: 11px;
+      height: 11px;
     }
 
     .session-footer {
-      margin-top: 0.32in;
+      margin-top: 18px;
       display: flex;
       justify-content: space-between;
-      gap: 0.5in;
+      gap: 24px;
       font-size: 0.75rem;
     }
 
@@ -410,12 +416,12 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--muted);
-      margin-bottom: 0.05in;
+      margin-bottom: 4px;
     }
 
     .session-footer-line {
       border-bottom: 1px solid var(--line);
-      height: 0.2in;
+      height: 18px;
     }
 
     /* ===== PRINT STYLES ===== */
@@ -449,15 +455,27 @@
         page-break-after: auto;
       }
 
-      /* Print-specific tuning for cards: 2-up layout */
+      /* Print-specific sizing for cards: 2-up 4x6ish */
       .cards-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.4in;
       }
 
-      .match-card,
+      .match-card {
+        box-shadow: none;
+        padding: 0.45in 0.45in;
+        min-height: 4.5in;
+      }
+
+      .match-card::before {
+        top: 0.25in;
+        right: 0.45in;
+      }
+
       .captain-sheet {
         box-shadow: none;
+        padding: 0.55in 0.6in 0.45in;
+        max-width: 8.5in;
       }
     }
   </style>
