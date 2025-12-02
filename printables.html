@@ -19,6 +19,9 @@
       --muted: #6b7280;
       --radius: 12px;
       --line: #ddd1b0;
+
+      --ozark: #1f9f5a;
+      --valley: #2678c2;
     }
 
     * {
@@ -37,28 +40,44 @@
       min-height: 100vh;
     }
 
-    /* MAIN WRAPPER – top padding tuned to fit header (192px) */
+    /* MAIN WRAPPER – top padding tuned to fit header (192px / 198px) */
     main {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 192px 1rem 2.5rem; /* 192px is in your 185–205 window */
+      padding: 192px 1rem 2.75rem; /* stays in your 185–205 window */
     }
 
     @media (max-width: 900px) {
       main {
-        padding-top: 198px; /* still in your safe range */
+        padding-top: 198px; /* also in your window */
         padding-inline: 1rem;
       }
     }
 
     .no-print {
-      margin-bottom: 1.25rem;
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 12px;
       background: #f3ead4;
       border: 1px solid #e0d4b6;
       font-size: 0.9rem;
       box-shadow: 0 8px 18px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .no-print-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      background: #f9f3e1;
+      color: var(--green-dark);
     }
 
     .no-print strong {
@@ -68,30 +87,30 @@
     h1, h2, h3 {
       margin: 0;
       font-weight: 600;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     h1 {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       color: var(--green-dark);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.25rem;
     }
 
     h2 {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: var(--muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
     h3 {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       margin-bottom: 0.35rem;
     }
 
     .section {
-      margin-bottom: 2.5rem;
+      margin-bottom: 2.75rem;
     }
 
     .section-header {
@@ -101,12 +120,25 @@
       gap: 1.25rem;
       margin-bottom: 1rem;
       padding-bottom: 0.4rem;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .section-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .section-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
     }
 
     .section-header p {
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: var(--muted);
       max-width: 18rem;
       line-height: 1.5;
@@ -117,113 +149,184 @@
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.25rem;
+      gap: 1.5rem;
       justify-content: center;
     }
 
     .match-card {
       background: #fff;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      padding: 24px 22px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+      border-radius: 16px;
+      border: 1px solid rgba(221, 209, 176, 0.85);
+      padding: 18px 20px 16px;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.05),
+        0 0 0 1px rgba(255,255,255,0.8) inset;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 340px;
+      min-height: 360px;
       page-break-inside: avoid;
       position: relative;
       overflow: hidden; /* keep all text visually inside card */
+      background-image:
+        linear-gradient(135deg, rgba(209,161,75,0.07), transparent 55%);
     }
 
-    .match-card::before {
-      content: "Ozark Invitational";
-      position: absolute;
-      top: 14px;
-      right: 22px;
-      font-size: 0.55rem;
-      letter-spacing: 0.16em;
+    /* Crest / lockup at top */
+    .match-card-headband {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(221, 209, 176, 0.7);
+      margin-bottom: 0.35rem;
+    }
+
+    .match-brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .match-brand-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(36,79,60,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      background: radial-gradient(circle at 30% 0, #fdf7eb 0, #f0e4cc 90%);
+    }
+
+    .match-brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.08rem;
+    }
+
+    .match-brand-title {
+      font-size: 0.7rem;
       text-transform: uppercase;
+      letter-spacing: 0.16em;
       color: var(--muted);
-      opacity: 0.9;
+    }
+
+    .match-brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--ink);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .match-card-tag {
+      font-size: 0.7rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(252,248,238,0.9);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .match-card-body {
+      margin-top: 0.45rem;
     }
 
     .match-card-header {
-      margin-bottom: 16px;
+      margin-bottom: 0.4rem;
     }
 
-    .match-meta {
+    .match-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
       font-size: 0.75rem;
       color: var(--muted);
-      margin-top: 4px;
-      line-height: 1.4;
+      margin-top: 0.25rem;
+    }
+
+    .match-meta-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-right: 0.25rem;
     }
 
     .match-meta span {
-      display: inline-block;
-      margin-right: 10px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.2rem;
     }
 
     .teams-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-top: 16px;
-      margin-bottom: 12px;
-      gap: 18px;
+      margin-top: 0.6rem;
+      margin-bottom: 0.35rem;
+      gap: 1.25rem;
     }
 
     .team-block {
       flex: 1;
       border-top: 2px solid var(--green);
-      padding-top: 8px;
+      padding-top: 0.4rem;
     }
 
     .team-name {
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-size: 0.86rem;
+      font-weight: 650;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 0.15rem;
     }
 
     .team-name.ozark {
-      color: #1f9f5a;
+      color: var(--ozark);
     }
 
     .team-name.valley {
-      color: #2678c2;
+      color: var(--valley);
     }
 
     .players-list {
       font-size: 0.8rem;
       line-height: 1.5;
-      min-height: 52px;
+      min-height: 2.1em;
       word-wrap: break-word;
     }
 
     .vs-label {
       font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
-      padding-top: 6px;
+      padding-top: 0.75rem;
       white-space: nowrap;
     }
 
     .card-lines {
-      margin-top: 8px;
+      margin-top: 0.35rem;
       font-size: 0.75rem;
+      border-top: 1px dashed rgba(221, 209, 176, 0.9);
+      padding-top: 0.35rem;
     }
 
     .card-line {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      gap: 10px;
-      margin-bottom: 6px;
+      gap: 0.6rem;
+      margin-bottom: 0.3rem;
     }
 
     .card-line-label {
@@ -238,27 +341,34 @@
       border-bottom: 1px solid var(--line);
       flex: 1;
       min-width: 120px;
-      height: 14px;
+      height: 15px;
     }
 
     .result-row {
-      margin-top: 14px;
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
+      margin-top: 0.4rem;
+      border-top: 1px solid rgba(221,209,176,0.9);
+      padding-top: 0.35rem;
+    }
+
+    .result-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.6rem;
+      margin-bottom: 0.25rem;
     }
 
     .result-options {
       display: flex;
-      gap: 12px;
+      gap: 0.8rem;
       font-size: 0.75rem;
-      margin-top: 6px;
       flex-wrap: wrap;
     }
 
     .result-options span {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 0.3rem;
       white-space: nowrap;
     }
 
@@ -279,21 +389,27 @@
 
     .captain-sheet {
       background: #fff;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      padding: 32px 32px 26px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+      border-radius: 16px;
+      border: 1px solid rgba(221, 209, 176, 0.9);
+      padding: 28px 30px 24px;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.05),
+        0 0 0 1px rgba(255,255,255,0.8) inset;
       max-width: 900px;
       width: 100%;
       page-break-inside: avoid;
+      background-image:
+        linear-gradient(135deg, rgba(209,161,75,0.06), transparent 55%);
     }
 
     .captain-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 32px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(221,209,176,0.8);
+      padding-bottom: 0.4rem;
     }
 
     .captain-header-left h1 {
@@ -301,42 +417,53 @@
     }
 
     .captain-subtitle {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.16em;
       color: var(--muted);
+    }
+
+    .captain-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
     }
 
     .captain-header-right {
       font-size: 0.8rem;
       color: var(--muted);
       text-align: right;
-      min-width: 200px;
+      min-width: 220px;
     }
 
     .captain-header-right .label {
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-size: 0.7rem;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
 
     .captain-header-right .line {
       border-bottom: 1px solid var(--line);
       height: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .session-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.75rem;
+      margin-top: 0.3rem;
+    }
+
+    .session-table thead {
+      background: #f6efe1;
     }
 
     .session-table th,
     .session-table td {
       border-bottom: 1px solid var(--line);
-      padding: 8px 4px;
+      padding: 7px 4px;
       vertical-align: middle;
     }
 
@@ -376,6 +503,10 @@
     .session-table td:nth-child(6) {
       width: 130px;
       text-align: center;
+    }
+
+    .session-table tbody tr:nth-child(odd) {
+      background: #fdf9ef;
     }
 
     .center {
@@ -463,13 +594,9 @@
 
       .match-card {
         box-shadow: none;
-        padding: 0.45in 0.45in;
-        min-height: 4.5in;
-      }
-
-      .match-card::before {
-        top: 0.25in;
-        right: 0.45in;
+        padding: 0.45in 0.45in 0.35in;
+        min-height: 4.4in;
+        border-radius: 14px;
       }
 
       .captain-sheet {
@@ -486,16 +613,21 @@
 
   <main>
     <div class="no-print">
-      <strong>How to use this page:</strong> Print on US Letter paper (card stock works great), then cut along natural card edges.
-      Duplicate the match card blocks in the HTML for as many matches as you need. Fill in by hand on the course.
+      <div class="no-print-icon">📄</div>
+      <div>
+        <strong>How to use this page:</strong>
+        Print on US Letter paper (card stock works great), then cut along natural card edges.
+        Duplicate the match card blocks in the HTML for as many matches as you need. Fill in by hand on the course.
+      </div>
     </div>
 
     <!-- ========== SECTION 1: MATCH CARDS ========== -->
     <section class="section">
       <div class="section-header">
-        <div>
+        <div class="section-header-main">
+          <div class="section-tag">Match Materials</div>
           <h1>Match Cards</h1>
-          <h2>Per-group cards for captains & players</h2>
+          <h2>Per-group cards for captains &amp; players</h2>
         </div>
         <p>Duplicate these in the HTML for each match and pre-fill names/tee times before printing if you’d like.</p>
       </div>
@@ -503,66 +635,77 @@
       <div class="cards-grid">
         <!-- MATCH CARD TEMPLATE #1 -->
         <article class="match-card">
-          <div class="match-card-header">
-            <h3>Day / Session</h3>
-            <div class="match-meta">
-              <span>Day: ________</span>
-              <span>Session: __________________</span>
+          <header class="match-card-headband">
+            <div class="match-brand-lockup">
+              <div class="match-brand-mark">OI</div>
+              <div class="match-brand-text">
+                <div class="match-brand-title">Ozark Invitational</div>
+                <div class="match-brand-subtitle">Match Card</div>
+              </div>
             </div>
-            <div class="match-meta">
-              <span>Format: __________________</span>
-              <span>Tee Time: ________</span>
-            </div>
-            <div class="match-meta">
-              <span>Match #: ________</span>
-            </div>
-          </div>
+            <div class="match-card-tag">Captain Copy</div>
+          </header>
 
-          <div>
-            <div class="teams-row">
-              <div class="team-block">
-                <div class="team-name ozark">Team Ozark</div>
-                <div class="players-list">
-                  1) ___________________________<br />
-                  2) ___________________________
+          <div class="match-card-body">
+            <div class="match-card-header">
+              <h3>Day / Session</h3>
+              <div class="match-meta-row">
+                <span><span class="match-meta-label">Day</span> ________</span>
+                <span><span class="match-meta-label">Session</span> __________________</span>
+              </div>
+              <div class="match-meta-row">
+                <span><span class="match-meta-label">Format</span> __________________</span>
+                <span><span class="match-meta-label">Tee Time</span> ________</span>
+                <span><span class="match-meta-label">Match #</span> ________</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="teams-row">
+                <div class="team-block">
+                  <div class="team-name ozark">Team Ozark</div>
+                  <div class="players-list">
+                    1) ___________________________<br />
+                    2) ___________________________
+                  </div>
+                </div>
+
+                <div class="vs-label">vs</div>
+
+                <div class="team-block">
+                  <div class="team-name valley">Team Valley</div>
+                  <div class="players-list">
+                    1) ___________________________<br />
+                    2) ___________________________
+                  </div>
                 </div>
               </div>
 
-              <div class="vs-label">vs</div>
-
-              <div class="team-block">
-                <div class="team-name valley">Team Valley</div>
-                <div class="players-list">
-                  1) ___________________________<br />
-                  2) ___________________________
+              <div class="card-lines">
+                <div class="card-line">
+                  <div class="card-line-label">Front 9 Notes</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="card-line">
+                  <div class="card-line-label">Back 9 Notes</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="card-line">
+                  <div class="card-line-label">Key Holes</div>
+                  <div class="card-line-blank"></div>
                 </div>
               </div>
-            </div>
 
-            <div class="card-lines">
-              <div class="card-line">
-                <div class="card-line-label">Front 9 Notes</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="card-line">
-                <div class="card-line-label">Back 9 Notes</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="card-line">
-                <div class="card-line-label">Key Holes</div>
-                <div class="card-line-blank"></div>
-              </div>
-            </div>
-
-            <div class="result-row">
-              <div class="card-line">
-                <div class="card-line-label">Final Result</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="result-options">
-                <span><span class="box"></span> Ozark win</span>
-                <span><span class="box"></span> Halved</span>
-                <span><span class="box"></span> Valley win</span>
+              <div class="result-row">
+                <div class="result-line">
+                  <div class="card-line-label">Final Result</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="result-options">
+                  <span><span class="box"></span> Ozark win</span>
+                  <span><span class="box"></span> Halved</span>
+                  <span><span class="box"></span> Valley win</span>
+                </div>
               </div>
             </div>
           </div>
@@ -570,66 +713,77 @@
 
         <!-- MATCH CARD TEMPLATE #2 -->
         <article class="match-card">
-          <div class="match-card-header">
-            <h3>Day / Session</h3>
-            <div class="match-meta">
-              <span>Day: ________</span>
-              <span>Session: __________________</span>
+          <header class="match-card-headband">
+            <div class="match-brand-lockup">
+              <div class="match-brand-mark">OI</div>
+              <div class="match-brand-text">
+                <div class="match-brand-title">Ozark Invitational</div>
+                <div class="match-brand-subtitle">Match Card</div>
+              </div>
             </div>
-            <div class="match-meta">
-              <span>Format: __________________</span>
-              <span>Tee Time: ________</span>
-            </div>
-            <div class="match-meta">
-              <span>Match #: ________</span>
-            </div>
-          </div>
+            <div class="match-card-tag">Player Copy</div>
+          </header>
 
-          <div>
-            <div class="teams-row">
-              <div class="team-block">
-                <div class="team-name ozark">Team Ozark</div>
-                <div class="players-list">
-                  1) ___________________________<br />
-                  2) ___________________________
+          <div class="match-card-body">
+            <div class="match-card-header">
+              <h3>Day / Session</h3>
+              <div class="match-meta-row">
+                <span><span class="match-meta-label">Day</span> ________</span>
+                <span><span class="match-meta-label">Session</span> __________________</span>
+              </div>
+              <div class="match-meta-row">
+                <span><span class="match-meta-label">Format</span> __________________</span>
+                <span><span class="match-meta-label">Tee Time</span> ________</span>
+                <span><span class="match-meta-label">Match #</span> ________</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="teams-row">
+                <div class="team-block">
+                  <div class="team-name ozark">Team Ozark</div>
+                  <div class="players-list">
+                    1) ___________________________<br />
+                    2) ___________________________
+                  </div>
+                </div>
+
+                <div class="vs-label">vs</div>
+
+                <div class="team-block">
+                  <div class="team-name valley">Team Valley</div>
+                  <div class="players-list">
+                    1) ___________________________<br />
+                    2) ___________________________
+                  </div>
                 </div>
               </div>
 
-              <div class="vs-label">vs</div>
-
-              <div class="team-block">
-                <div class="team-name valley">Team Valley</div>
-                <div class="players-list">
-                  1) ___________________________<br />
-                  2) ___________________________
+              <div class="card-lines">
+                <div class="card-line">
+                  <div class="card-line-label">Front 9 Notes</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="card-line">
+                  <div class="card-line-label">Back 9 Notes</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="card-line">
+                  <div class="card-line-label">Key Holes</div>
+                  <div class="card-line-blank"></div>
                 </div>
               </div>
-            </div>
 
-            <div class="card-lines">
-              <div class="card-line">
-                <div class="card-line-label">Front 9 Notes</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="card-line">
-                <div class="card-line-label">Back 9 Notes</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="card-line">
-                <div class="card-line-label">Key Holes</div>
-                <div class="card-line-blank"></div>
-              </div>
-            </div>
-
-            <div class="result-row">
-              <div class="card-line">
-                <div class="card-line-label">Final Result</div>
-                <div class="card-line-blank"></div>
-              </div>
-              <div class="result-options">
-                <span><span class="box"></span> Ozark win</span>
-                <span><span class="box"></span> Halved</span>
-                <span><span class="box"></span> Valley win</span>
+              <div class="result-row">
+                <div class="result-line">
+                  <div class="card-line-label">Final Result</div>
+                  <div class="card-line-blank"></div>
+                </div>
+                <div class="result-options">
+                  <span><span class="box"></span> Ozark win</span>
+                  <span><span class="box"></span> Halved</span>
+                  <span><span class="box"></span> Valley win</span>
+                </div>
               </div>
             </div>
           </div>
@@ -640,9 +794,10 @@
     <!-- ========== SECTION 2: CAPTAIN SESSION SUMMARY ========== -->
     <section class="section">
       <div class="section-header">
-        <div>
+        <div class="section-header-main">
+          <div class="section-tag">Session Overview</div>
           <h1>Captain's Session Summary</h1>
-          <h2>Session results & team points</h2>
+          <h2>Session results &amp; team points</h2>
         </div>
         <p>Use one sheet per session (e.g., Day 1 – Best Ball) to track all match results and team points at a glance.</p>
       </div>
@@ -653,8 +808,8 @@
             <div class="captain-header-left">
               <div class="captain-subtitle">Ozark Invitational</div>
               <h1>Session Summary</h1>
-              <div class="match-meta">
-                Day: __________________ &nbsp;&nbsp; Session: __________________ (Format: __________________)
+              <div class="captain-meta">
+                Day: __________________ &nbsp;&nbsp;&nbsp; Session: __________________ (Format: __________________)
               </div>
             </div>
             <div class="captain-header-right">
