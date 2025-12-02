@@ -414,7 +414,8 @@
   </style>
 </head>
 <body>
-  <!-- header.html should be injected by your shared script.js, like other pages -->
+  <!-- header.html gets injected here by script.js like your other pages -->
+  <div id="site-header"></div>
 
   <main>
     <header class="page-header">
@@ -426,7 +427,7 @@
       </p>
     </header>
 
-    <!-- ACTIVE PLAYER SELECTOR (pulls from Ozark player pool in localStorage) -->
+    <!-- ACTIVE PLAYER SELECTOR -->
     <section class="card player-select-card">
       <div class="card-header">
         <div>
@@ -648,7 +649,7 @@
   <script>
     (function() {
       const STORAGE_KEY = 'ozarkPlayerRounds_v1';
-      const PLAYER_POOL_KEY = 'ozarkPlayers_v3'; // TODO: set this to whatever key your player pool uses
+      const PLAYER_POOL_KEY = 'ozarkPlayers_v3'; // TODO: set this to your real player pool key
 
       let playerPool = [];
       let playerIndex = new Map();
@@ -717,8 +718,8 @@
         select.innerHTML = '';
         playerIndex = new Map();
 
+        playerPool = loadPlayerPool();
         if (!playerPool || !playerPool.length) {
-          // Fallback "solo" mode if no roster exists
           playerPool = [{ id: 'solo-player', firstName: 'Solo', lastName: 'Player' }];
         }
 
@@ -939,7 +940,6 @@
         const allRounds = loadRounds();
         const currentPlayerId = getActivePlayerId();
 
-        // Filter by active player first
         let playerRounds = allRounds;
         if (currentPlayerId) {
           playerRounds = allRounds.filter(r => r.playerId === currentPlayerId);
@@ -956,13 +956,11 @@
 
         const metrics = computeMetrics(filtered);
 
-        // Round count (for this player, after course filter)
         const roundCountEl = document.getElementById('roundCount');
         if (roundCountEl) {
           roundCountEl.textContent = metrics.count.toString();
         }
 
-        // Best score
         const bestScoreEl = document.getElementById('bestScore');
         const bestDetailEl = document.getElementById('bestScoreDetail');
         if (metrics.bestScore != null && metrics.bestRound) {
@@ -977,7 +975,6 @@
           bestDetailEl.textContent = 'No rounds yet';
         }
 
-        // Average score
         const avgScoreEl = document.getElementById('avgScore');
         if (avgScoreEl) {
           if (metrics.avgScore != null) {
@@ -987,7 +984,6 @@
           }
         }
 
-        // Fairways
         const fwPctEl = document.getElementById('fairwaysPct');
         const fwDetailEl = document.getElementById('fairwaysDetail');
         if (metrics.fwTotal > 0) {
@@ -999,7 +995,6 @@
           fwDetailEl.textContent = 'Hit / possible';
         }
 
-        // GIR
         const girAvgEl = document.getElementById('girAvg');
         if (girAvgEl) {
           if (metrics.count && metrics.girTotal) {
@@ -1011,7 +1006,6 @@
           }
         }
 
-        // Putts
         const puttsAvgEl = document.getElementById('puttsAvg');
         if (puttsAvgEl) {
           if (metrics.count && metrics.puttsTotal) {
@@ -1023,7 +1017,6 @@
           }
         }
 
-        // Recent trend
         const recentValEl = document.getElementById('recentTrend');
         const recentDetailEl = document.getElementById('recentDetail');
         if (metrics.recentTrend != null) {
@@ -1040,12 +1033,10 @@
           recentDetailEl.textContent = 'Last 3 rounds trend';
         }
 
-        // Table
         renderRoundsTable(filtered);
       }
 
       document.addEventListener('DOMContentLoaded', function() {
-        // Load player pool from your existing Ozark Invitational data
         playerPool = loadPlayerPool();
         initPlayerSelect();
 
@@ -1125,7 +1116,6 @@
           });
         }
 
-        // Initial render
         applyFilterAndRender();
       });
     })();
