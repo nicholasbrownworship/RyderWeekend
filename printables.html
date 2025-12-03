@@ -44,7 +44,7 @@
     main {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 192px 1rem 2.75rem; /* stays in your 185–205 window */
+      padding: 192px 1rem 2.5rem; /* in your 185–205 px window */
     }
 
     @media (max-width: 900px) {
@@ -54,7 +54,7 @@
       }
     }
 
-    .no-print {
+    .no-print-bar {
       margin-bottom: 1.5rem;
       padding: 0.9rem 1.1rem;
       border-radius: 12px;
@@ -80,7 +80,7 @@
       color: var(--green-dark);
     }
 
-    .no-print strong {
+    .no-print-bar strong {
       color: var(--green-dark);
     }
 
@@ -94,19 +94,19 @@
     h1 {
       font-size: 1.1rem;
       color: var(--green-dark);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     h2 {
       font-size: 0.9rem;
       color: var(--muted);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     h3 {
       font-size: 0.78rem;
       color: var(--muted);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.3rem;
     }
 
     .section {
@@ -144,6 +144,41 @@
       line-height: 1.5;
     }
 
+    /* ===== PRINTABLE WRAPPERS & PRINT BUTTONS ===== */
+
+    .printable-block {
+      margin-bottom: 1.75rem;
+    }
+
+    .card-print-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.4rem;
+    }
+
+    .btn-print {
+      border-radius: 999px;
+      border: 1px solid rgba(36,79,60,0.35);
+      background: #fdf7eb;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--green-dark);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-print span {
+      font-size: 0.85rem;
+    }
+
+    .btn-print:hover {
+      background: #f6edd8;
+    }
+
     /* ===== MATCH CARDS (SCREEN) ===== */
 
     .cards-grid {
@@ -155,32 +190,48 @@
 
     .match-card {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(221, 209, 176, 0.85);
       padding: 18px 20px 16px;
-      box-shadow:
-        0 18px 40px rgba(0,0,0,0.05),
-        0 0 0 1px rgba(255,255,255,0.8) inset;
+      box-shadow: 0 16px 34px rgba(0,0,0,0.06);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 360px;
+      min-height: 340px;
       page-break-inside: avoid;
       position: relative;
-      overflow: hidden; /* keep all text visually inside card */
-      background-image:
-        linear-gradient(135deg, rgba(209,161,75,0.07), transparent 55%);
+      overflow: hidden;
     }
 
-    /* Crest / lockup at top */
-    .match-card-headband {
+    .match-card::after {
+      /* very faint watermark diagonal stripe */
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        135deg,
+        rgba(209,161,75,0.06) 0,
+        transparent 50%,
+        rgba(209,161,75,0.04) 100%
+      );
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .match-card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .match-card-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 0.75rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid rgba(221, 209, 176, 0.7);
-      margin-bottom: 0.35rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(221, 209, 176, 0.9);
+      margin-bottom: 0.45rem;
     }
 
     .match-brand-lockup {
@@ -206,7 +257,7 @@
     .match-brand-text {
       display: flex;
       flex-direction: column;
-      gap: 0.08rem;
+      gap: 0.06rem;
     }
 
     .match-brand-title {
@@ -217,7 +268,7 @@
     }
 
     .match-brand-subtitle {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       color: var(--ink);
       font-weight: 600;
       letter-spacing: 0.06em;
@@ -234,10 +285,6 @@
       white-space: nowrap;
     }
 
-    .match-card-body {
-      margin-top: 0.45rem;
-    }
-
     .match-card-header {
       margin-bottom: 0.4rem;
     }
@@ -248,7 +295,7 @@
       gap: 0.35rem 0.75rem;
       font-size: 0.75rem;
       color: var(--muted);
-      margin-top: 0.25rem;
+      margin-top: 0.22rem;
     }
 
     .match-meta-label {
@@ -259,7 +306,7 @@
       margin-right: 0.25rem;
     }
 
-    .match-meta span {
+    .match-meta-row span {
       display: inline-flex;
       align-items: baseline;
       gap: 0.2rem;
@@ -269,15 +316,15 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-top: 0.6rem;
-      margin-bottom: 0.35rem;
+      margin-top: 0.55rem;
+      margin-bottom: 0.3rem;
       gap: 1.25rem;
     }
 
     .team-block {
       flex: 1;
       border-top: 2px solid var(--green);
-      padding-top: 0.4rem;
+      padding-top: 0.35rem;
     }
 
     .team-name {
@@ -310,7 +357,7 @@
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
-      padding-top: 0.75rem;
+      padding-top: 0.7rem;
       white-space: nowrap;
     }
 
@@ -326,7 +373,7 @@
       justify-content: space-between;
       align-items: flex-end;
       gap: 0.6rem;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.28rem;
     }
 
     .card-line-label {
@@ -389,17 +436,34 @@
 
     .captain-sheet {
       background: #fff;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(221, 209, 176, 0.9);
-      padding: 28px 30px 24px;
-      box-shadow:
-        0 18px 40px rgba(0,0,0,0.05),
-        0 0 0 1px rgba(255,255,255,0.8) inset;
+      padding: 26px 28px 22px;
+      box-shadow: 0 16px 34px rgba(0,0,0,0.06);
       max-width: 900px;
       width: 100%;
       page-break-inside: avoid;
-      background-image:
-        linear-gradient(135deg, rgba(209,161,75,0.06), transparent 55%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .captain-sheet::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        135deg,
+        rgba(209,161,75,0.05) 0,
+        transparent 55%
+      );
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .captain-sheet-inner {
+      position: relative;
+      z-index: 1;
     }
 
     .captain-header {
@@ -407,7 +471,7 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 32px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       border-bottom: 1px solid rgba(221,209,176,0.8);
       padding-bottom: 0.4rem;
     }
@@ -555,54 +619,12 @@
       height: 18px;
     }
 
-    /* ===== PRINT STYLES ===== */
-
+    /* Hide print controls in the browser's print dialog, if they ever print full page */
     @media print {
-      html, body {
-        background: #fff;
-      }
-
-      /* hide header + on-screen helper when printing */
       #site-header,
-      .no-print {
+      .no-print-bar,
+      .card-print-controls {
         display: none !important;
-      }
-
-      main {
-        max-width: none;
-        padding: 0.2in 0.4in 0.3in;
-      }
-
-      @page {
-        size: letter portrait;
-        margin: 0.4in;
-      }
-
-      .section {
-        page-break-after: always;
-      }
-
-      .section:last-of-type {
-        page-break-after: auto;
-      }
-
-      /* Print-specific sizing for cards: 2-up 4x6ish */
-      .cards-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.4in;
-      }
-
-      .match-card {
-        box-shadow: none;
-        padding: 0.45in 0.45in 0.35in;
-        min-height: 4.4in;
-        border-radius: 14px;
-      }
-
-      .captain-sheet {
-        box-shadow: none;
-        padding: 0.55in 0.6in 0.45in;
-        max-width: 8.5in;
       }
     }
   </style>
@@ -612,12 +634,11 @@
   <div id="site-header"></div>
 
   <main>
-    <div class="no-print">
-      <div class="no-print-icon">📄</div>
+    <div class="no-print-bar">
+      <div class="no-print-icon">🖨️</div>
       <div>
-        <strong>How to use this page:</strong>
-        Print on US Letter paper (card stock works great), then cut along natural card edges.
-        Duplicate the match card blocks in the HTML for as many matches as you need. Fill in by hand on the course.
+        <strong>Printing tip:</strong> Use the “Print this card” buttons below to print
+        individual match cards or the captain’s summary as clean, single-page handouts.
       </div>
     </div>
 
@@ -629,165 +650,179 @@
           <h1>Match Cards</h1>
           <h2>Per-group cards for captains &amp; players</h2>
         </div>
-        <p>Duplicate these in the HTML for each match and pre-fill names/tee times before printing if you’d like.</p>
+        <p>Duplicate these cards in the HTML for each match and pre-fill names/tee times before printing if you’d like.</p>
       </div>
 
       <div class="cards-grid">
-        <!-- MATCH CARD TEMPLATE #1 -->
-        <article class="match-card">
-          <header class="match-card-headband">
-            <div class="match-brand-lockup">
-              <div class="match-brand-mark">OI</div>
-              <div class="match-brand-text">
-                <div class="match-brand-title">Ozark Invitational</div>
-                <div class="match-brand-subtitle">Match Card</div>
-              </div>
-            </div>
-            <div class="match-card-tag">Captain Copy</div>
-          </header>
-
-          <div class="match-card-body">
-            <div class="match-card-header">
-              <h3>Day / Session</h3>
-              <div class="match-meta-row">
-                <span><span class="match-meta-label">Day</span> ________</span>
-                <span><span class="match-meta-label">Session</span> __________________</span>
-              </div>
-              <div class="match-meta-row">
-                <span><span class="match-meta-label">Format</span> __________________</span>
-                <span><span class="match-meta-label">Tee Time</span> ________</span>
-                <span><span class="match-meta-label">Match #</span> ________</span>
-              </div>
-            </div>
-
-            <div>
-              <div class="teams-row">
-                <div class="team-block">
-                  <div class="team-name ozark">Team Ozark</div>
-                  <div class="players-list">
-                    1) ___________________________<br />
-                    2) ___________________________
-                  </div>
-                </div>
-
-                <div class="vs-label">vs</div>
-
-                <div class="team-block">
-                  <div class="team-name valley">Team Valley</div>
-                  <div class="players-list">
-                    1) ___________________________<br />
-                    2) ___________________________
-                  </div>
-                </div>
-              </div>
-
-              <div class="card-lines">
-                <div class="card-line">
-                  <div class="card-line-label">Front 9 Notes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="card-line">
-                  <div class="card-line-label">Back 9 Notes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="card-line">
-                  <div class="card-line-label">Key Holes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-              </div>
-
-              <div class="result-row">
-                <div class="result-line">
-                  <div class="card-line-label">Final Result</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="result-options">
-                  <span><span class="box"></span> Ozark win</span>
-                  <span><span class="box"></span> Halved</span>
-                  <span><span class="box"></span> Valley win</span>
-                </div>
-              </div>
-            </div>
+        <!-- MATCH CARD #1 -->
+        <div class="printable-block">
+          <div class="card-print-controls">
+            <button type="button" class="btn-print" onclick="printBlock(this)">
+              <span>🖨️</span> <span>Print this card</span>
+            </button>
           </div>
-        </article>
+          <article class="match-card print-target">
+            <div class="match-card-inner">
+              <header class="match-card-head">
+                <div class="match-brand-lockup">
+                  <div class="match-brand-mark">OI</div>
+                  <div class="match-brand-text">
+                    <div class="match-brand-title">Ozark Invitational</div>
+                    <div class="match-brand-subtitle">Match Card</div>
+                  </div>
+                </div>
+                <div class="match-card-tag">Captain Copy</div>
+              </header>
 
-        <!-- MATCH CARD TEMPLATE #2 -->
-        <article class="match-card">
-          <header class="match-card-headband">
-            <div class="match-brand-lockup">
-              <div class="match-brand-mark">OI</div>
-              <div class="match-brand-text">
-                <div class="match-brand-title">Ozark Invitational</div>
-                <div class="match-brand-subtitle">Match Card</div>
+              <div class="match-card-header">
+                <h3>Day / Session</h3>
+                <div class="match-meta-row">
+                  <span><span class="match-meta-label">Day</span> ________</span>
+                  <span><span class="match-meta-label">Session</span> __________________</span>
+                </div>
+                <div class="match-meta-row">
+                  <span><span class="match-meta-label">Format</span> __________________</span>
+                  <span><span class="match-meta-label">Tee Time</span> ________</span>
+                  <span><span class="match-meta-label">Match #</span> ________</span>
+                </div>
               </div>
-            </div>
-            <div class="match-card-tag">Player Copy</div>
-          </header>
 
-          <div class="match-card-body">
-            <div class="match-card-header">
-              <h3>Day / Session</h3>
-              <div class="match-meta-row">
-                <span><span class="match-meta-label">Day</span> ________</span>
-                <span><span class="match-meta-label">Session</span> __________________</span>
-              </div>
-              <div class="match-meta-row">
-                <span><span class="match-meta-label">Format</span> __________________</span>
-                <span><span class="match-meta-label">Tee Time</span> ________</span>
-                <span><span class="match-meta-label">Match #</span> ________</span>
-              </div>
-            </div>
+              <div>
+                <div class="teams-row">
+                  <div class="team-block">
+                    <div class="team-name ozark">Team Ozark</div>
+                    <div class="players-list">
+                      1) ___________________________<br />
+                      2) ___________________________
+                    </div>
+                  </div>
 
-            <div>
-              <div class="teams-row">
-                <div class="team-block">
-                  <div class="team-name ozark">Team Ozark</div>
-                  <div class="players-list">
-                    1) ___________________________<br />
-                    2) ___________________________
+                  <div class="vs-label">vs</div>
+
+                  <div class="team-block">
+                    <div class="team-name valley">Team Valley</div>
+                    <div class="players-list">
+                      1) ___________________________<br />
+                      2) ___________________________
+                    </div>
                   </div>
                 </div>
 
-                <div class="vs-label">vs</div>
+                <div class="card-lines">
+                  <div class="card-line">
+                    <div class="card-line-label">Front 9 Notes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="card-line">
+                    <div class="card-line-label">Back 9 Notes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="card-line">
+                    <div class="card-line-label">Key Holes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                </div>
 
-                <div class="team-block">
-                  <div class="team-name valley">Team Valley</div>
-                  <div class="players-list">
-                    1) ___________________________<br />
-                    2) ___________________________
+                <div class="result-row">
+                  <div class="result-line">
+                    <div class="card-line-label">Final Result</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="result-options">
+                    <span><span class="box"></span> Ozark win</span>
+                    <span><span class="box"></span> Halved</span>
+                    <span><span class="box"></span> Valley win</span>
                   </div>
                 </div>
               </div>
-
-              <div class="card-lines">
-                <div class="card-line">
-                  <div class="card-line-label">Front 9 Notes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="card-line">
-                  <div class="card-line-label">Back 9 Notes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="card-line">
-                  <div class="card-line-label">Key Holes</div>
-                  <div class="card-line-blank"></div>
-                </div>
-              </div>
-
-              <div class="result-row">
-                <div class="result-line">
-                  <div class="card-line-label">Final Result</div>
-                  <div class="card-line-blank"></div>
-                </div>
-                <div class="result-options">
-                  <span><span class="box"></span> Ozark win</span>
-                  <span><span class="box"></span> Halved</span>
-                  <span><span class="box"></span> Valley win</span>
-                </div>
-              </div>
             </div>
+          </article>
+        </div>
+
+        <!-- MATCH CARD #2 -->
+        <div class="printable-block">
+          <div class="card-print-controls">
+            <button type="button" class="btn-print" onclick="printBlock(this)">
+              <span>🖨️</span> <span>Print this card</span>
+            </button>
           </div>
-        </article>
+          <article class="match-card print-target">
+            <div class="match-card-inner">
+              <header class="match-card-head">
+                <div class="match-brand-lockup">
+                  <div class="match-brand-mark">OI</div>
+                  <div class="match-brand-text">
+                    <div class="match-brand-title">Ozark Invitational</div>
+                    <div class="match-brand-subtitle">Match Card</div>
+                  </div>
+                </div>
+                <div class="match-card-tag">Player Copy</div>
+              </header>
+
+              <div class="match-card-header">
+                <h3>Day / Session</h3>
+                <div class="match-meta-row">
+                  <span><span class="match-meta-label">Day</span> ________</span>
+                  <span><span class="match-meta-label">Session</span> __________________</span>
+                </div>
+                <div class="match-meta-row">
+                  <span><span class="match-meta-label">Format</span> __________________</span>
+                  <span><span class="match-meta-label">Tee Time</span> ________</span>
+                  <span><span class="match-meta-label">Match #</span> ________</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="teams-row">
+                  <div class="team-block">
+                    <div class="team-name ozark">Team Ozark</div>
+                    <div class="players-list">
+                      1) ___________________________<br />
+                      2) ___________________________
+                    </div>
+                  </div>
+
+                  <div class="vs-label">vs</div>
+
+                  <div class="team-block">
+                    <div class="team-name valley">Team Valley</div>
+                    <div class="players-list">
+                      1) ___________________________<br />
+                      2) ___________________________
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-lines">
+                  <div class="card-line">
+                    <div class="card-line-label">Front 9 Notes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="card-line">
+                    <div class="card-line-label">Back 9 Notes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="card-line">
+                    <div class="card-line-label">Key Holes</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                </div>
+
+                <div class="result-row">
+                  <div class="result-line">
+                    <div class="card-line-label">Final Result</div>
+                    <div class="card-line-blank"></div>
+                  </div>
+                  <div class="result-options">
+                    <span><span class="box"></span> Ozark win</span>
+                    <span><span class="box"></span> Halved</span>
+                    <span><span class="box"></span> Valley win</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -802,170 +837,180 @@
         <p>Use one sheet per session (e.g., Day 1 – Best Ball) to track all match results and team points at a glance.</p>
       </div>
 
-      <div class="captain-sheet-wrapper">
-        <article class="captain-sheet">
-          <header class="captain-header">
-            <div class="captain-header-left">
-              <div class="captain-subtitle">Ozark Invitational</div>
-              <h1>Session Summary</h1>
-              <div class="captain-meta">
-                Day: __________________ &nbsp;&nbsp;&nbsp; Session: __________________ (Format: __________________)
+      <div class="printable-block">
+        <div class="card-print-controls">
+          <button type="button" class="btn-print" onclick="printBlock(this)">
+            <span>🖨️</span> <span>Print this summary</span>
+          </button>
+        </div>
+
+        <div class="captain-sheet-wrapper">
+          <article class="captain-sheet print-target">
+            <div class="captain-sheet-inner">
+              <header class="captain-header">
+                <div class="captain-header-left">
+                  <div class="captain-subtitle">Ozark Invitational</div>
+                  <h1>Session Summary</h1>
+                  <div class="captain-meta">
+                    Day: __________________ &nbsp;&nbsp;&nbsp; Session: __________________ (Format: __________________)
+                  </div>
+                </div>
+                <div class="captain-header-right">
+                  <div class="label">Captain</div>
+                  <div class="line"></div>
+                  <div class="label">Course / Notes</div>
+                  <div class="line"></div>
+                </div>
+              </header>
+
+              <table class="session-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Tee</th>
+                    <th>Team Ozark</th>
+                    <th>Team Valley</th>
+                    <th>Result</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Repeat / extend rows as needed -->
+                  <tr>
+                    <td class="center">1</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                  <tr>
+                    <td class="center">2</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                  <tr>
+                    <td class="center">3</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                  <tr>
+                    <td class="center">4</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                  <tr>
+                    <td class="center">5</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                  <tr>
+                    <td class="center">6</td>
+                    <td>______</td>
+                    <td>________________________________</td>
+                    <td>________________________________</td>
+                    <td class="checkbox-cell">
+                      <span class="checkbox-inline">
+                        <span class="box"></span> O
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> H
+                      </span>
+                      <span class="checkbox-inline">
+                        <span class="box"></span> V
+                      </span>
+                    </td>
+                    <td class="center">O: ___ &nbsp; V: ___</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="session-footer">
+                <div class="session-footer-block">
+                  <div class="session-footer-label">Session points – Team Ozark</div>
+                  <div class="session-footer-line"></div>
+                </div>
+                <div class="session-footer-block">
+                  <div class="session-footer-label">Session points – Team Valley</div>
+                  <div class="session-footer-line"></div>
+                </div>
+              </div>
+
+              <div class="session-footer" style="margin-top: 0.5rem;">
+                <div class="session-footer-block">
+                  <div class="session-footer-label">Cumulative – Team Ozark</div>
+                  <div class="session-footer-line"></div>
+                </div>
+                <div class="session-footer-block">
+                  <div class="session-footer-label">Cumulative – Team Valley</div>
+                  <div class="session-footer-line"></div>
+                </div>
               </div>
             </div>
-            <div class="captain-header-right">
-              <div class="label">Captain</div>
-              <div class="line"></div>
-              <div class="label">Course / Notes</div>
-              <div class="line"></div>
-            </div>
-          </header>
-
-          <table class="session-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Tee</th>
-                <th>Team Ozark</th>
-                <th>Team Valley</th>
-                <th>Result</th>
-                <th>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Repeat / extend rows as needed -->
-              <tr>
-                <td class="center">1</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-              <tr>
-                <td class="center">2</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-              <tr>
-                <td class="center">3</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-              <tr>
-                <td class="center">4</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-              <tr>
-                <td class="center">5</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-              <tr>
-                <td class="center">6</td>
-                <td>______</td>
-                <td>________________________________</td>
-                <td>________________________________</td>
-                <td class="checkbox-cell">
-                  <span class="checkbox-inline">
-                    <span class="box"></span> O
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> H
-                  </span>
-                  <span class="checkbox-inline">
-                    <span class="box"></span> V
-                  </span>
-                </td>
-                <td class="center">O: ___ &nbsp; V: ___</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="session-footer">
-            <div class="session-footer-block">
-              <div class="session-footer-label">Session points – Team Ozark</div>
-              <div class="session-footer-line"></div>
-            </div>
-            <div class="session-footer-block">
-              <div class="session-footer-label">Session points – Team Valley</div>
-              <div class="session-footer-line"></div>
-            </div>
-          </div>
-
-          <div class="session-footer" style="margin-top: 0.25in;">
-            <div class="session-footer-block">
-              <div class="session-footer-label">Cumulative – Team Ozark</div>
-              <div class="session-footer-line"></div>
-            </div>
-            <div class="session-footer-block">
-              <div class="session-footer-label">Cumulative – Team Valley</div>
-              <div class="session-footer-line"></div>
-            </div>
-          </div>
-        </article>
+          </article>
+        </div>
       </div>
     </section>
   </main>
@@ -981,6 +1026,48 @@
           .catch(err => console.warn('Failed to load header.html', err));
       }
     });
+
+    function printBlock(buttonEl) {
+      const wrapper = buttonEl.closest('.printable-block');
+      if (!wrapper) return;
+
+      const target = wrapper.querySelector('.print-target') || wrapper;
+      const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+        .map(node => node.outerHTML)
+        .join('\n');
+
+      const printWindow = window.open('', '_blank', 'width=900,height=650');
+      const doc = printWindow.document;
+
+      doc.open();
+      doc.write(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Print – Ozark Invitational</title>
+${styles}
+<style>
+  body {
+    margin: 0;
+    padding: 0.5in;
+    background: #ffffff;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media print {
+    .card-print-controls { display: none !important; }
+  }
+</style>
+</head>
+<body>
+${target.outerHTML}
+</body>
+</html>
+      `);
+      doc.close();
+      printWindow.focus();
+      printWindow.print();
+    }
   </script>
 </body>
 </html>
