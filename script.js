@@ -39,7 +39,28 @@ const saveHiddenIds = (set) => {
 })();
 
 // =======================
+// 1b) SMOOTH SCROLL FOR IN-PAGE LINKS
+// =======================
+(function initSmoothScroll() {
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href === "#") return;
+
+    const id = href.slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    e.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+})();
+
+// =======================
 // 2) SCHEDULE TABS
+// (HTML also has a helper; this is a safe duplicate on other pages)
 // =======================
 (function initScheduleTabs() {
   const scheduleTabButtons = document.querySelectorAll(".tab-btn[data-day]");
@@ -62,8 +83,6 @@ const saveHiddenIds = (set) => {
 // =======================
 // 3) MASTER PLAYER LIST (seeded + signups)
 // =======================
-
-
 const SEEDED_PLAYERS = players.slice();
 
 function loadSignupPlayers() {
@@ -92,6 +111,10 @@ if (RESPECT_SAVED_HIDDEN_SEEDED) {
     if (hidden.has(players[i].id)) players.splice(i, 1);
   }
 }
+
+// Expose players for other scripts (e.g., homepage featured players)
+window.state = window.state || {};
+window.state.players = players.slice();
 
 // =======================
 // 4) UTIL + PHOTO HELPERS (avatars w/ fallbacks)
@@ -155,8 +178,6 @@ function normalizePhotoValue(v) {
     .replace(/^\.\//, "");
 }
 
-// If you already have slugifyName(p) in script.js, you can reuse that.
-// Otherwise, you can drop this in:
 function slugify(first, last) {
   const f = String(first || "")
     .trim()
@@ -235,7 +256,7 @@ function renderAvatar(p, size = 56) {
 
   const initials = document.createElement("span");
   initials.className = "avatar-initials";
-  initials.textContent = playerInitials(p); // you already have playerInitials(p)
+  initials.textContent = playerInitials(p);
   wrap.appendChild(initials);
 
   // Now resolve the actual photo using the same logic as players.html
@@ -331,7 +352,6 @@ function computeTeamCounts() {
 
   return counts;
 }
-
 
 function renderTeamSummary() {
   const host = document.getElementById("teamSummary");
@@ -510,7 +530,8 @@ function onWheelScroll(){
   const formMsg = document.getElementById("formMsg");
   if (!signupForm) return;
 
-  // If the HTML still has action/method, we'll still prevent default and use fetch.
+  const submitBtn = signupForm.querySelector('button[type="submit"], .actions .btn');
+
   const loadDupes = () => { try { return JSON.parse(localStorage.getItem(SIGNUPS_DUPE_KEY) || "[]"); } catch { return []; } };
   const saveDupes = (arr) => localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(arr || []));
   const normalize = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -572,9 +593,28 @@ function onWheelScroll(){
     if (nnRow) insertAfter(tRow, nnRow); else if (nameRow) insertAfter(tRow, nameRow); else if (actionsRow) signupForm.insertBefore(tRow, actionsRow); else signupForm.appendChild(tRow);
   }
 
+  function setFormMessage(text, isError = false) {
+    if (!formMsg) return;
+    formMsg.textContent = text;
+    formMsg.classList.toggle("error", !!isError);
+  }
+
+  function setSubmitting(isSubmitting) {
+    if (!submitBtn) return;
+    submitBtn.disabled = isSubmitting;
+    if (isSubmitting) {
+      submitBtn.dataset.originalText = submitBtn.textContent;
+      submitBtn.textContent = "Submitting…";
+    } else if (submitBtn.dataset.originalText) {
+      submitBtn.textContent = submitBtn.dataset.originalText;
+      delete submitBtn.dataset.originalText;
+    }
+  }
+
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault(); // 🔒 prevent native submit/redirect
-    formMsg?.classList.remove("error");
+    setFormMessage("");
+    setSubmitting(true);
 
     const get = (sel) => (signupForm.querySelector(sel)?.value || "").trim();
     const rawName     = get('[name="name"]');
@@ -586,7 +626,8 @@ function onWheelScroll(){
     const notes       = get('[name="notes"]');
 
     if (!rawName || !selectedTeam || !contact || !phone || !handicap || !notes) {
-      formMsg && (formMsg.textContent = "Please complete all required fields.", formMsg.classList.add("error"));
+      setFormMessage("Please complete all required fields before submitting.", true);
+      setSubmitting(false);
       return;
     }
 
@@ -594,7 +635,8 @@ function onWheelScroll(){
     const normalizeName = normalize(rawName);
     const isDupe = prior.some(p => p.name === normalizeName && p.email === normalize(contact));
     if (isDupe) {
-      formMsg && (formMsg.textContent = "It looks like you've already signed up with this email.", formMsg.classList.add("error"));
+      setFormMessage("It looks like you’ve already signed up with this email. If that’s not right, text Nick and he’ll fix it.", true);
+      setSubmitting(false);
       return;
     }
 
@@ -622,8 +664,7 @@ Notes: ${notes}`.trim());
     const file = signupForm.querySelector('#photo')?.files?.[0];
     if (file) data.append('photo', file, file.name);
 
-    // UX: show submitting
-    formMsg && (formMsg.textContent = "Submitting...", formMsg.classList.remove("error"));
+    setFormMessage("Submitting your signup…", false);
 
     try {
       const res = await fetch("https://formspree.io/f/xnnokdqb", {
@@ -638,7 +679,7 @@ Notes: ${notes}`.trim());
       if (res.ok) {
         // remember this signup to prevent dupes
         prior.push({ name: normalizeName, email: normalize(contact), ts: Date.now() });
-        localStorage.setItem(SIGNUPS_DUPE_KEY, JSON.stringify(prior));
+        saveDupes(prior);
 
         // Save a local copy (used by other pages; optional photo path hint)
         const playerObj = {
@@ -656,6 +697,10 @@ Notes: ${notes}`.trim());
         saveSignupPlayers(roster);
         upsertPlayerToMasterList(playerObj);
 
+        // Update shared players state for other scripts
+        window.state = window.state || {};
+        window.state.players = players.slice();
+
         // If a wheel exists on this page, update it
         const activeTeam = document.querySelector(".team-btn.active")?.dataset.team || "all";
         renderWheel(activeTeam);
@@ -666,17 +711,19 @@ Notes: ${notes}`.trim());
         const select = signupForm.querySelector('#signupTeam,[name="team"]');
         if (select) select.selectedIndex = 0;
 
-        formMsg && (formMsg.textContent = "Thanks! Your signup has been submitted.", formMsg.classList.remove("error"));
+        setFormMessage("You’re in! Your spot is reserved. Nick will follow up with details as we get closer.", false);
       } else {
-        let msg = "Something went wrong. Please try again.";
+        let msg = "Something went wrong submitting your signup. Please try again, or text Nick and he’ll add you manually.";
         try {
           const err = await res.json();
           if (err?.errors?.length) msg = err.errors.map(e => e.message).join(", ");
         } catch{}
-        formMsg && (formMsg.textContent = msg, formMsg.classList.add("error"));
+        setFormMessage(msg, true);
       }
     } catch {
-      formMsg && (formMsg.textContent = "Network error. Please try again.", formMsg.classList.add("error"));
+      setFormMessage("Network error while submitting. Please check your connection and try again, or text Nick and he’ll add you manually.", true);
+    } finally {
+      setSubmitting(false);
     }
   });
 })();
@@ -921,92 +968,5 @@ Notes: ${notes}`.trim());
         window.initTeamScoreWidget();
       }
     });
-  }
-})();
-
-// =======================
-// 10) FEATURED PLAYERS (homepage random snapshot)
-// =======================
-(function () {
-  const grid = document.getElementById("featuredGrid");
-  if (!grid || !Array.isArray(players)) return; // only runs on homepage
-
-  const FEATURED_COUNT = 6; // how many players to show
-
-  function shuffleCopy(arr) {
-    const copy = arr.slice();
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  }
-
-  function makeFeaturedCard(p) {
-    const card = document.createElement("article");
-    card.className = "player-card featured";
-
-    const header = document.createElement("div");
-    header.className = "pc-header";
-
-    const avatar = renderAvatar(p, 56);
-    avatar.classList.add("pc-avatar");
-
-    const meta = document.createElement("div");
-    meta.className = "pc-meta";
-
-    const nameEl = document.createElement("div");
-    nameEl.className = "pc-name";
-    nameEl.textContent = formatPlayerName(p);
-
-    const subEl = document.createElement("div");
-    subEl.className = "pc-sub";
-
-    const parts = [];
-    if (p.team) {
-      const t = (p.team || "").toLowerCase();
-      parts.push(
-        t === "ozark" ? "Team Ozark" :
-        t === "valley" ? "Team Valley" :
-        p.team
-      );
-    }
-    if (p.handicap !== undefined && p.handicap !== null && p.handicap !== "") {
-      parts.push(`Hcp ${p.handicap}`);
-    }
-    subEl.textContent = parts.join(" • ");
-
-    meta.appendChild(nameEl);
-    meta.appendChild(subEl);
-
-    header.appendChild(avatar);
-    header.appendChild(meta);
-    card.appendChild(header);
-
-    return card;
-  }
-
-  function renderFeatured() {
-    grid.innerHTML = ""; // clear "Loading..." text
-
-    // Only show players assigned to a team
-    const eligible = players.filter(p => (p.team || "").trim() !== "");
-    if (!eligible.length) {
-      grid.innerHTML = `<p class="muted">No players to show yet.</p>`;
-      return;
-    }
-
-    const shuffled = shuffleCopy(eligible);
-    const chosen = shuffled.slice(0, Math.min(FEATURED_COUNT, shuffled.length));
-
-    chosen.forEach(p => {
-      grid.appendChild(makeFeaturedCard(p));
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", renderFeatured, { once: true });
-  } else {
-    renderFeatured();
   }
 })();
