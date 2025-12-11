@@ -16,19 +16,19 @@
   <meta name="theme-color" content="#244f3c">
   <link rel="preload" as="image" href="images/logo.png" />
 
-  <!-- App script -->
+  <!-- App script safety -->
   <script>
-  // Ensure the homepage has a players array so script.js doesn't crash
-  window.players = window.players || [];
-</script>
+    // Ensure the homepage has a players array so script.js doesn't crash
+    window.players = window.players || [];
+  </script>
 
   <script src="script.js?v=2" defer></script>
 
   <!-- Page-scoped CSS (hero, gallery, featured players helpers) -->
   <style>
     body {
-  padding-top: 140px;
-}
+      padding-top: 140px;
+    }
 
     /* HERO (video-ready) */
     .hero.video {
@@ -97,7 +97,10 @@
       color: #f5f0e6;
       border: 1px solid rgba(255,255,255,.25);
     }
-    .hero.video .hero-footnote { margin-top: 6px; opacity: .85; }
+    .hero.video .hero-footnote {
+      margin-top: 6px;
+      opacity: .85;
+    }
 
     /* Gallery grid */
     .section .gallery {
@@ -207,9 +210,9 @@
         document.getElementById("siteHeader").innerHTML = html;
         // Highlight current page (safe on GitHub Pages)
         const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-        document.querySelectorAll('.nav a').forEach(a=>{
-          const t = (a.getAttribute('href')||'').split('#')[0]||'index.html';
-          if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
+        document.querySelectorAll('.nav a').forEach(a => {
+          const t = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+          if (t.toLowerCase() === here) a.setAttribute('aria-current', 'page');
         });
 
         // Boot the small header score widget if available
@@ -257,6 +260,9 @@
 
       <p class="hero-footnote">
         Spots limited to family &amp; invited guests • Captains announced closer to event.
+      </p>
+      <p class="hero-footnote">
+        All skill levels welcome – we’ll balance the teams so it stays fun and competitive for everybody.
       </p>
     </div>
   </section>
@@ -377,6 +383,67 @@
       </div>
     </section>
 
+    <!-- FAQ / QUICK ANSWERS -->
+    <section id="faq" class="section section-alt section-tight">
+      <div class="section-head center">
+        <h2>Quick Answers</h2>
+        <p>Stuff people usually text Nick about the week before.</p>
+      </div>
+
+      <div class="info-row">
+        <article class="info-card">
+          <h3>Who can play?</h3>
+          <p>
+            Immediate and extended Brown family plus invited friends. If you’re seeing this page and wondering
+            if you’re invited, you probably are – just reach out and we’ll confirm.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h3>What skill level is this for?</h3>
+          <p>
+            All skill levels. We use handicaps / average scores to balance the teams and pairings so nobody
+            gets steamrolled. If you don’t keep a handicap, give us your honest average 18-hole score.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h3>How does scoring work?</h3>
+          <p>
+            Each match is worth 1 point for your team. Halved matches are worth 0.5 points to each side.
+            We use net scores where it makes sense so higher handicaps still matter. Final total points wins
+            the Invitational.
+          </p>
+        </article>
+      </div>
+
+      <div class="info-row">
+        <article class="info-card">
+          <h3>Handicaps &amp; averages</h3>
+          <p>
+            If you have an official index, use that. Otherwise put your honest “typical” 18-hole score at
+            Diamond Hills or somewhere similar. We’ll smooth out outliers so the teams stay fair.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h3>Rain &amp; weather plan</h3>
+          <p>
+            We’ll play through normal Arkansas spring weather. If there’s lightning or the course closes,
+            we’ll adjust tee times or formats on the fly and communicate in the family group chat.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h3>Guests &amp; non-golfers</h3>
+          <p>
+            Non-golfing family is absolutely welcome to hang out, ride along if carts allow, and join for lunch
+            and photos. Just note that only registered players are included in the $150 pricing.
+          </p>
+        </article>
+      </div>
+    </section>
+
     <!-- GALLERY (carousel + zoomable lightbox) -->
     <section id="gallery" class="section">
       <div class="section-head center">
@@ -393,17 +460,6 @@
       <noscript><p>Please enable JavaScript to view the gallery.</p></noscript>
     </section>
 
-    <!-- LIGHTBOX (zoom/pan) -->
-    <dialog id="lightbox" class="lightbox">
-      <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
-      <img id="lbImg" alt="Gallery image" />
-      <div class="lb-controls">
-        <button id="lbMinus" class="btn">−</button>
-        <button id="lbReset" class="btn">Reset</button>
-        <button id="lbPlus" class="btn">+</button>
-      </div>
-    </dialog>
-
     <!-- SPONSORS -->
     <section id="sponsors" class="section section-tight">
       <div class="section-head center">
@@ -415,6 +471,48 @@
         Want to sponsor a hole or prize?
         <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
       </p>
+    </section>
+
+    <!-- TRAVEL / PLANNING -->
+    <section id="travel" class="section section-tight">
+      <div class="section-head center">
+        <h2>Planning Your Weekend</h2>
+        <p>Basic logistics so you know where you’re going and what to expect.</p>
+      </div>
+
+      <div class="info-row">
+        <article class="info-card">
+          <h3>Where we’re playing</h3>
+          <ul>
+            <li><strong>Diamond Hills Country Club</strong></li>
+            <li>Diamond City, Arkansas</li>
+            <li>
+              <a href="https://www.google.com/maps/search/?api=1&query=Diamond+Hills+Country+Club+Diamond+City+AR" target="_blank" rel="noopener">
+                Open in Google Maps
+              </a>
+            </li>
+          </ul>
+          <p class="muted">Plan on arriving at least 30 minutes before your tee time for check-in and warm-up.</p>
+        </article>
+
+        <article class="info-card">
+          <h3>Lodging &amp; timing</h3>
+          <p>
+            Most of us will be staying in / around Diamond City and Harrison. Hotels and rentals nearby
+            are usually available if you book a bit ahead. If you’re driving in the morning of,
+            aim to be at the course by <strong>8:00 AM</strong> on Day 1.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h3>Course notes</h3>
+          <ul>
+            <li>Standard golf attire recommended (collared shirts, no cutoffs).</li>
+            <li>Carts are included in your entry fee both days.</li>
+            <li>Clubhouse accepts card for snacks and drinks.</li>
+          </ul>
+        </article>
+      </div>
     </section>
 
     <!-- TEAM / FIELD SUMMARY -->
