@@ -7,8 +7,6 @@
   <style>
     :root{
       --bg:#0b0f14;
-      --panel:#121925;
-      --panel2:#0f1621;
       --ink:#eef2f7;
       --muted:#b7c0cc;
       --dim:#7f8a99;
@@ -136,7 +134,7 @@
 
     .field{ display:flex; flex-direction:column; gap:6px; flex:1 1 180px; min-width: 180px; }
     label{ font-size: 12px; color: var(--muted); letter-spacing:.2px; }
-    input, select, textarea{
+    input, select{
       width:100%;
       padding: 10px 11px;
       border-radius: 14px;
@@ -146,7 +144,6 @@
       outline:none;
       font-size: 13px;
     }
-    textarea{ min-height: 120px; resize: vertical; font-family: var(--mono); font-size: 12px; }
     input::placeholder{ color: rgba(183,192,204,.55); }
 
     .split{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
@@ -217,11 +214,7 @@
       background: rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.12);
     }
-    .status{
-      font-weight: 900;
-      letter-spacing:.2px;
-      font-size: 13px;
-    }
+    .status{ font-weight: 900; letter-spacing:.2px; font-size: 13px; }
     .meta{ font-family: var(--mono); font-size: 12px; color: var(--muted); }
 
     .match .mbd{ padding: 12px; }
@@ -282,7 +275,6 @@
 
 <main>
   <div class="grid">
-    <!-- Left: Event + Teams -->
     <section class="card">
       <div class="hd">
         <h2>Event Setup</h2>
@@ -360,7 +352,6 @@
       </div>
     </section>
 
-    <!-- Right: Quick tools -->
     <section class="card">
       <div class="hd">
         <h2>Captain Tools</h2>
@@ -370,29 +361,10 @@
       </div>
       <div class="bd">
         <div class="mini">
-          <div class="t">What this page is</div>
+          <div class="t">Scope</div>
           <div class="s">
-            This is the captain/organizer input panel — rosters, pairings, and final results only.
-            <br/>No broadcast controls, no hole-by-hole tracking.
-          </div>
-        </div>
-
-        <div style="height:12px;"></div>
-
-        <div class="mini">
-          <div class="t">Export format</div>
-          <div class="s">
-            Export creates a single JSON state file you can import on another device.
-          </div>
-        </div>
-
-        <div style="height:12px;"></div>
-
-        <div class="mini">
-          <div class="t">Optional: feed broadcast later</div>
-          <div class="s">
-            If you want, your overlays can read this same state and display match tiles & results.
-            But the console itself stays “captain-only.”
+            Captain input only — rosters, pairings, and results.<br/>
+            No broadcast controls. No hole-by-hole tracking.
           </div>
         </div>
       </div>
@@ -401,7 +373,6 @@
 
   <div style="height:16px;"></div>
 
-  <!-- Matches -->
   <section class="card">
     <div class="hd">
       <h2>Pairings & Results</h2>
@@ -414,7 +385,6 @@
       <div class="footerNote" id="pointsSummary"></div>
     </div>
   </section>
-
 </main>
 
 <div class="toast" id="toast">
@@ -428,13 +398,16 @@
   const STORAGE_KEY = "rw_captains_console_v2";
 
   const $ = (sel) => document.querySelector(sel);
+
+  // ✅ FIX: normalize event names to lowercase so onClick works.
   const el = (tag, attrs={}, kids=[]) => {
     const n = document.createElement(tag);
     Object.entries(attrs).forEach(([k,v])=>{
       if(k==="class") n.className = v;
       else if(k==="html") n.innerHTML = v;
-      else if(k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
+      else if(k.startsWith("on") && typeof v === "function"){
+        n.addEventListener(k.slice(2).toLowerCase(), v);
+      } else n.setAttribute(k, v);
     });
     kids.forEach(k => n.appendChild(k));
     return n;
@@ -488,7 +461,6 @@
       if(!raw) return demoState();
       const s = JSON.parse(raw);
       if(!s || typeof s !== "object") return demoState();
-      // sanity defaults
       s.version = 2;
       s.locked = !!s.locked;
       s.eventName = s.eventName || demoState().eventName;
@@ -512,7 +484,6 @@
     state.locked = !!v;
     $("#lockPill").textContent = state.locked ? "Locked" : "Unlocked";
     $("#btnLock").textContent = state.locked ? "Unlock Pairings" : "Lock Pairings";
-    // disable match adding when locked
     $("#btnAddMatch").disabled = state.locked;
   }
 
@@ -547,7 +518,6 @@
 
     setLocked(state.locked);
 
-    // lock-related disables
     $("#teamAName").disabled = state.locked;
     $("#teamBName").disabled = state.locked;
     $("#teamAPlayer").disabled = state.locked;
@@ -562,17 +532,19 @@
     (team.players||[]).forEach((p, idx) => {
       const chip = el("span", {class:"chip"}, [
         document.createTextNode(p),
-        el("button", { title:"Remove", onClick: ()=> {
-          if(state.locked){ toast("Locked", "Unlock to edit rosters."); return; }
-          team.players.splice(idx,1);
-          // also remove player from matches
-          state.matches.forEach(m=>{
-            if(teamKey==="A") m.teamAPlayers = (m.teamAPlayers||[]).filter(x=>x!==p);
-            if(teamKey==="B") m.teamBPlayers = (m.teamBPlayers||[]).filter(x=>x!==p);
-          });
-          saveState();
-          render();
-        }}, [document.createTextNode("×")])
+        el("button", {
+          title:"Remove",
+          onClick: ()=> {
+            if(state.locked){ toast("Locked", "Unlock to edit rosters."); return; }
+            team.players.splice(idx,1);
+            state.matches.forEach(m=>{
+              if(teamKey==="A") m.teamAPlayers = (m.teamAPlayers||[]).filter(x=>x!==p);
+              if(teamKey==="B") m.teamBPlayers = (m.teamBPlayers||[]).filter(x=>x!==p);
+            });
+            saveState();
+            render();
+          }
+        }, [document.createTextNode("×")])
       ]);
       host.appendChild(chip);
     });
@@ -595,12 +567,15 @@
     ]);
     const right = el("div", {class:"row"}, [
       el("span", {class:"meta"}, [document.createTextNode(`${m.format}`)]),
-      el("button", {class:"btn small bad", onClick: ()=> {
-        if(state.locked){ toast("Locked", "Unlock to remove matches."); return; }
-        state.matches = state.matches.filter(x=>x.id!==m.id);
-        saveState();
-        render();
-      }}, [document.createTextNode("Remove")])
+      el("button", {
+        class:"btn small bad",
+        onClick: ()=> {
+          if(state.locked){ toast("Locked", "Unlock to remove matches."); return; }
+          state.matches = state.matches.filter(x=>x.id!==m.id);
+          saveState();
+          render();
+        }
+      }, [document.createTextNode("Remove")])
     ]);
     header.appendChild(left);
     header.appendChild(right);
@@ -608,14 +583,8 @@
     const body = el("div", {class:"mbd"}, []);
     const two = el("div", {class:"twoCol"}, []);
 
-    // Left: Pairings
     const leftCol = el("div", {}, []);
-    leftCol.appendChild(el("div", {class:"mini"}, [
-      el("div", {class:"t"}, [document.createTextNode("Pairings")]),
-      el("div", {class:"s"}, [document.createTextNode("Enter names comma-separated. (Captain-friendly, no UI drama.)")])
-    ]));
-
-    const pRow = el("div", {class:"row", style:"margin-top:10px;"}, [
+    const pRow = el("div", {class:"row"}, [
       pairingField(`${A} players`, m.teamAPlayers, (arr)=>{ m.teamAPlayers = arr; }),
       pairingField(`${B} players`, m.teamBPlayers, (arr)=>{ m.teamBPlayers = arr; })
     ]);
@@ -640,7 +609,6 @@
     ]);
     leftCol.appendChild(notes);
 
-    // Right: Result + points
     const rightCol = el("div", {}, []);
     const resultBox = el("div", {class:"teamBox"}, []);
     resultBox.appendChild(el("div", {class:"title"}, [
@@ -652,12 +620,11 @@
     ]));
 
     const resultRow = el("div", {class:"row"}, [
-      el("button", {class:"btn small good", onClick: ()=> setResult(m,"A")}, [document.createTextNode(`${A} win`) ]),
-      el("button", {class:"btn small bad",  onClick: ()=> setResult(m,"B")}, [document.createTextNode(`${B} win`) ]),
-      el("button", {class:"btn small",      onClick: ()=> setResult(m,"halve")}, [document.createTextNode("Halve") ]),
-      el("button", {class:"btn small",      onClick: ()=> setResult(m,"pending")}, [document.createTextNode("Pending") ]),
+      el("button", {class:"btn small good", onClick: ()=> setResult(m,"A")}, [document.createTextNode(`${A} win`)]),
+      el("button", {class:"btn small bad",  onClick: ()=> setResult(m,"B")}, [document.createTextNode(`${B} win`)]),
+      el("button", {class:"btn small",      onClick: ()=> setResult(m,"halve")}, [document.createTextNode("Halve")]),
+      el("button", {class:"btn small",      onClick: ()=> setResult(m,"pending")}, [document.createTextNode("Pending")]),
     ]);
-    // disable if locked
     [...resultRow.querySelectorAll("button")].forEach(btn=> btn.disabled = state.locked);
     resultBox.appendChild(resultRow);
 
@@ -667,20 +634,17 @@
     ]);
     resultBox.appendChild(pointsRow);
 
-    const hint = el("div", {class:"footerNote"}, [
-      document.createTextNode("Tip: buttons auto-fill points (1 / 0.5 / 0). You can override manually if needed.")
-    ]);
-    resultBox.appendChild(hint);
+    resultBox.appendChild(el("div", {class:"footerNote"}, [
+      document.createTextNode("Buttons auto-fill 1 / 0.5 / 0. Override manually if needed.")
+    ]));
 
     rightCol.appendChild(resultBox);
 
     two.appendChild(leftCol);
     two.appendChild(rightCol);
-
     body.appendChild(two);
 
-    const wrap = el("div", {class:"match"}, [header, body]);
-    return wrap;
+    return el("div", {class:"match"}, [header, body]);
   }
 
   function pairingField(labelText, arr, setter){
@@ -721,7 +685,7 @@
 
   function textField(labelText, value, onSet){
     const field = el("div", {class:"field"}, [ el("label", {}, [document.createTextNode(labelText)]) ]);
-    const i = el("input", {placeholder:""});
+    const i = el("input", {});
     i.value = value || "";
     i.disabled = state.locked;
     i.addEventListener("input", ()=>{ onSet(i.value); saveState({quiet:true}); });
@@ -740,7 +704,6 @@
     i.addEventListener("change", ()=>{
       let v = parseFloat(i.value);
       if(Number.isNaN(v)) v = 0;
-      // clamp + snap to 0.5 increments
       v = Math.max(0, Math.min(2, v));
       v = Math.round(v * 2) / 2;
       i.value = String(v);
@@ -763,27 +726,19 @@
     render();
   }
 
-  // Events
-  $("#eventName").addEventListener("input", ()=>{
-    state.eventName = $("#eventName").value.slice(0,80);
-    saveState({quiet:true});
-  });
-  $("#sessionName").addEventListener("input", ()=>{
-    state.sessionName = $("#sessionName").value.slice(0,80);
-    saveState({quiet:true});
-  });
+  // Top-level controls (these already worked, keeping them explicit)
+  $("#eventName").addEventListener("input", ()=>{ state.eventName = $("#eventName").value.slice(0,80); saveState({quiet:true}); });
+  $("#sessionName").addEventListener("input", ()=>{ state.sessionName = $("#sessionName").value.slice(0,80); saveState({quiet:true}); });
 
   $("#teamAName").addEventListener("input", ()=>{
     if(state.locked) return;
     state.teams.A.name = safeName($("#teamAName").value) || "Team A";
-    saveState({quiet:true});
-    render();
+    saveState({quiet:true}); render();
   });
   $("#teamBName").addEventListener("input", ()=>{
     if(state.locked) return;
     state.teams.B.name = safeName($("#teamBName").value) || "Team B";
-    saveState({quiet:true});
-    render();
+    saveState({quiet:true}); render();
   });
 
   $("#btnAddA").addEventListener("click", ()=>{
@@ -792,8 +747,7 @@
     if(!v) return;
     if(!state.teams.A.players.includes(v)) state.teams.A.players.push(v);
     $("#teamAPlayer").value = "";
-    saveState();
-    render();
+    saveState(); render();
   });
 
   $("#btnAddB").addEventListener("click", ()=>{
@@ -802,23 +756,20 @@
     if(!v) return;
     if(!state.teams.B.players.includes(v)) state.teams.B.players.push(v);
     $("#teamBPlayer").value = "";
-    saveState();
-    render();
+    saveState(); render();
   });
 
   $("#btnAddMatch").addEventListener("click", ()=>{
     if(state.locked){ toast("Locked", "Unlock to add matches."); return; }
     const id = `M${state.matches.length + 1}`;
     state.matches.push(makeMatch(id, "Best Ball", [], []));
-    saveState();
-    render();
+    saveState(); render();
     toast("Match added", `${id} created.`);
   });
 
   $("#btnLock").addEventListener("click", ()=>{
     state.locked = !state.locked;
-    saveState();
-    render();
+    saveState(); render();
     toast(state.locked ? "Locked" : "Unlocked", state.locked ? "Pairings/results protected." : "Edits enabled.");
   });
 
@@ -846,13 +797,11 @@
       const parsed = JSON.parse(text);
       if(!parsed || typeof parsed !== "object") throw new Error("Invalid");
       state = parsed;
-      // quick normalization
       state.version = 2;
       state.locked = !!state.locked;
       state.teams = state.teams || demoState().teams;
       state.matches = Array.isArray(state.matches) ? state.matches : [];
-      saveState();
-      render();
+      saveState(); render();
       toast("Imported", "State loaded.");
     }catch(e){
       toast("Import failed", "That file didn’t parse as valid console JSON.");
@@ -863,8 +812,7 @@
 
   $("#btnReset").addEventListener("click", ()=>{
     state = demoState();
-    saveState();
-    render();
+    saveState(); render();
     toast("Reset", "Demo data restored.");
   });
 
