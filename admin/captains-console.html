@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ryder Weekend — Captain’s Console</title>
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#121925;
+      --panel2:#0f1621;
+      --ink:#eef2f7;
+      --muted:#b7c0cc;
+      --dim:#7f8a99;
+      --line:rgba(255,255,255,.10);
+
+      --gold:#d1a14b;
+      --green:#3fbf7f;
+      --red:#cc3b3b;
+      --blue:#4aa6ff;
+
+      --radius:18px;
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(74,166,255,.18), transparent 60%),
+                  radial-gradient(1000px 700px at 85% 0%, rgba(209,161,75,.14), transparent 60%),
+                  radial-gradient(900px 700px at 50% 110%, rgba(63,191,127,.10), transparent 60%),
+                  var(--bg);
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index:20;
+      padding: 14px 18px;
+      border-bottom:1px solid var(--line);
+      background: rgba(10,13,18,.78);
+      backdrop-filter: blur(12px);
+    }
+    .topbar .row{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 260px;
+    }
+    .badge{
+      width:40px;height:40px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, rgba(209,161,75,.22), rgba(74,166,255,.18));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.3px;
+    }
+    .brand .sub{
+      margin-top:2px;
+      font-size:12px;
+      color: var(--muted);
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      color: var(--ink);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 650;
+      font-size: 13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.11); border-color: rgba(255,255,255,.18); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: rgba(209,161,75,.18);
+      border-color: rgba(209,161,75,.35);
+    }
+    .btn.good{
+      background: rgba(63,191,127,.16);
+      border-color: rgba(63,191,127,.32);
+    }
+    .btn.bad{
+      background: rgba(204,59,59,.16);
+      border-color: rgba(204,59,59,.30);
+    }
+    .btn.blue{
+      background: rgba(74,166,255,.14);
+      border-color: rgba(74,166,255,.30);
+    }
+    .btn.small{ padding: 8px 10px; border-radius: 12px; font-size: 12px; }
+
+    .pill{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    main{
+      padding: 18px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:16px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.11);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 14px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background: rgba(0,0,0,.16);
+    }
+    .card .hd h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.3px;
+    }
+    .card .bd{ padding: 14px; }
+    .muted{ color: var(--muted); }
+    .dim{ color: var(--dim); }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      flex: 1 1 160px;
+      min-width: 160px;
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.2px;
+    }
+    input, select, textarea{
+      width:100%;
+      padding: 10px 11px;
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(10,14,20,.62);
+      border:1px solid rgba(255,255,255,.12);
+      outline:none;
+      font-size: 13px;
+    }
+    textarea{ min-height: 110px; resize: vertical; font-family: var(--mono); font-size: 12px; }
+    input::placeholder{ color: rgba(183,192,204,.55); }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 620px){
+      .split{ grid-template-columns: 1fr; }
+    }
+
+    .teamBox{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      padding: 12px;
+    }
+    .teamBox .title{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .teamBox .title .name{
+      font-weight: 800;
+      letter-spacing:.2px;
+      font-size: 13px;
+    }
+    .teamBox .title .tag{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+    }
+    .roster{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 8px;
+    }
+    .chip{
+      font-size: 12px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .chip button{
+      appearance:none;
+      border:none;
+      background: transparent;
+      color: rgba(255,255,255,.75);
+      cursor:pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .chip button:hover{ color: white; }
+
+    .matches{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .match{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .match .mhd{
+      padding: 10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .match .mhd .left{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .match .mhd .id{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .match .mhd .status{
+      font-weight: 800;
+      letter-spacing:.2px;
+      font-size: 13px;
+    }
+    .match .mhd .meta{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .match .mbd{ padding: 12px; }
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 720px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    .scoreBig{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      margin-bottom: 10px;
+    }
+    .scoreBig .line1{
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .scoreBig .line2{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 5px 7px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+
+    .footerNote{
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--dim);
+    }
+
+    .toast{
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      max-width: 360px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(10,13,18,.80);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      color: var(--ink);
+      display:none;
+      z-index: 50;
+    }
+    .toast .t1{ font-weight: 800; font-size: 13px; margin-bottom: 4px; }
+    .toast .t2{ font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="row">
+      <div class="brand">
+        <div class="badge">RW</div>
+        <div>
+          <h1>Ryder Weekend — Captain’s Console</h1>
+          <div class="sub">Pairings • Match Status • Broadcast Snapshot • Local-first</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <span class="pill" id="autosavePill">Autosave: ON</span>
+        <button class="btn blue" id="btnPushBroadcast">Push to Broadcast</button>
+        <button class="btn" id="btnExport">Export JSON</button>
+        <button class="btn" id="btnImport">Import JSON</button>
+        <button class="btn bad" id="btnReset">Reset Demo</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- LEFT: Teams + Match setup -->
+      <section class="card">
+        <div class="hd">
+          <h2>Teams & Pairings</h2>
+          <div class="row">
+            <button class="btn small good" id="btnAddMatch">+ Add Match</button>
+            <button class="btn small" id="btnLockPairings">Lock Pairings</button>
+          </div>
+        </div>
+        <div class="bd">
+
+          <div class="split">
+            <div class="teamBox">
+              <div class="title">
+                <div>
+                  <div class="name" id="teamANameLabel">Ozark</div>
+                  <div class="dim" style="font-size:12px;">Roster</div>
+                </div>
+                <div class="tag" id="teamATag">TEAM_A</div>
+              </div>
+
+              <div class="row">
+                <div class="field">
+                  <label>Team name</label>
+                  <input id="teamAName" placeholder="Ozark" />
+                </div>
+                <div class="field">
+                  <label>Add player</label>
+                  <div class="row">
+                    <input id="teamAPlayer" placeholder="Player name" />
+                    <button class="btn small" id="btnAddA">Add</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="roster" id="rosterA"></div>
+            </div>
+
+            <div class="teamBox">
+              <div class="title">
+                <div>
+                  <div class="name" id="teamBNameLabel">Valley</div>
+                  <div class="dim" style="font-size:12px;">Roster</div>
+                </div>
+                <div class="tag" id="teamBTag">TEAM_B</div>
+              </div>
+
+              <div class="row">
+                <div class="field">
+                  <label>Team name</label>
+                  <input id="teamBName" placeholder="Valley" />
+                </div>
+                <div class="field">
+                  <label>Add player</label>
+                  <div class="row">
+                    <input id="teamBPlayer" placeholder="Player name" />
+                    <button class="btn small" id="btnAddB">Add</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="roster" id="rosterB"></div>
+            </div>
+          </div>
+
+          <div style="height:14px;"></div>
+
+          <div class="row">
+            <div class="field">
+              <label>Event name (for exports/broadcast)</label>
+              <input id="eventName" placeholder="Ozark Invitational — Ryder Weekend" />
+            </div>
+            <div class="field">
+              <label>Day / Session label</label>
+              <input id="sessionName" placeholder="Day 1 — Morning (Best Ball)" />
+            </div>
+          </div>
+
+          <div class="footerNote">
+            Tip: This console saves to <span class="kbd">localStorage</span>. When you’re ready, you can wire overlays to read the broadcast snapshot key.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Broadcast Snapshot + Data IO -->
+      <section class="card">
+        <div class="hd">
+          <h2>Broadcast Snapshot</h2>
+          <div class="row">
+            <span class="pill">Storage Key: <span class="kbd">rw_broadcast_snapshot_v1</span></span>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="row" style="margin-bottom:10px;">
+            <button class="btn primary" id="btnPreviewBroadcast">Preview Snapshot</button>
+            <button class="btn" id="btnCopySnapshot">Copy JSON</button>
+          </div>
+          <textarea id="snapshotBox" spellcheck="false" readonly></textarea>
+          <div class="footerNote">
+            Your overlay can read the snapshot and render match tiles, lower-thirds, tickers, etc.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div style="height:16px;"></div>
+
+    <!-- MATCHES -->
+    <section class="card">
+      <div class="hd">
+        <h2>Live Match Control</h2>
+        <div class="row">
+          <span class="pill">Keyboard: <span class="kbd">A</span>/<span class="kbd">B</span> win hole • <span class="kbd">H</span> halve • <span class="kbd">N</span> next hole</span>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="matches" id="matches"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">
+    <div class="t1" id="toastTitle">Saved</div>
+    <div class="t2" id="toastBody">Local storage updated.</div>
+  </div>
+
+  <input type="file" id="importFile" accept="application/json" style="display:none;" />
+
+  <script>
+    // ==========================
+    // STORAGE KEYS
+    // ==========================
+    const STORAGE_KEY = "rw_captains_console_v1";
+    const BROADCAST_KEY = "rw_broadcast_snapshot_v1";
+
+    // ==========================
+    // DEFAULT DEMO DATA
+    // ==========================
+    function demoState(){
+      return {
+        version: 1,
+        eventName: "Ozark Invitational — Ryder Weekend",
+        sessionName: "Day 1 — Morning (Best Ball)",
+        pairingsLocked: false,
+        teams: {
+          A: { id:"A", name:"Ozark", players:["Nick","Migs","Logan","Cody"] },
+          B: { id:"B", name:"Valley", players:["Brad","Evan","Tanner","Chase"] }
+        },
+        matches: [
+          makeMatch("M1","Best Ball", ["Nick","Migs"], ["Brad","Evan"]),
+          makeMatch("M2","Scramble", ["Logan","Cody"], ["Tanner","Chase"])
+        ],
+        lastBroadcastPushISO: null
+      };
+    }
+
+    function makeMatch(id, format, teamAPlayers, teamBPlayers){
+      return {
+        id,
+        format,
+        teeTime: "",
+        course: "",
+        status: {
+          hole: 1,
+          thru: 0,
+          finished: false,
+          // matchScore: positive => Team A up, negative => Team B up
+          matchScore: 0,
+          dormie: false,
+          notes: ""
+        },
+        players: {
+          A: teamAPlayers,
+          B: teamBPlayers
+        },
+        holeLog: [] // entries: {hole, result: "A"|"B"|"H", tsISO}
+      };
+    }
+
+    // ==========================
+    // HELPERS
+    // ==========================
+    const $ = (sel) => document.querySelector(sel);
+    const el = (tag, attrs={}, children=[]) => {
+      const n = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v])=>{
+        if(k==="class") n.className = v;
+        else if(k==="html") n.innerHTML = v;
+        else if(k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+        else n.setAttribute(k, v);
+      });
+      children.forEach(c => n.appendChild(c));
+      return n;
+    };
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function toast(title, body){
+      const box = $("#toast");
+      $("#toastTitle").textContent = title;
+      $("#toastBody").textContent = body;
+      box.style.display = "block";
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=> box.style.display="none", 2200);
+    }
+
+    function safeName(s){
+      return (s||"").trim().replace(/\s+/g," ").slice(0,40);
+    }
+
+    function calcStatusLabel(state, match){
+      const A = state.teams.A.name;
+      const B = state.teams.B.name;
+      const ms = match.status.matchScore;
+
+      if(match.status.finished){
+        if(ms === 0) return "Final — AS";
+        return ms > 0 ? `Final — ${A} by ${ms}` : `Final — ${B} by ${Math.abs(ms)}`;
+      }
+      if(ms === 0) return "AS";
+      return ms > 0 ? `${A} +${ms}` : `${B} +${Math.abs(ms)}`;
+    }
+
+    function calcMeta(match){
+      const h = match.status.hole;
+      const t = match.status.thru;
+      const fin = match.status.finished;
+      if(fin) return `Finished`;
+      if(t === 0) return `Hole ${h}`;
+      return `Hole ${h} • Thru ${t}`;
+    }
+
+    function recomputeDormie(match){
+      // Dormie if side is up by exactly holes remaining.
+      if(match.status.finished){
+        match.status.dormie = false;
+        return;
+      }
+      const holesPlayed = match.status.thru;
+      const holesRemaining = 18 - holesPlayed;
+      const lead = Math.abs(match.status.matchScore);
+      match.status.dormie = (lead > 0 && lead === holesRemaining);
+    }
+
+    function finalizeIfClinched(match){
+      if(match.status.finished) return;
+      const holesPlayed = match.status.thru;
+      const holesRemaining = 18 - holesPlayed;
+      const lead = Math.abs(match.status.matchScore);
+      if(lead > holesRemaining){
+        match.status.finished = true;
+      }
+    }
+
+    function pushBroadcastSnapshot(state){
+      const snap = buildBroadcastSnapshot(state);
+      localStorage.setItem(BROADCAST_KEY, JSON.stringify(snap));
+      state.lastBroadcastPushISO = new Date().toISOString();
+      $("#snapshotBox").value = JSON.stringify(snap, null, 2);
+      toast("Broadcast pushed", "Snapshot saved for overlays.");
+    }
+
+    function buildBroadcastSnapshot(state){
+      const now = new Date().toISOString();
+      return {
+        version: 1,
+        generatedISO: now,
+        eventName: state.eventName,
+        sessionName: state.sessionName,
+        teams: {
+          A: { name: state.teams.A.name },
+          B: { name: state.teams.B.name }
+        },
+        matches: state.matches.map(m => ({
+          id: m.id,
+          format: m.format,
+          hole: m.status.hole,
+          thru: m.status.thru,
+          finished: m.status.finished,
+          dormie: m.status.dormie,
+          label: calcStatusLabel(state, m),
+          teamAPlayers: m.players.A.slice(),
+          teamBPlayers: m.players.B.slice(),
+          notes: (m.status.notes||"").slice(0,140)
+        }))
+      };
+    }
+
+    // ==========================
+    // STATE
+    // ==========================
+    let state = loadState();
+    let focusedMatchId = null;
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return demoState();
+        const parsed = JSON.parse(raw);
+        if(!parsed || typeof parsed !== "object") return demoState();
+        // light upgrade path
+        parsed.version = parsed.version || 1;
+        parsed.pairingsLocked = !!parsed.pairingsLocked;
+        parsed.teams = parsed.teams || demoState().teams;
+        parsed.matches = Array.isArray(parsed.matches) ? parsed.matches : demoState().matches;
+        parsed.eventName = parsed.eventName || demoState().eventName;
+        parsed.sessionName = parsed.sessionName || demoState().sessionName;
+        parsed.lastBroadcastPushISO = parsed.lastBroadcastPushISO || null;
+        return parsed;
+      }catch(e){
+        return demoState();
+      }
+    }
+
+    function saveState(opts={quiet:false}){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      $("#autosavePill").textContent = "Autosave: ON";
+      if(!opts.quiet) toast("Saved", "Captain’s Console updated.");
+      // Keep dormie/clinched consistent
+      state.matches.forEach(m => { recomputeDormie(m); finalizeIfClinched(m); });
+      // Refresh snapshot preview pane with newest computed snap (not pushed)
+      $("#snapshotBox").value = JSON.stringify(buildBroadcastSnapshot(state), null, 2);
+    }
+
+    // ==========================
+    // RENDER
+    // ==========================
+    function render(){
+      // Team labels
+      $("#teamANameLabel").textContent = state.teams.A.name || "Team A";
+      $("#teamBNameLabel").textContent = state.teams.B.name || "Team B";
+      $("#teamAName").value = state.teams.A.name || "";
+      $("#teamBName").value = state.teams.B.name || "";
+      $("#eventName").value = state.eventName || "";
+      $("#sessionName").value = state.sessionName || "";
+
+      // Roster chips
+      renderRoster("A", $("#rosterA"));
+      renderRoster("B", $("#rosterB"));
+
+      // Matches
+      const wrap = $("#matches");
+      wrap.innerHTML = "";
+      state.matches.forEach(m => wrap.appendChild(renderMatch(m)));
+
+      // Pairings lock UI feel
+      $("#btnLockPairings").textContent = state.pairingsLocked ? "Unlock Pairings" : "Lock Pairings";
+      $("#btnAddMatch").disabled = state.pairingsLocked;
+
+      // Snapshot preview (always)
+      $("#snapshotBox").value = JSON.stringify(buildBroadcastSnapshot(state), null, 2);
+    }
+
+    function renderRoster(teamKey, host){
+      host.innerHTML = "";
+      const team = state.teams[teamKey];
+      (team.players||[]).forEach((p, idx) => {
+        const chip = el("span", {class:"chip"}, [
+          document.createTextNode(p),
+          el("button", { title:"Remove", onClick: ()=> {
+            if(state.pairingsLocked){
+              toast("Pairings locked", "Unlock pairings to edit rosters.");
+              return;
+            }
+            team.players.splice(idx,1);
+            // also remove from any match
+            state.matches.forEach(m=>{
+              m.players[teamKey] = m.players[teamKey].filter(n=> n !== p);
+            });
+            saveState();
+            render();
+          }}, [document.createTextNode("×")])
+        ]);
+        host.appendChild(chip);
+      });
+    }
+
+    function renderMatch(match){
+      recomputeDormie(match);
+      finalizeIfClinched(match);
+
+      const statusLabel = calcStatusLabel(state, match);
+      const meta = calcMeta(match);
+      const isFocused = focusedMatchId === match.id;
+
+      const matchNode = el("div", {class:"match", "data-id": match.id}, []);
+
+      const mhd = el("div", {class:"mhd"}, []);
+      const left = el("div", {class:"left"}, [
+        el("span", {class:"id"}, [document.createTextNode(match.id)]),
+        el("span", {class:"status"}, [document.createTextNode(statusLabel)]),
+        match.status.dormie ? el("span", {class:"pill"}, [document.createTextNode("DORMIE")]) : document.createTextNode("")
+      ]);
+
+      const right = el("div", {class:"row"}, [
+        el("span", {class:"meta"}, [document.createTextNode(`${match.format} • ${meta}`)]),
+        el("button", {class:"btn small", onClick: ()=> {
+          focusedMatchId = match.id;
+          toast("Match focused", "Keyboard controls now target this match.");
+          render();
+        }}, [document.createTextNode(isFocused ? "Focused" : "Focus")]),
+        el("button", {class:"btn small bad", onClick: ()=> {
+          if(state.pairingsLocked){
+            toast("Pairings locked", "Unlock pairings to remove matches.");
+            return;
+          }
+          state.matches = state.matches.filter(m => m.id !== match.id);
+          if(focusedMatchId === match.id) focusedMatchId = null;
+          saveState();
+          render();
+        }}, [document.createTextNode("Remove")])
+      ]);
+
+      mhd.appendChild(left);
+      mhd.appendChild(right);
+
+      const mbd = el("div", {class:"mbd"}, []);
+      const two = el("div", {class:"twoCol"}, []);
+
+      // Left column: players + score controls
+      const leftCol = el("div", {}, []);
+
+      const big = el("div", {class:"scoreBig"}, [
+        el("div", {}, [
+          el("div", {class:"line1"}, [document.createTextNode(`${state.teams.A.name} vs ${state.teams.B.name}`)]),
+          el("div", {class:"line2"}, [document.createTextNode(
+            match.status.finished ? "Match complete" :
+            `Hole ${match.status.hole} • Thru ${match.status.thru} • ${match.holeLog.length} logged`
+          )])
+        ]),
+        el("div", {class:"row"}, [
+          el("button", {class:"btn small blue", onClick: ()=> {
+            pushBroadcastSnapshot(state);
+            saveState({quiet:true});
+          }}, [document.createTextNode("Push")])
+        ])
+      ]);
+
+      leftCol.appendChild(big);
+
+      // Pairing selectors
+      const pRow = el("div", {class:"row"}, []);
+      pRow.appendChild(renderPairingSelector(match, "A"));
+      pRow.appendChild(renderPairingSelector(match, "B"));
+      leftCol.appendChild(pRow);
+
+      // Match settings
+      const settings = el("div", {class:"row", style:"margin-top:10px;"}, [
+        el("div", {class:"field"}, [
+          el("label", {}, [document.createTextNode("Format")]),
+          (() => {
+            const s = el("select", {});
+            ["Best Ball","Scramble","Alternate Shot","Singles","Shamble","Other"].forEach(opt=>{
+              const o = el("option", {value: opt}, [document.createTextNode(opt)]);
+              if(match.format === opt) o.selected = true;
+              s.appendChild(o);
+            });
+            s.disabled = state.pairingsLocked;
+            s.addEventListener("change", ()=>{
+              match.format = s.value;
+              saveState({quiet:true});
+              render();
+            });
+            return s;
+          })()
+        ]),
+        el("div", {class:"field"}, [
+          el("label", {}, [document.createTextNode("Tee time")]),
+          (() => {
+            const i = el("input", {placeholder:"8:10 AM"});
+            i.value = match.teeTime || "";
+            i.disabled = state.pairingsLocked;
+            i.addEventListener("input", ()=>{
+              match.teeTime = i.value;
+              saveState({quiet:true});
+              $("#autosavePill").textContent = "Autosave: ON";
+            });
+            i.addEventListener("change", ()=> saveState({quiet:true}));
+            return i;
+          })()
+        ]),
+        el("div", {class:"field"}, [
+          el("label", {}, [document.createTextNode("Course / Notes")]),
+          (() => {
+            const i = el("input", {placeholder:"Diamond Hills CC"});
+            i.value = match.course || "";
+            i.disabled = state.pairingsLocked;
+            i.addEventListener("input", ()=>{
+              match.course = i.value;
+              saveState({quiet:true});
+            });
+            i.addEventListener("change", ()=> saveState({quiet:true}));
+            return i;
+          })()
+        ])
+      ]);
+      leftCol.appendChild(settings);
+
+      // Score controls
+      const ctrl = el("div", {class:"row", style:"margin-top:10px;"}, [
+        el("button", {class:"btn good", onClick: ()=> logHole(match, "A")}, [document.createTextNode(`${state.teams.A.name} wins hole`)]),
+        el("button", {class:"btn bad", onClick: ()=> logHole(match, "B")}, [document.createTextNode(`${state.teams.B.name} wins hole`)]),
+        el("button", {class:"btn", onClick: ()=> logHole(match, "H")}, [document.createTextNode("Halve hole")]),
+        el("button", {class:"btn blue", onClick: ()=> nextHole(match)}, [document.createTextNode("Next hole")]),
+        el("button", {class:"btn", onClick: ()=> undoHole(match)}, [document.createTextNode("Undo")]),
+        el("button", {class:"btn", onClick: ()=> resetMatch(match)}, [document.createTextNode("Reset match")])
+      ]);
+
+      leftCol.appendChild(ctrl);
+
+      const noteField = el("div", {class:"field", style:"margin-top:10px;"}, [
+        el("label", {}, [document.createTextNode("Match note (shows in broadcast snapshot)")]),
+        (() => {
+          const i = el("input", {placeholder:"e.g., Tight match heading to 15"});
+          i.value = match.status.notes || "";
+          i.addEventListener("input", ()=>{
+            match.status.notes = i.value;
+            saveState({quiet:true});
+          });
+          i.addEventListener("change", ()=> saveState({quiet:true}));
+          return i;
+        })()
+      ]);
+      leftCol.appendChild(noteField);
+
+      // Right column: quick status + log
+      const rightCol = el("div", {}, []);
+
+      const statBox = el("div", {class:"teamBox"}, []);
+      statBox.appendChild(el("div", {class:"title"}, [
+        el("div", {}, [
+          el("div", {class:"name"}, [document.createTextNode("Match Status")]),
+          el("div", {class:"dim", style:"font-size:12px;"}, [document.createTextNode("Captain view")])
+        ]),
+        el("div", {class:"tag"}, [document.createTextNode(match.status.finished ? "FINAL" : (match.status.dormie ? "DORMIE" : "LIVE"))])
+      ]));
+
+      const statusFields = el("div", {class:"row"}, [
+        numField("Hole", match.status.hole, 1, 18, (v)=>{ match.status.hole=v; saveState({quiet:true}); render(); }),
+        numField("Thru", match.status.thru, 0, 18, (v)=>{ match.status.thru=v; saveState({quiet:true}); render(); }),
+        numField("MatchScore (A+ / B-)", match.status.matchScore, -18, 18, (v)=>{ match.status.matchScore=v; saveState({quiet:true}); render(); })
+      ]);
+      statBox.appendChild(statusFields);
+
+      const finRow = el("div", {class:"row", style:"margin-top:10px;"}, [
+        el("button", {class:"btn small", onClick: ()=> { match.status.finished = !match.status.finished; saveState(); render(); }}, [
+          document.createTextNode(match.status.finished ? "Set LIVE" : "Set FINAL")
+        ]),
+        el("button", {class:"btn small primary", onClick: ()=> { pushBroadcastSnapshot(state); saveState({quiet:true}); }}, [
+          document.createTextNode("Push Snapshot")
+        ])
+      ]);
+      statBox.appendChild(finRow);
+
+      rightCol.appendChild(statBox);
+
+      const logBox = el("div", {class:"teamBox", style:"margin-top:12px;"}, []);
+      logBox.appendChild(el("div", {class:"title"}, [
+        el("div", {}, [
+          el("div", {class:"name"}, [document.createTextNode("Hole Log")]),
+          el("div", {class:"dim", style:"font-size:12px;"}, [document.createTextNode("Latest at bottom")])
+        ]),
+        el("div", {class:"tag"}, [document.createTextNode(`${match.holeLog.length} entries`)])
+      ]));
+
+      const logList = el("div", {class:"muted", style:"font-family:var(--mono); font-size:12px; white-space:pre-wrap;"}, []);
+      logList.textContent = formatHoleLog(state, match);
+      logBox.appendChild(logList);
+
+      rightCol.appendChild(logBox);
+
+      two.appendChild(leftCol);
+      two.appendChild(rightCol);
+
+      mbd.appendChild(two);
+
+      matchNode.appendChild(mhd);
+      matchNode.appendChild(mbd);
+
+      return matchNode;
+    }
+
+    function numField(labelText, value, min, max, onChange){
+      const wrap = el("div", {class:"field", style:"min-width:140px; flex:1 1 140px;"}, [
+        el("label", {}, [document.createTextNode(labelText)]),
+        (() => {
+          const i = el("input", {type:"number", min:String(min), max:String(max)});
+          i.value = String(value ?? 0);
+          i.addEventListener("change", ()=>{
+            const v = clamp(parseInt(i.value,10) || 0, min, max);
+            i.value = String(v);
+            onChange(v);
+          });
+          return i;
+        })()
+      ]);
+      return wrap;
+    }
+
+    function renderPairingSelector(match, teamKey){
+      const team = state.teams[teamKey];
+      const label = teamKey === "A" ? state.teams.A.name : state.teams.B.name;
+
+      const box = el("div", {class:"field", style:"min-width:260px; flex: 1 1 260px;"}, [
+        el("label", {}, [document.createTextNode(`${label} players (comma-separated)`)])
+      ]);
+
+      const i = el("input", {placeholder:"e.g., Nick, Migs"});
+      i.value = (match.players[teamKey] || []).join(", ");
+      i.disabled = state.pairingsLocked;
+
+      i.addEventListener("change", ()=>{
+        if(state.pairingsLocked) return;
+        const names = i.value.split(",").map(s=>safeName(s)).filter(Boolean);
+        // Validate against roster: allow unknown but warn via toast
+        const roster = (team.players||[]);
+        const unknown = names.filter(n=> !roster.includes(n));
+        if(unknown.length){
+          toast("Roster mismatch", `Not in ${label} roster: ${unknown.join(", ")}`);
+        }
+        match.players[teamKey] = names;
+        saveState();
+        render();
+      });
+
+      box.appendChild(i);
+      return box;
+    }
+
+    function formatHoleLog(state, match){
+      if(!match.holeLog.length) return "—";
+      const A = state.teams.A.name;
+      const B = state.teams.B.name;
+      return match.holeLog.map(e=>{
+        const r = e.result === "H" ? "Halved" : (e.result === "A" ? `${A} won` : `${B} won`);
+        return `H${String(e.hole).padStart(2,"0")}: ${r}`;
+      }).join("\n");
+    }
+
+    // ==========================
+    // MATCH ACTIONS
+    // ==========================
+    function logHole(match, result){
+      if(match.status.finished){
+        toast("Match is final", "Set LIVE to keep logging holes.");
+        return;
+      }
+      // If thru already equals 18, stop
+      if(match.status.thru >= 18){
+        toast("Round complete", "Thru is already 18.");
+        return;
+      }
+
+      const nextHoleNumber = match.status.thru + 1;
+      match.holeLog.push({ hole: nextHoleNumber, result, tsISO: new Date().toISOString() });
+
+      // Update matchScore: A win => +1, B win => -1, H => 0
+      if(result === "A") match.status.matchScore += 1;
+      else if(result === "B") match.status.matchScore -= 1;
+
+      match.status.thru = nextHoleNumber;
+      match.status.hole = clamp(match.status.thru + 1, 1, 18);
+
+      recomputeDormie(match);
+      finalizeIfClinched(match);
+
+      saveState({quiet:true});
+      render();
+    }
+
+    function nextHole(match){
+      if(match.status.finished){
+        toast("Match is final", "Set LIVE to advance holes.");
+        return;
+      }
+      match.status.hole = clamp(match.status.hole + 1, 1, 18);
+      saveState({quiet:true});
+      render();
+    }
+
+    function undoHole(match){
+      if(!match.holeLog.length){
+        toast("Nothing to undo", "Hole log is empty.");
+        return;
+      }
+      const last = match.holeLog.pop();
+      // reverse score impact
+      if(last.result === "A") match.status.matchScore -= 1;
+      if(last.result === "B") match.status.matchScore += 1;
+
+      match.status.thru = clamp(match.status.thru - 1, 0, 18);
+      match.status.hole = clamp(match.status.thru + 1, 1, 18);
+      match.status.finished = false;
+
+      recomputeDormie(match);
+      saveState({quiet:true});
+      render();
+      toast("Undone", `Removed hole ${last.hole}.`);
+    }
+
+    function resetMatch(match){
+      match.status = { hole:1, thru:0, finished:false, matchScore:0, dormie:false, notes: (match.status.notes||"") };
+      match.holeLog = [];
+      saveState();
+      render();
+    }
+
+    // ==========================
+    // UI EVENTS
+    // ==========================
+    $("#teamAName").addEventListener("input", ()=>{
+      if(state.pairingsLocked) return;
+      state.teams.A.name = safeName($("#teamAName").value) || "Team A";
+      $("#teamANameLabel").textContent = state.teams.A.name;
+      saveState({quiet:true});
+      render();
+    });
+
+    $("#teamBName").addEventListener("input", ()=>{
+      if(state.pairingsLocked) return;
+      state.teams.B.name = safeName($("#teamBName").value) || "Team B";
+      $("#teamBNameLabel").textContent = state.teams.B.name;
+      saveState({quiet:true});
+      render();
+    });
+
+    $("#eventName").addEventListener("input", ()=>{
+      state.eventName = $("#eventName").value.slice(0,80);
+      saveState({quiet:true});
+    });
+
+    $("#sessionName").addEventListener("input", ()=>{
+      state.sessionName = $("#sessionName").value.slice(0,80);
+      saveState({quiet:true});
+    });
+
+    $("#btnAddA").addEventListener("click", ()=>{
+      if(state.pairingsLocked){ toast("Pairings locked", "Unlock pairings to edit rosters."); return; }
+      const v = safeName($("#teamAPlayer").value);
+      if(!v) return;
+      if(!state.teams.A.players.includes(v)) state.teams.A.players.push(v);
+      $("#teamAPlayer").value = "";
+      saveState();
+      render();
+    });
+
+    $("#btnAddB").addEventListener("click", ()=>{
+      if(state.pairingsLocked){ toast("Pairings locked", "Unlock pairings to edit rosters."); return; }
+      const v = safeName($("#teamBPlayer").value);
+      if(!v) return;
+      if(!state.teams.B.players.includes(v)) state.teams.B.players.push(v);
+      $("#teamBPlayer").value = "";
+      saveState();
+      render();
+    });
+
+    $("#btnAddMatch").addEventListener("click", ()=>{
+      if(state.pairingsLocked){ toast("Pairings locked", "Unlock pairings to add matches."); return; }
+      const id = `M${state.matches.length + 1}`;
+      state.matches.push(makeMatch(id, "Best Ball", [], []));
+      saveState();
+      render();
+      toast("Match added", `${id} created.`);
+    });
+
+    $("#btnLockPairings").addEventListener("click", ()=>{
+      state.pairingsLocked = !state.pairingsLocked;
+      saveState();
+      render();
+      toast(state.pairingsLocked ? "Pairings locked" : "Pairings unlocked",
+            state.pairingsLocked ? "Roster/match edits disabled." : "You can edit rosters and matches again.");
+    });
+
+    $("#btnPushBroadcast").addEventListener("click", ()=>{
+      pushBroadcastSnapshot(state);
+      saveState({quiet:true});
+    });
+
+    $("#btnPreviewBroadcast").addEventListener("click", ()=>{
+      $("#snapshotBox").value = JSON.stringify(buildBroadcastSnapshot(state), null, 2);
+      toast("Preview updated", "This is what overlays should read.");
+    });
+
+    $("#btnCopySnapshot").addEventListener("click", async ()=>{
+      try{
+        await navigator.clipboard.writeText($("#snapshotBox").value);
+        toast("Copied", "Snapshot JSON copied to clipboard.");
+      }catch(e){
+        toast("Copy failed", "Clipboard permission blocked. Select + copy manually.");
+      }
+    });
+
+    $("#btnExport").addEventListener("click", ()=>{
+      const payload = JSON.stringify(state, null, 2);
+      const blob = new Blob([payload], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const safe = (state.eventName || "ryder_weekend").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+      a.download = `${safe}_captains_console.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("Exported", "Downloaded state JSON.");
+    });
+
+    $("#btnImport").addEventListener("click", ()=>{
+      $("#importFile").click();
+    });
+
+    $("#importFile").addEventListener("change", async (ev)=>{
+      const file = ev.target.files && ev.target.files[0];
+      if(!file) return;
+      try{
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if(!parsed || typeof parsed !== "object") throw new Error("Invalid JSON");
+        state = parsed;
+        saveState();
+        render();
+        toast("Imported", "Captain’s Console state loaded.");
+      }catch(e){
+        toast("Import failed", "That file didn’t parse as a valid state JSON.");
+      }finally{
+        $("#importFile").value = "";
+      }
+    });
+
+    $("#btnReset").addEventListener("click", ()=>{
+      state = demoState();
+      saveState();
+      render();
+      toast("Reset", "Demo data restored.");
+    });
+
+    // Keyboard controls (targets focused match)
+    window.addEventListener("keydown", (e)=>{
+      if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)) return;
+
+      const match = focusedMatchId ? state.matches.find(m=>m.id===focusedMatchId) : null;
+      if(!match) return;
+
+      const k = e.key.toLowerCase();
+      if(k === "a"){ logHole(match, "A"); }
+      else if(k === "b"){ logHole(match, "B"); }
+      else if(k === "h"){ logHole(match, "H"); }
+      else if(k === "n"){ nextHole(match); }
+      else return;
+
+      e.preventDefault();
+    });
+
+    // Initial boot
+    saveState({quiet:true});
+    render();
+  </script>
+</body>
+</html>
