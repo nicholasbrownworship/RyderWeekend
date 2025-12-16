@@ -105,6 +105,7 @@
       background:#fff;
       font:inherit;
     }
+    select:disabled{ opacity:.6; cursor:not-allowed; }
     .badge{
       border:1px solid #d9d2c4;
       border-radius:999px;
@@ -348,7 +349,7 @@
       <div class="body">
         <div class="totals">
           <div class="teamBox">
-            <div class="teamName"><span class="dot oz"></span>Team Ozark</div>
+            <div class="teamName"><span class="dot oz"></span><span id="teamLabelOz">Team Ozark</span></div>
             <div class="teamScore" id="scoreOz">0</div>
           </div>
 
@@ -364,7 +365,7 @@
           </div>
 
           <div class="teamBox" style="align-items:end;text-align:right">
-            <div class="teamName"><span class="dot va"></span>Team Valley</div>
+            <div class="teamName"><span class="dot va"></span><span id="teamLabelVa">Team Valley</span></div>
             <div class="teamScore" id="scoreVa">0</div>
           </div>
         </div>
@@ -407,21 +408,36 @@
       });
     })();
 
-    // ============== LEADERBOARD (cards + shared team scores) ==============
+    // ============== LEADERBOARD (dual-source: Captain Console OR scorecards) ==============
     (function(){
+      // Existing system
       const SHARED_KEY = "ozarkShared_v1";
       const SCORE_NS   = "ozarkScores9_v1"; // keys: ozarkScores9_v1:<day>:<side>:<group>
-      const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
-      const TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // team = 2v2, singles otherwise
 
-      // URL param helpers / defaults
+      // New source: Captain’s Console
+      const CAPTAINS_KEY = "rw_captains_console_v2";
+
+      // DOM
+      const fDay  = document.getElementById('fDay');
+      const fSide = document.getElementById('fSide');
+      const elOz  = document.getElementById('scoreOz');
+      const elVa  = document.getElementById('scoreVa');
+      const bar   = document.getElementById('barFill');
+      const crown = document.getElementById('crownTag');
+      const grid  = document.getElementById('matchGrid');
+      const empty = document.getElementById('emptyState');
+      const note  = document.getElementById('filterNote');
+      const evtBadge = document.getElementById('eventNameBadge');
+      const teamLabelOz = document.getElementById('teamLabelOz');
+      const teamLabelVa = document.getElementById('teamLabelVa');
+
+      let shared = null, LAST_TS = 0;
+
+      // URL param helpers / defaults (for the old scorecard mode)
       function qs(name, def){
         const u = new URL(location.href);
         return u.searchParams.get(name) || def;
       }
-
-      const fDay  = document.getElementById('fDay');
-      const fSide = document.getElementById('fSide');
       fDay.value  = (qs('day','all').toLowerCase()==='day2')
         ? 'day2'
         : (qs('day','all').toLowerCase()==='day1' ? 'day1':'all');
@@ -429,26 +445,199 @@
         ? qs('side','all').toLowerCase()
         : 'all';
 
-      const elOz   = document.getElementById('scoreOz');
-      const elVa   = document.getElementById('scoreVa');
-      const bar    = document.getElementById('barFill');
-      const crown  = document.getElementById('crownTag');
-      const grid   = document.getElementById('matchGrid');
-      const empty  = document.getElementById('emptyState');
-      const note   = document.getElementById('filterNote');
-      const evtBadge = document.getElementById('eventNameBadge');
-
-      let shared = null, LAST_TS = 0;
-
-      fDay.addEventListener('change', renderAll);
-      fSide.addEventListener('change', renderAll);
-
-      function storageKey(day, side, group){
-        return `${SCORE_NS}:${day}:${side}:${group}`;
-      }
       function readJSON(key){
         try{ return JSON.parse(localStorage.getItem(key)||'null'); }
         catch{ return null; }
+      }
+
+      function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+      function round1(v){ return Math.round((Number(v)||0) * 10) / 10; }
+
+      // ------------------------------
+      // Captain’s Console mode
+      // ------------------------------
+      function readCaptains(){
+        const st = readJSON(CAPTAINS_KEY);
+        if(!st || !Array.isArray(st.matches) || st.matches.length === 0) return null;
+        return st;
+      }
+
+      function captainsTotals(st){
+        const oz = round1(st.matches.reduce((s,m)=> s + (Number(m.pointsA)||0), 0));
+        const va = round1(st.matches.reduce((s,m)=> s + (Number(m.pointsB)||0), 0));
+        const denom = (oz + va);
+        const pctOz = denom > 0 ? clamp((oz/denom)*100, 0, 100) : 50;
+        return { oz, va, pctOz };
+      }
+
+      // Keep your header widget totals in sync by writing to ozarkShared_v1.teamScores
+      function pushHeaderWidgetTeamScores(oz, va, st){
+        try{
+          const raw = localStorage.getItem(SHARED_KEY);
+          const snap = raw ? JSON.parse(raw) : {};
+          const base = (snap && typeof snap === 'object') ? { ...snap } : {};
+          base.teamScores = { ozark: oz, valley: va };
+          if (st?.eventName) base.eventName = st.eventName;
+          base.ts = Date.now();
+          localStorage.setItem(SHARED_KEY, JSON.stringify(base));
+          if (window.initTeamScoreWidget) window.initTeamScoreWidget();
+        }catch(e){
+          console.warn("[leaderboard] failed to update shared teamScores from captains", e);
+        }
+      }
+
+      function matchLabelFromCaptains(st, m){
+        const A = st?.teams?.A?.name || "Ozark";
+        const B = st?.teams?.B?.name || "Valley";
+        if (m.result === "pending") return "Pending";
+        if (m.result === "halve") return "Halved";
+        if (m.result === "A") return `${A} wins`;
+        if (m.result === "B") return `${B} wins`;
+        return "Pending";
+      }
+
+      function esc(s){
+        return String(s ?? "")
+          .replace(/&/g,"&amp;")
+          .replace(/</g,"&lt;")
+          .replace(/>/g,"&gt;")
+          .replace(/"/g,"&quot;");
+      }
+
+      function captainsCard(m, st){
+        const A = st?.teams?.A?.name || "Ozark";
+        const B = st?.teams?.B?.name || "Valley";
+
+        const fmt = (m.format || "Match").trim();
+        const id  = (m.id || "").trim() || "—";
+        const tee = (m.teeTime || "").trim();
+
+        const winner =
+          (m.result === "A") ? "ozark" :
+          (m.result === "B") ? "valley" :
+          (m.result === "halve") ? "tie" : null;
+
+        let cardClass = "";
+        if (winner === "ozark") cardClass = "win-oz";
+        else if (winner === "valley") cardClass = "win-va";
+        else if (winner === "tie") cardClass = "tie";
+
+        const ribbonText = (winner === "ozark") ? A : (winner === "valley") ? B : (winner === "tie") ? "Tie" : "";
+
+        const ozNames = (Array.isArray(m.teamAPlayers) && m.teamAPlayers.length)
+          ? m.teamAPlayers.join(" & ")
+          : "—";
+        const vaNames = (Array.isArray(m.teamBPlayers) && m.teamBPlayers.length)
+          ? m.teamBPlayers.join(" & ")
+          : "—";
+
+        const pillText = `${round1(m.pointsA)} – ${round1(m.pointsB)}`;
+        const pillClass =
+          winner ? (winner === "tie" ? "scorePill tie" : "scorePill win")
+                 : "scorePill partial";
+
+        const label = matchLabelFromCaptains(st, m);
+
+        const roundTag = `
+          <div class="roundTag">
+            <span class="tag">${esc(id)}</span>
+            <span class="tag fmt">${esc(fmt)}</span>
+            ${tee ? `<span class="tag">${esc(tee)}</span>` : ``}
+          </div>
+        `;
+
+        const chipOz = `<span class="teamChip oz"><span class="dot oz"></span>${esc(A)}</span>`;
+        const chipVa = `<span class="teamChip va"><span class="dot va"></span>${esc(B)}</span>`;
+
+        // Link to the console for edits (safe fallback to "#" if path differs)
+        const linkHref = `admin/captains-console.html`;
+
+        return `
+          <a class="match-link" href="${linkHref}">
+            <div class="match-card ${cardClass}">
+              <div class="ribbon">${esc(ribbonText)}</div>
+              <div class="mc-head">
+                ${roundTag}
+                <span class="${pillClass}">${esc(pillText)}</span>
+              </div>
+              <div class="mc-body">
+                <div class="teams">
+                  <div class="pair">
+                    <div class="name">${esc(ozNames)}</div>
+                    ${chipOz}
+                  </div>
+                  <div class="vs">${esc(label)}</div>
+                  <div class="pair" style="text-align:right; align-items:flex-end">
+                    <div class="name">${esc(vaNames)}</div>
+                    ${chipVa}
+                  </div>
+                </div>
+                ${m.notes ? `<div class="note" style="margin-top:10px;">Note: ${esc(String(m.notes)).slice(0,180)}</div>` : ``}
+              </div>
+            </div>
+          </a>
+        `;
+      }
+
+      function renderCaptains(st){
+        // Disable Day/Side filters because Captain matches don’t have day/side metadata
+        fDay.value = "all";
+        fSide.value = "all";
+        fDay.disabled = true;
+        fSide.disabled = true;
+
+        const A = st?.teams?.A?.name || "Team Ozark";
+        const B = st?.teams?.B?.name || "Team Valley";
+        teamLabelOz.textContent = A;
+        teamLabelVa.textContent = B;
+
+        const totals = captainsTotals(st);
+        elOz.textContent = String(totals.oz);
+        elVa.textContent = String(totals.va);
+        bar.style.width = totals.pctOz + "%";
+
+        crown.hidden = !(totals.oz > totals.va || totals.va > totals.oz);
+        crown.textContent =
+          (totals.oz > totals.va) ? `${A} Leading` :
+          (totals.va > totals.oz) ? `${B} Leading` : "Currently Tied";
+
+        evtBadge.textContent = (st.eventName || "Event");
+        note.textContent = `Source: Captain’s Console • ${st.sessionName || "Session"}`;
+
+        // Cards
+        const matches = Array.isArray(st.matches) ? st.matches : [];
+        let html = '';
+        const title = (st.sessionName || "Captain Pairings & Results").toUpperCase();
+        html += `<div class="round-section"><div class="round-section-title">${esc(title)}</div>`;
+
+        for (const m of matches){
+          html += captainsCard(m, st);
+        }
+        html += `</div>`;
+
+        grid.innerHTML = html;
+        empty.hidden = matches.length > 0;
+
+        // Sync header widget
+        pushHeaderWidgetTeamScores(totals.oz, totals.va, st);
+      }
+
+      // ------------------------------
+      // Existing scorecard mode (your original logic)
+      // ------------------------------
+      const TEAM_FORMATS = new Set(['Best Ball','Scramble','Alt Shot','Shamble']); // team = 2v2, singles otherwise
+
+      fDay.addEventListener('change', () => {
+        const capt = readCaptains();
+        if (!capt) renderAllScorecards();
+      });
+      fSide.addEventListener('change', () => {
+        const capt = readCaptains();
+        if (!capt) renderAllScorecards();
+      });
+
+      function storageKey(day, side, group){
+        return `${SCORE_NS}:${day}:${side}:${group}`;
       }
 
       function sumHoles9(arr){
@@ -474,7 +663,7 @@
 
       function evaluateGroup(day, side, fmt, gIndex){
         const teamEvent = TEAM_FORMATS.has(fmt);
-        const totals = readGroupTotals(day, side, gIndex+1); // 1-based group in storage keys
+        const totals = readGroupTotals(day, side, gIndex+1);
         const out = { teamEvent, results: [], pointsOz:0, pointsVa:0, totals };
 
         if (teamEvent){
@@ -507,36 +696,12 @@
         }
       }
 
-      function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-
       function playerName(p){
         if (!p) return '';
         const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : '';
         return `${p.firstName||''}${nick} ${p.lastName||''}`.replace(/\s+/g,' ').trim();
       }
 
-      // 🔥 Update shared snapshot with overall team scores for the header pill
-      function updateSharedTeamScores(oz, va, snap){
-        try{
-          if (snap && snap.teamScores &&
-              snap.teamScores.ozark === oz &&
-              snap.teamScores.valley === va){
-            return;
-          }
-          const base = snap ? {...snap} : {};
-          base.teamScores = { ozark: oz, valley: va };
-          base.ts = Date.now();
-          localStorage.setItem(SHARED_KEY, JSON.stringify(base));
-
-          if (window.initTeamScoreWidget){
-            window.initTeamScoreWidget();
-          }
-        }catch(e){
-          console.warn("[leaderboard] failed to update shared teamScores", e);
-        }
-      }
-
-      // ---- Card rendering
       function cardForTeam(day, side, fmt, gIndex, snap){
         const teamEvent = TEAM_FORMATS.has(fmt);
         const dayLabel  = (day==='day1')?'Day 1':'Day 2';
@@ -652,7 +817,7 @@
         }
       }
 
-      function computeTotals(snap){
+      function computeTotalsScorecards(snap){
         let oz=0, va=0, total=0;
         const considerDay  = fDay.value;
         const considerSide = fSide.value;
@@ -694,7 +859,7 @@
         return { oz, va, total };
       }
 
-      function rebuildGrid(snap){
+      function rebuildGridScorecards(snap){
         const considerDay  = fDay.value;
         const considerSide = fSide.value;
 
@@ -733,8 +898,8 @@
         empty.hidden = count>0;
       }
 
-      function renderTotals(snap){
-        const {oz, va, total} = computeTotals(snap);
+      function renderTotalsScorecards(snap){
+        const {oz, va, total} = computeTotalsScorecards(snap);
         const ozR = Math.round(oz*10)/10;
         const vaR = Math.round(va*10)/10;
 
@@ -755,20 +920,37 @@
         const evName = snap.eventName || 'Event';
         evtBadge.textContent = evName;
 
-        // 🔥 Push totals into shared snapshot so header widget can read them
-        updateSharedTeamScores(ozR, vaR, snap);
+        // Keep header widget scores updated
+        try{
+          if (!snap.teamScores || snap.teamScores.ozark !== ozR || snap.teamScores.valley !== vaR){
+            const base = {...snap, teamScores:{ozark:ozR, valley:vaR}, ts: Date.now()};
+            localStorage.setItem(SHARED_KEY, JSON.stringify(base));
+            if (window.initTeamScoreWidget) window.initTeamScoreWidget();
+          }
+        }catch(e){
+          console.warn("[leaderboard] failed to update shared teamScores", e);
+        }
       }
 
       function adoptShared(raw){
         shared = raw;
         LAST_TS = raw.ts || Date.now();
-        renderAll();
+        renderAllScorecards();
       }
 
-      function renderAll(){
+      function renderAllScorecards(){
         if (!shared) return;
-        renderTotals(shared);
-        rebuildGrid(shared);
+
+        // Ensure filters are enabled in scorecard mode
+        fDay.disabled = false;
+        fSide.disabled = false;
+
+        // Fixed labels in this mode
+        teamLabelOz.textContent = "Team Ozark";
+        teamLabelVa.textContent = "Team Valley";
+
+        renderTotalsScorecards(shared);
+        rebuildGridScorecards(shared);
       }
 
       function refreshFromStorage(){
@@ -783,11 +965,32 @@
         }
       }
 
-      // Boot
-      refreshFromStorage();
+      // ------------------------------
+      // Boot: prefer Captain’s Console if present
+      // ------------------------------
+      function boot(){
+        const capt = readCaptains();
+        if (capt){
+          renderCaptains(capt);
+          return;
+        }
+        refreshFromStorage();
+        setTimeout(renderAllScorecards, 0);
+      }
 
-      // React to changes
+      // React to changes (either system)
       window.addEventListener('storage', (e)=>{
+        // Captain’s Console changed → switch to / re-render captains mode
+        if (e.key === CAPTAINS_KEY){
+          const capt = readCaptains();
+          if (capt){ renderCaptains(capt); return; }
+          // If captains cleared, fall back
+          refreshFromStorage();
+          renderAllScorecards();
+          return;
+        }
+
+        // Existing scorecard system
         if (e.key === SHARED_KEY && e.newValue){
           let inc; try{ inc = JSON.parse(e.newValue); }catch{ return; }
           if (!inc || !inc.ts || inc.ts <= LAST_TS) return;
@@ -795,12 +998,13 @@
           return;
         }
         if (e.key && e.key.startsWith(`${SCORE_NS}:`)){
-          renderAll();
+          // Only re-render scorecard mode if captains isn't active
+          const capt = readCaptains();
+          if (!capt) renderAllScorecards();
         }
       });
 
-      // Ensure first paint
-      setTimeout(renderAll, 0);
+      boot();
     })();
   </script>
 </body>
