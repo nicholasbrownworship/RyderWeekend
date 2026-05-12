@@ -9,11 +9,23 @@ const PLAYER_PHOTO_BASE_PATH = "images/players/";
 const RESPECT_SAVED_HIDDEN_SEEDED = false; // <— OFF so hard-coded players always render
 
 // Storage keys
-const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1";
-const SIGNUPS_DUPE_KEY   = "ozarkSignupsDupes_v1";
-const HIDDEN_PLAYERS_KEY = "ozarkHiddenPlayers_v1";
+const SIGNUPS_ROSTER_KEY  = "ozarkSignupsRoster_v1";
+const SIGNUPS_DUPE_KEY    = "ozarkSignupsDupes_v1";
+const HIDDEN_PLAYERS_KEY  = "ozarkHiddenPlayers_v1";
+const PENDING_REG_KEY     = "ozarkPendingRegistrations_v1";
 // Shared bridge key used by Scoreboard/Scorecard/Leaderboard
 const SHARED_KEY = "ozarkShared_v1";
+
+// Pending registration helpers (used by register.html and admin/registrations.html)
+function loadPendingRegistrations() {
+  try { return JSON.parse(localStorage.getItem(PENDING_REG_KEY) || "[]"); } catch { return []; }
+}
+function savePendingRegistrations(arr) {
+  localStorage.setItem(PENDING_REG_KEY, JSON.stringify(arr || []));
+}
+function getApprovedRegistrations() {
+  return loadPendingRegistrations().filter(r => r.status === "approved");
+}
 
 // Helpers for hidden seeded players
 const loadHiddenIds = () => {
@@ -103,6 +115,13 @@ function upsertPlayerToMasterList(p) {
   if (!exists) players.push(p);
 }
 loadSignupPlayers().forEach(upsertPlayerToMasterList);
+
+// Also merge approved pending registrations into master list
+getApprovedRegistrations().forEach(r => {
+  const p = { ...r };
+  delete p.status; delete p.submittedAt; delete p.approvedAt; delete p.teamPreference;
+  upsertPlayerToMasterList(p);
+});
 
 // Only hide seeded if explicitly enabled
 if (RESPECT_SAVED_HIDDEN_SEEDED) {

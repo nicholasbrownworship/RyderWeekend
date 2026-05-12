@@ -2,240 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ozark Invitational – Family Golf Weekend</title>
+  <title>Ozark Invitational – Family Golf Weekend 2026</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, and bragging rights." />
+  <meta name="description" content="Brown Family Ryder Cup-style golf tournament at Diamond Hills Country Club in Diamond City, AR. Two days, mixed formats, trophy, and bragging rights." />
 
-  <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Icons / PWA touches -->
   <link rel="icon" href="favicon.ico" />
   <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#244f3c">
   <link rel="preload" as="image" href="images/logo.png" />
 
-  <!-- App script safety -->
-  <script>
-    // Ensure the homepage has a players array so script.js doesn't crash
-    window.players = window.players || [];
-  </script>
+  <script>window.players = window.players || [];</script>
+  <script src="script.js?v=3" defer></script>
 
-  <script src="script.js?v=2" defer></script>
-
-  <!-- Page-scoped CSS (hero, gallery, featured players helpers) -->
   <style>
-    body {
-      padding-top: 140px;
-    }
+    body { padding-top: 70px; }
 
-    /* HERO (video-ready) */
+    /* HERO */
     .hero.video {
-      position: relative;
-      min-height: 62vh;
-      overflow: clip;
+      position: relative; min-height: 68vh; overflow: clip;
       background: radial-gradient(1200px 600px at 10% -10%, #132022 0%, #0b0f0d 45%, #0b0f0d 100%);
     }
     .hero.video .hero-video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: .9;
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .85;
     }
     .hero.video .hero-overlay {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      place-items: start;
-      gap: .7rem;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14vh 16px 12vh;
+      position: relative; z-index: 1;
+      display: grid; place-items: start; gap: .75rem;
+      max-width: 1100px; margin: 0 auto;
+      padding: 15vh 24px 13vh;
       color: #f5f0e6;
       text-shadow: 0 10px 30px rgba(0,0,0,.55);
     }
     .hero.video h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 900;
-      letter-spacing: .02em;
+      margin: 0; font-size: clamp(2.1rem, 5.5vw, 3.25rem);
+      font-weight: 900; letter-spacing: .01em; line-height: 1.1;
     }
     .hero.video .lead {
-      margin: 0;
-      opacity: .95;
-      max-width: 60ch;
+      margin: 0; opacity: .92; max-width: 58ch; font-size: 1.05rem; line-height: 1.6;
     }
     .hero.video .hero-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
     }
     .hero.video .pill {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: .4rem .6rem;
-      border-radius: 999px;
-      background: rgba(0,0,0,.35);
-      color: #eaf6f0;
+      display: inline-flex; gap: 8px; align-items: center;
+      padding: .38rem .7rem; border-radius: 999px;
+      background: rgba(0,0,0,.38); color: #eaf6f0;
       border: 1px solid rgba(255,255,255,.2);
     }
-    .hero.video .pill-label { opacity: .8; font-weight: 600; }
-    .hero.video .pill-value { font-weight: 800; letter-spacing: .02em; }
-    .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .hero.video .pill-label { opacity: .8; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+    .hero.video .pill-value { font-weight: 800; font-size: .95rem; }
+    .hero.video .hero-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
     .hero.video .btn.primary {
-      background: #d1a14b;
-      color: #1a1407;
-      border: 1px solid #8f6a29;
+      background: #d1a14b; color: #1a1407; border: 1px solid rgba(0,0,0,.12);
+      font-weight: 700; font-size: 1rem; padding: .7rem 1.6rem;
+      border-radius: 999px; text-shadow: none; box-shadow: 0 6px 20px rgba(209,161,75,.3);
     }
+    .hero.video .btn.primary:hover { filter: brightness(1.06); }
     .hero.video .btn.ghost {
-      background: rgba(0,0,0,.4);
-      color: #f5f0e6;
-      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.4); color: #f5f0e6;
+      border: 1px solid rgba(255,255,255,.28); border-radius: 999px;
+      font-size: .95rem; padding: .7rem 1.4rem;
     }
-    .hero.video .hero-footnote {
-      margin-top: 6px;
-      opacity: .85;
-    }
-
-    /* Gallery grid */
-    .section .gallery {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .gallery img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #e7e0d1;
-      background: #fff;
-      box-shadow: 0 14px 38px rgba(0,0,0,0.06);
+    .hero.video .hero-footnote { margin-top: 6px; opacity: .75; font-size: .82rem; }
+    .tagline {
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .12em;
+      opacity: .8; font-weight: 600; margin-bottom: .2rem;
     }
 
-    /* Sponsor placeholders look tidy even before data */
-    .sponsor-grid:empty::before {
-      content: "";
-      display: block;
-      background:
-        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat center/contain,
-        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat left/contain,
-        url('images/placeholders/ph-sponsor-3x1.svg') no-repeat right/contain;
-      height: 90px;
-      opacity: .65;
-      filter: saturate(.7);
-      border: 1px dashed #e7e0d1;
-      border-radius: 12px;
-    }
-
-    /* Featured players grid + cards */
+    /* Featured players */
     .players-grid {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      align-items: stretch;
+      display: grid; gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     }
     .player-card {
-      background: #fff;
-      border: 1px solid #e7e0d1;
-      border-radius: 16px;
-      padding: 10px 12px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      box-shadow: 0 12px 32px rgba(0,0,0,.06);
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 14px; padding: 10px 12px;
+      display: flex; gap: 12px; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      transition: transform .12s ease, box-shadow .18s ease;
     }
+    .player-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
     .player-photo-wrap {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      overflow: hidden;
-      flex-shrink: 0;
-      background: #f5f0e6;
-      border: 1px solid #e7e0d1;
-      display: grid;
-      place-items: center;
-      font-weight: 700;
-      color: #244f3c;
-      text-transform: uppercase;
+      width: 58px; height: 58px; border-radius: 50%; overflow: hidden;
+      flex-shrink: 0; background: #f3efe5; border: 1px solid #e5ddd0;
+      display: grid; place-items: center;
+      font-weight: 800; color: #244f3c; text-transform: uppercase;
     }
-    .player-photo-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .player-body {
-      flex: 1;
-      min-width: 0;
-    }
-    .player-name {
-      margin: 0 0 4px;
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: .01em;
-    }
-    .player-meta {
-      margin: 0;
-      font-size: .85rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
+    .player-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .player-body { flex: 1; min-width: 0; }
+    .player-name { margin: 0 0 4px; font-size: .95rem; font-weight: 800; }
+    .player-meta { margin: 0; font-size: .8rem; display: flex; flex-wrap: wrap; gap: 5px; }
     .player-meta .badge {
-      border-radius: 999px;
-      padding: .15rem .5rem;
-      border: 1px solid #d9d2c4;
-      background: #fdfaf4;
+      border-radius: 999px; padding: .15rem .5rem;
+      border: 1px solid #e5ddd0; background: #fcfaf6;
+      font-size: .75rem; font-weight: 600;
     }
-    .badge.team.oz { border-color: rgba(46,204,113,.4); }
-    .badge.team.va { border-color: rgba(52,152,219,.4); }
+    .badge.team.oz { border-color: rgba(46,204,113,.4); color: #1f5c35; }
+    .badge.team.va { border-color: rgba(52,152,219,.4); color: #8a672a; }
+
+    /* Gallery */
+    .gallery-wrap { position: relative; max-width: 1100px; margin: 0 auto; padding: 0 42px; }
+    .gallery-rail {
+      display: flex; gap: 12px; overflow-x: auto;
+      scroll-snap-type: x mandatory; scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch; padding-bottom: 4px;
+    }
+    .gallery-rail::-webkit-scrollbar { height: 6px; }
+    .gallery-rail::-webkit-scrollbar-thumb { background: #e0d8c5; border-radius: 6px; }
+    .gitem {
+      flex: 0 0 auto; width: clamp(200px, 28vw, 320px); aspect-ratio: 4/3;
+      scroll-snap-align: start; border-radius: 12px; overflow: hidden;
+      border: 1px solid #e5ddd0; box-shadow: 0 4px 16px rgba(0,0,0,.06);
+      background: #fff; cursor: zoom-in;
+    }
+    .gitem img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gbtn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid #e5ddd0; background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      display: grid; place-items: center; font-size: 18px; cursor: pointer;
+    }
+    .gbtn.prev { left: 4px; } .gbtn.next { right: 4px; }
+
+    /* Sponsor grid */
+    .sponsor-grid {
+      display: grid; gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      max-width: 1100px; margin: 0 auto;
+    }
+    .sponsor {
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 12px; padding: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .sponsor img { max-height: 56px; width: auto; }
+    .sponsor-cta { text-align: center; margin-top: 1.5rem; font-size: .9rem; color: #64748b; }
+    .sponsor-cta a { color: #244f3c; font-weight: 700; text-decoration: underline; }
   </style>
 </head>
 <body id="top">
-  <!-- SHARED TOP BAR -->
+
+  <!-- SHARED HEADER -->
   <div id="siteHeader"></div>
   <script>
     fetch("header.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("siteHeader").innerHTML = html;
-        // Highlight current page (safe on GitHub Pages)
+      .then(r => r.text())
+      .then(h => {
+        document.getElementById("siteHeader").innerHTML = h;
         const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
         document.querySelectorAll('.nav a').forEach(a => {
           const t = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
           if (t.toLowerCase() === here) a.setAttribute('aria-current', 'page');
         });
-
-        // Boot the small header score widget if available
-        if (window.initTeamScoreWidget) {
-          window.initTeamScoreWidget();
-        }
+        if (window.initTeamScoreWidget) window.initTeamScoreWidget();
       });
   </script>
 
-  <!-- HERO (video background enabled) -->
-  <section class="hero video" id="top-hero">
+  <!-- HERO -->
+  <section class="hero video" id="top-hero" aria-label="Hero">
     <video class="hero-video" autoplay muted playsinline loop poster="images/placeholders/ph-hero-1440x810.svg">
       <source src="media/placeholder-vid.mp4" type="video/mp4">
       <source src="media/placeholder-vid.webm" type="video/webm">
-      Your browser does not support the video tag.
     </video>
 
     <div class="hero-overlay">
-      <p class="tagline">Brown Family • Ozark Invitational 2026</p>
-      <h1>2-Day Ryder Cup Style Golf Tournament</h1>
+      <p class="tagline">Brown Family · Ozark Invitational 2026</p>
+      <h1>2-Day Ryder Cup<br>Style Golf Tournament</h1>
       <p class="lead">
-        Diamond Hills Country Club • Diamond City, Arkansas.
-        Friendly competition, bragging rights, and a traveling trophy that MUST stay in the winner’s house.
+        Diamond Hills Country Club, Diamond City, Arkansas.
+        Friendly competition, bragging rights, and a traveling trophy that <em>must</em> stay in the winner's house until next year.
       </p>
 
       <div class="hero-pills">
@@ -245,43 +184,40 @@
         </div>
         <div class="pill">
           <span class="pill-label">Venue</span>
-          <span class="pill-value">DHCC – Diamond City, AR</span>
+          <span class="pill-value">DHCC · Diamond City, AR</span>
         </div>
         <div class="pill">
-          <span class="pill-label">Entry</span>
+          <span class="pill-label">Entry Fee</span>
           <span class="pill-value">$150 (lunch incl.)</span>
         </div>
       </div>
 
       <div class="hero-actions">
-        <a href="#signup" class="btn primary">Reserve my spot</a>
-        <a href="#schedule" class="btn ghost">View format</a>
+        <a href="register.html" class="btn primary">Reserve My Spot</a>
+        <a href="#schedule" class="btn ghost">View Schedule</a>
       </div>
 
-      <p class="hero-footnote">
-        Spots limited to family &amp; invited guests • Captains announced closer to event.
-      </p>
-      <p class="hero-footnote">
-        All skill levels welcome – we’ll balance the teams so it stays fun and competitive for everybody.
-      </p>
+      <p class="hero-footnote">Family &amp; invited guests only · All skill levels welcome · Teams balanced for competitive play</p>
     </div>
   </section>
 
   <main>
-    <!-- EVENT DETAILS -->
+
+    <!-- ABOUT -->
     <section id="about" class="section section-tight">
       <div class="section-head center">
+        <span class="section-eyebrow">The Event</span>
         <h2>About the Tournament</h2>
-        <p>One weekend every year where everybody shows up, plays, and has a story to tell until next spring.</p>
+        <p>One weekend every year where everybody shows up, plays their best, and has stories to tell until next spring.</p>
       </div>
 
       <div class="info-row">
         <article class="info-card">
           <h3>Date &amp; Location</h3>
-          <p class="muted">Locked, not tentative.</p>
+          <p class="muted">Confirmed. Not tentative.</p>
           <ul>
-            <li><strong>Saturday, May 23, 2026</strong> – Rounds 1–2</li>
-            <li><strong>Sunday, May 24, 2026</strong> – Rounds 3–4</li>
+            <li><strong>Saturday, May 23, 2026</strong> – Day 1 Rounds</li>
+            <li><strong>Sunday, May 24, 2026</strong> – Day 2 Rounds</li>
             <li>Diamond Hills Country Club, Diamond City, AR</li>
           </ul>
         </article>
@@ -292,7 +228,7 @@
           <ul>
             <li>2 teams: Team Ozark vs Team Valley</li>
             <li>Pairings announced morning-of</li>
-            <li>Each match = 1 point for team</li>
+            <li>Each match earns 1 point for the team</li>
             <li>Most points wins the Invitational</li>
           </ul>
         </article>
@@ -303,7 +239,7 @@
           <ul>
             <li><strong>$150 per player</strong></li>
             <li>Greens fees + cart both days</li>
-            <li>Lunch (Day 1)</li>
+            <li>Lunch included on Day 1</li>
             <li>Prizes &amp; traveling trophy</li>
           </ul>
         </article>
@@ -311,27 +247,33 @@
     </section>
 
     <!-- FEATURED PLAYERS -->
-    <section id="featured" class="section section-tight">
-      <div class="section-head center">
-        <h2>Featured Players</h2>
-        <p>A rotating snapshot of the field – reload to see different faces.</p>
-      </div>
-
-      <div class="players-grid" id="featuredGrid">
-        <p class="muted">Loading players…</p>
+    <section id="featured" class="section section-tight section-alt" style="max-width:100%;padding-left:1.5rem;padding-right:1.5rem;">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div class="section-head center">
+          <span class="section-eyebrow">The Field</span>
+          <h2>Featured Players</h2>
+          <p>A rotating snapshot of the roster — reload to see different faces.</p>
+        </div>
+        <div class="players-grid" id="featuredGrid">
+          <p class="muted">Loading players…</p>
+        </div>
+        <div style="text-align:center;margin-top:1.75rem;">
+          <a href="players.html" class="btn secondary">View Full Roster</a>
+        </div>
       </div>
     </section>
 
     <!-- SCHEDULE -->
-    <section id="schedule" class="section section-alt pro-schedule">
+    <section id="schedule" class="section section-tight pro-schedule">
       <div class="section-head center">
-        <h2>Weekend Schedule</h2>
-        <p>Tap a day to see what we’re playing.</p>
+        <span class="section-eyebrow">Weekend Itinerary</span>
+        <h2>Tournament Schedule</h2>
+        <p>Select a day to see the format and tee times.</p>
       </div>
 
       <div class="tabs tabs-centered">
-        <button class="tab-btn active" data-day="day1">Day 1 • Saturday</button>
-        <button class="tab-btn" data-day="day2">Day 2 • Sunday</button>
+        <button class="tab-btn active" data-day="day1">Day 1 · Saturday, May 23</button>
+        <button class="tab-btn" data-day="day2">Day 2 · Sunday, May 24</button>
       </div>
 
       <div class="schedule-cols">
@@ -339,119 +281,104 @@
           <div class="sched-card">
             <span class="sched-time">8:00 AM</span>
             <h3>Check-in &amp; Range</h3>
-            <p>Grab carts, hit balls, team photos.</p>
+            <p>Grab your cart, loosen up on the range, and get team photos done.</p>
           </div>
           <div class="sched-card">
             <span class="sched-time">9:00 AM</span>
             <h3>Round 1 – Best Ball (Front 9)</h3>
-            <p>Each plays own ball, best score counts to team.</p>
+            <p>Each player plays their own ball. Best score on the hole counts for the team.</p>
           </div>
           <div class="sched-card">
             <span class="sched-time">10:30 AM</span>
             <h3>Round 1 – 2-Man Scramble (Back 9)</h3>
-            <p>Pick best shot every stroke. Low scores win.</p>
+            <p>Both players hit; choose the best shot and play from there. Low scores win.</p>
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">12:30 PM</span>
-            <h3>Lunch &amp; Day 1 Scoring</h3>
-            <p>Included. Scores posted to main board.</p>
+            <h3>Lunch &amp; Day 1 Results</h3>
+            <p>Lunch is included. Day 1 scores are posted and the leaderboard updates.</p>
           </div>
         </div>
 
         <div class="schedule-day" id="day2" hidden>
           <div class="sched-card">
             <span class="sched-time">8:30 AM</span>
-            <h3>Warm-up &amp; Singles Pairings</h3>
-            <p>Captains finalize Day 2 rotation.</p>
+            <h3>Warm-up &amp; Pairings</h3>
+            <p>Captains finalize the Day 2 rotation. Check the board for your pairing.</p>
           </div>
           <div class="sched-card">
             <span class="sched-time">9:30 AM</span>
             <h3>Round 2 – Alternate Shot (Front 9)</h3>
-            <p>True team golf. Alternate every shot.</p>
+            <p>True team golf. Partners alternate every shot from tee to cup.</p>
           </div>
           <div class="sched-card">
             <span class="sched-time">11:00 AM</span>
             <h3>Round 2 – Singles (Back 9)</h3>
-            <p>1v1 matches, each worth 1 point toward team total.</p>
+            <p>1v1 match play. Each match is worth 1 point for your team's total.</p>
           </div>
           <div class="sched-card highlight">
             <span class="sched-time">1:00 PM</span>
-            <h3>Trophy &amp; Photos</h3>
-            <p>Winning team name engraved, family photo, wrap-up.</p>
+            <h3>Trophy Ceremony &amp; Family Photo</h3>
+            <p>Winning team name is engraved on the trophy. Group photo, wrap-up, and see you next year.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- FAQ / QUICK ANSWERS -->
-    <section id="faq" class="section section-alt section-tight">
-      <div class="section-head center">
-        <h2>Quick Answers</h2>
-        <p>Stuff people usually text Nick about the week before.</p>
-      </div>
+    <!-- FAQ -->
+    <section id="faq" class="section section-tight section-alt" style="max-width:100%;padding-left:1.5rem;padding-right:1.5rem;">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div class="section-head center">
+          <span class="section-eyebrow">Quick Answers</span>
+          <h2>Common Questions</h2>
+          <p>Stuff people usually text Nick about the week before the tournament.</p>
+        </div>
 
-      <div class="info-row">
-        <article class="info-card">
-  <h3>Who can play?</h3>
-  <p>
-    Any golfer who wants a fun, competitive two-day event at Diamond Hills is welcome.
-    The Ozark Invitational is open to adults of all skill levels — friends, family,
-    and invited guests. As long as you’re willing to keep pace, post an honest score,
-    and lean into the friendly trash talk, you’re in the right place.
-  </p>
-</article>
+        <div class="info-row">
+          <article class="info-card">
+            <h3>Who can play?</h3>
+            <p>Family members and invited guests who want a fun, competitive two-day event at Diamond Hills.
+               Open to adults of all skill levels. As long as you keep pace, post an honest score, and can handle
+               some friendly trash talk, you're in the right place.</p>
+          </article>
+          <article class="info-card">
+            <h3>What skill level?</h3>
+            <p>All skill levels. We use handicaps and average scores to balance the teams and pairings so nobody
+               gets steamrolled. If you don't have an official handicap, give us your honest average 18-hole score.</p>
+          </article>
+          <article class="info-card">
+            <h3>How does scoring work?</h3>
+            <p>Each match is worth 1 point for your team. Halved matches award 0.5 points to each side.
+               We use net scores where it makes sense so handicaps still matter. Team with the most total points wins.</p>
+          </article>
+        </div>
 
-
-        <article class="info-card">
-          <h3>What skill level is this for?</h3>
-          <p>
-            All skill levels. We use handicaps / average scores to balance the teams and pairings so nobody
-            gets steamrolled. If you don’t keep a handicap, give us your honest average 18-hole score.
-          </p>
-        </article>
-
-        <article class="info-card">
-          <h3>How does scoring work?</h3>
-          <p>
-            Each match is worth 1 point for your team. Halved matches are worth 0.5 points to each side.
-            We use net scores where it makes sense so higher handicaps still matter. Final total points wins
-            the Invitational.
-          </p>
-        </article>
-      </div>
-
-      <div class="info-row">
-        <article class="info-card">
-          <h3>Handicaps &amp; averages</h3>
-          <p>
-            If you have an official index, use that. Otherwise put your honest “typical” 18-hole score at
-            Diamond Hills or somewhere similar. We’ll smooth out outliers so the teams stay fair.
-          </p>
-        </article>
-
-        <article class="info-card">
-          <h3>Rain &amp; weather plan</h3>
-          <p>
-            We’ll play through normal Arkansas spring weather. If there’s lightning or the course closes,
-            we’ll adjust tee times or formats on the fly and communicate in the family group chat.
-          </p>
-        </article>
-
-        <article class="info-card">
-          <h3>Guests &amp; non-golfers</h3>
-          <p>
-            Non-golfing family is absolutely welcome to hang out, ride along if carts allow, and join for lunch
-            and photos. Just note that only registered players are included in the $150 pricing.
-          </p>
-        </article>
+        <div class="info-row" style="margin-top:1.25rem;">
+          <article class="info-card">
+            <h3>Handicaps &amp; averages</h3>
+            <p>Use your official GHIN index if you have one. Otherwise give us your honest typical 18-hole score
+               at Diamond Hills or a similar course. Outliers will be smoothed out so teams stay balanced.</p>
+          </article>
+          <article class="info-card">
+            <h3>Rain &amp; weather</h3>
+            <p>We play through normal Arkansas spring weather. If there's lightning or the course closes, we'll
+               adjust tee times or format on the fly and communicate through the family group chat.</p>
+          </article>
+          <article class="info-card">
+            <h3>Guests &amp; non-golfers</h3>
+            <p>Non-golfing family is welcome to hang out, ride along when carts allow, and join for lunch and photos.
+               The $150 entry covers registered players only — spectators are always free.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- GALLERY (carousel + zoomable lightbox) -->
+    <!-- GALLERY -->
     <section id="gallery" class="section">
       <div class="section-head center">
-        <h2>Moments (Coming Soon)</h2>
-        <p>We’ll swap these placeholders with real photos after the event.</p>
+        <span class="section-eyebrow">Memories</span>
+        <h2>Photo Gallery</h2>
+        <p>Placeholder images — we'll swap these out with real tournament photos after the event.</p>
       </div>
 
       <div class="gallery-wrap">
@@ -459,195 +386,206 @@
         <div id="galleryRail" class="gallery-rail" aria-live="polite" tabindex="0"></div>
         <button class="gbtn next" aria-label="Next photos" id="galNext">›</button>
       </div>
-
       <noscript><p>Please enable JavaScript to view the gallery.</p></noscript>
     </section>
 
     <!-- SPONSORS -->
-    <section id="sponsors" class="section section-tight">
-      <div class="section-head center">
-        <h2>2026 Sponsors</h2>
-        <p>These folks help cover lunch, prizes, and course costs.</p>
+    <section id="sponsors" class="section section-tight section-alt" style="max-width:100%;padding-left:1.5rem;padding-right:1.5rem;">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div class="section-head center">
+          <span class="section-eyebrow">Our Supporters</span>
+          <h2>2026 Sponsors</h2>
+          <p>These folks help cover lunch, prizes, and course costs. We appreciate them.</p>
+        </div>
+        <div class="sponsor-grid" id="sponsorGrid"></div>
+        <p class="sponsor-cta">
+          Want to sponsor a hole or prize?
+          <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a> to get involved.
+        </p>
       </div>
-      <div class="sponsor-grid" id="sponsorGrid"></div>
-      <p class="sponsor-cta">
-        Want to sponsor a hole or prize?
-        <a href="mailto:nicholasbrownworship@gmail.com">Email Nick</a>
-      </p>
     </section>
 
-    <!-- TRAVEL / PLANNING -->
+    <!-- TRAVEL & PLANNING -->
     <section id="travel" class="section section-tight">
       <div class="section-head center">
+        <span class="section-eyebrow">Logistics</span>
         <h2>Planning Your Weekend</h2>
-        <p>Basic logistics so you know where you’re going and what to expect.</p>
+        <p>Everything you need to know before you make the drive to Diamond City.</p>
       </div>
 
       <div class="info-row">
         <article class="info-card">
-          <h3>Where we’re playing</h3>
+          <h3>Course &amp; Location</h3>
           <ul>
             <li><strong>Diamond Hills Country Club</strong></li>
             <li>Diamond City, Arkansas</li>
-            <li>
-              <a href="https://www.google.com/maps/search/?api=1&query=Diamond+Hills+Country+Club+Diamond+City+AR" target="_blank" rel="noopener">
-                Open in Google Maps
-              </a>
-            </li>
           </ul>
-          <p class="muted">Plan on arriving at least 30 minutes before your tee time for check-in and warm-up.</p>
-        </article>
-
-        <article class="info-card">
-          <h3>Lodging &amp; timing</h3>
-          <p>
-            Most of us will be staying in / around Diamond City and Harrison. Hotels and rentals nearby
-            are usually available if you book a bit ahead. If you’re driving in the morning of,
-            aim to be at the course by <strong>8:00 AM</strong> on Day 1.
+          <p style="margin-top:.6rem;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Diamond+Hills+Country+Club+Diamond+City+AR"
+               target="_blank" rel="noopener noreferrer"
+               style="color:#244f3c;font-weight:700;">
+              Open in Google Maps →
+            </a>
           </p>
+          <p class="muted" style="margin-top:.5rem;">Plan to arrive at least 30 minutes before tee time for check-in and a warm-up.</p>
         </article>
 
         <article class="info-card">
-          <h3>Course notes</h3>
+          <h3>Lodging</h3>
+          <p>Most players stay in or around Diamond City and Harrison. Hotels and vacation rentals are
+             available if you book a few weeks ahead. If you're driving in the morning of, aim to
+             arrive by <strong>8:00 AM</strong> on Day 1.</p>
+        </article>
+
+        <article class="info-card">
+          <h3>Course Notes</h3>
           <ul>
-            <li>Standard golf attire recommended (collared shirts, no cutoffs).</li>
-            <li>Carts are included in your entry fee both days.</li>
-            <li>Clubhouse accepts card for snacks and drinks.</li>
+            <li>Standard golf attire — collared shirts, no cutoffs</li>
+            <li>Carts are included in your entry fee both days</li>
+            <li>Clubhouse accepts card for food and drinks</li>
+            <li>Cell service can be spotty — download the leaderboard page for offline use</li>
           </ul>
         </article>
       </div>
     </section>
 
-    <!-- TEAM / FIELD SUMMARY -->
-    <section id="field" class="section section-tight">
-      <div class="section-head center">
-        <h2>Who&rsquo;s Playing So Far</h2>
-        <p>Live counts from seeded players and online signups.</p>
-      </div>
-
-      <div id="teamSummary" class="team-summary">
-        <p class="muted">Loading current field&hellip;</p>
-      </div>
-    </section>
-
-    <!-- SIGN UP -->
-    <section class="section section-tight section-alt" id="signup">
-      <div class="signup-wrap">
-        <div class="signup-card">
-          <div class="card-head">
-            <h3>Sign Up</h3>
-            <span class="muted">Join the Ozark Invitational</span>
-          </div>
-
-          <!-- No action/method; handled by script.js -->
-          <form id="signupForm" novalidate>
-            <div style="position: absolute; left: -5000px;" aria-hidden="true">
-              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
-            </div>
-            <input type="hidden" name="_subject" value="New Ozark Invitational signup" />
-            <input type="hidden" name="_redirect" value="false" />
-
-            <div class="form-row">
-              <div class="full">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Full Name" required />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="full">
-                <label for="nickname">Nickname (optional)</label>
-                <input type="text" id="nickname" name="nickname" placeholder="e.g., Long Ball" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="full">
-                <label for="handicap">Handicap (or average score)</label>
-                <input type="number" id="handicap" name="handicap" placeholder="Handicap" required />
-              </div>
-            </div>
-
-            <div class="full">
-              <label for="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="Email" required />
-            </div>
-
-            <div class="full">
-              <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required />
-            </div>
-
-            <div class="form-row">
-              <div class="full">
-                <label for="signupTeam">Team</label>
-                <select id="signupTeam" name="team" required>
-                  <option value="" disabled selected>Select a team…</option>
-                  <option value="ozark">Team Ozark</option>
-                  <option value="valley">Team Valley</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="full">
-              <label for="photo">Player Photo (optional)</label>
-              <input type="file" id="photo" name="photo" accept="image/*" capture="environment" />
-            </div>
-
-            <div class="full">
-              <label for="notes">Notes</label>
-              <textarea id="notes" name="notes" placeholder="Notes or comments" required></textarea>
-            </div>
-
-            <div class="actions">
-              <button class="btn" type="submit">Submit</button>
-              <span id="formMsg" aria-live="polite"></span>
-            </div>
-          </form>
+    <!-- FIELD SUMMARY -->
+    <section id="field" class="section section-tight section-alt" style="max-width:100%;padding-left:1.5rem;padding-right:1.5rem;">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div class="section-head center">
+          <span class="section-eyebrow">Current Field</span>
+          <h2>Who's Playing So Far</h2>
+          <p>Live counts from seeded players and approved registrations.</p>
+        </div>
+        <div id="teamSummary" class="team-summary">
+          <p class="muted">Loading current field…</p>
         </div>
       </div>
     </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="section section-tight">
+      <div class="section-head center">
+        <span class="section-eyebrow">Get in Touch</span>
+        <h2>Contact &amp; Information</h2>
+        <p>Questions about the tournament? Here's who to reach and where we're playing.</p>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="contact-card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </div>
+          <h3>Tournament Director</h3>
+          <p class="contact-name">Nick Brown</p>
+          <a href="mailto:nicholasbrownworship@gmail.com" class="contact-link">nicholasbrownworship@gmail.com</a>
+          <p>For registration questions, sponsorships, rule clarifications, or anything else. Nick will respond within a day or two.</p>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <h3>Venue</h3>
+          <p class="contact-name">Diamond Hills Country Club</p>
+          <p>Diamond City, Arkansas</p>
+          <a href="https://www.google.com/maps/search/?api=1&query=Diamond+Hills+Country+Club+Diamond+City+AR"
+             target="_blank" rel="noopener noreferrer" class="contact-link">Get Directions →</a>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+            </svg>
+          </div>
+          <h3>Tournament Dates</h3>
+          <p class="contact-name">May 23–24, 2026</p>
+          <p>Day 1: Check-in from 8:00 AM, tee time 9:00 AM</p>
+          <p>Day 2: Warm-up 8:30 AM, tee time 9:30 AM</p>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3>Registration Deadline</h3>
+          <p class="contact-name">May 9, 2026</p>
+          <p>Submit your registration before the deadline so pairings can be finalized. Late requests are handled case-by-case — reach out to Nick directly.</p>
+        </div>
+      </div>
+
+      <div class="contact-cta-row">
+        <h3>Ready to Play?</h3>
+        <p>Submit your registration and Nick will review and confirm your spot. Entry is $150 and includes greens fees, cart, and lunch on Day 1.</p>
+        <a href="register.html" class="btn secondary lg">Register Now</a>
+        <p style="margin-top:.875rem;font-size:.82rem;color:#64748b;">Already registered? <a href="players.html" style="color:#244f3c;font-weight:700;">Check the player roster →</a></p>
+      </div>
+    </section>
+
   </main>
 
+  <!-- LIGHTBOX DIALOG -->
+  <dialog id="lightbox" class="lightbox" aria-label="Image lightbox">
+    <button class="lb-close" id="lbClose" aria-label="Close lightbox">✕</button>
+    <img id="lbImg" alt="Gallery image enlarged" />
+    <div class="lb-controls">
+      <button class="btn" id="lbMinus" aria-label="Zoom out">−</button>
+      <button class="btn" id="lbReset" aria-label="Reset zoom">⟳</button>
+      <button class="btn" id="lbPlus"  aria-label="Zoom in">+</button>
+    </div>
+  </dialog>
+
   <footer class="footer">
-    <p>Ozark Invitational &copy; 2026 • Built for the Brown family golf weekend.</p>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="images/logo.png" alt="Ozark Invitational" />
+      </div>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="players.html">Players</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="scoreboard.html">Scoreboard</a>
+        <a href="rulebook.html">Rulebook</a>
+        <a href="register.html">Register</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <p class="footer-copy">Ozark Invitational &copy; 2026 · Built for the Brown family golf weekend.</p>
+    </div>
   </footer>
 
-  <!-- Tabs helper (safe if script.js also handles tabs) -->
+  <!-- Schedule tabs -->
   <script>
     (function () {
       const buttons = Array.from(document.querySelectorAll('.tab-btn'));
       const days = Array.from(document.querySelectorAll('.schedule-day'));
       if (!buttons.length || !days.length) return;
       function show(id) {
-        days.forEach(d => {
-          const active = d.id === id;
-          d.classList.toggle('active', active);
-          d.toggleAttribute('hidden', !active);
-        });
+        days.forEach(d => { const a = d.id === id; d.classList.toggle('active', a); d.toggleAttribute('hidden', !a); });
         buttons.forEach(b => b.classList.toggle('active', b.dataset.day === id));
       }
       buttons.forEach(btn => btn.addEventListener('click', () => show(btn.dataset.day)));
     })();
   </script>
 
-  <!-- Sponsor placeholders if empty -->
+  <!-- Sponsor placeholders -->
   <script>
     (function () {
       const grid = document.getElementById('sponsorGrid');
       if (!grid || grid.children.length) return;
-      const mk = () => {
-        const img = document.createElement('img');
-        img.alt = "Sponsor placeholder";
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.src = "images/placeholders/ph-sponsor-3x1.svg";
-        return img;
-      };
       for (let i = 0; i < 8; i++) {
         const wrap = document.createElement('div');
         wrap.className = 'sponsor';
-        wrap.appendChild(mk());
+        const img = document.createElement('img');
+        img.alt = "Sponsor placeholder"; img.loading = "lazy"; img.decoding = "async";
+        img.src = "images/placeholders/ph-sponsor-3x1.svg";
+        wrap.appendChild(img);
         grid.appendChild(wrap);
       }
     })();
@@ -656,383 +594,147 @@
   <!-- Gallery carousel + lightbox -->
   <script>
     (function(){
-      /* ---------- Config ---------- */
       const COUNT = 6;
       const DIRS = ["images/gallery/"];
-      const NAME_PATTERNS = [
-        i => `placeholder${i}`,
-        i => `placeholder-${i}`,
-        i => `placeholder ${i}`,
-        i => `placeholder (${i})`
-      ];
-      const EXTS = ["webp","jpg","jpeg","png","svg","WEBP","JPG","JPEG","PNG","SVG"];
-
+      const NAME_PATTERNS = [i => `placeholder${i}`, i => `placeholder-${i}`, i => `placeholder (${i})`];
+      const EXTS = ["webp","jpg","jpeg","png","svg"];
       const rail = document.getElementById("galleryRail");
       if (!rail) return;
 
-      /* ---------- Build candidate URLs ---------- */
-      function candidatesForIndex(i){
-        if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) {
-          return [window.__GALLERY_FILES__[i-1]];
-        }
+      function candidatesFor(i){
+        if (Array.isArray(window.__GALLERY_FILES__) && window.__GALLERY_FILES__[i-1]) return [window.__GALLERY_FILES__[i-1]];
         const urls = [];
-        for (const dir of DIRS) {
-          for (const pat of NAME_PATTERNS) {
-            const base = pat(i);
-            for (const ext of EXTS) urls.push(`${dir}${base}.${ext}`);
-          }
-        }
+        for (const dir of DIRS) for (const pat of NAME_PATTERNS) for (const ext of EXTS) urls.push(`${dir}${pat(i)}.${ext}`);
         return urls;
       }
-
       function setNextSrc(img, urls, idx){
-        if (idx >= urls.length) {
-          img.src = "images/placeholders/ph-gallery-4x3.svg";
-          img.onerror = null;
-          return;
-        }
-        const url = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
+        if (idx >= urls.length) { img.src = "images/placeholders/ph-gallery-4x3.svg"; img.onerror = null; return; }
         img.dataset.try = urls[idx];
-        img.src = url;
+        img.src = urls[idx] + (urls[idx].includes("?") ? "" : `?v=${Date.now()}`);
       }
 
-      /* ---------- Render carousel items ---------- */
       const items = [];
       for (let i = 1; i <= COUNT; i++){
         const wrap = document.createElement("button");
-        wrap.type = "button";
-        wrap.className = "gitem";
+        wrap.type = "button"; wrap.className = "gitem";
         wrap.setAttribute("aria-label", `Open image ${i} larger`);
         const img = document.createElement("img");
-        img.alt = `gallery image ${i}`;
-        img.loading = "lazy"; img.decoding = "async";
-
-        const tries = candidatesForIndex(i);
-        let k = 0;
+        img.alt = `Gallery image ${i}`; img.loading = "lazy"; img.decoding = "async";
+        const tries = candidatesFor(i); let k = 0;
         img.onerror = () => { k++; setNextSrc(img, tries, k); };
         setNextSrc(img, tries, k);
-
-        wrap.appendChild(img);
-        rail.appendChild(wrap);
-        items.push({wrap, img});
+        wrap.appendChild(img); rail.appendChild(wrap); items.push({wrap, img});
       }
 
-      /* ---------- Carousel nav ---------- */
-      const prev = document.getElementById("galPrev");
-      const next = document.getElementById("galNext");
-
-      function scrollByAmount(dir){
-        const amt = Math.max(rail.clientWidth * 0.9, 300) * dir;
-        rail.scrollBy({left: amt, behavior: "smooth"});
-      }
-      prev.addEventListener("click", ()=> scrollByAmount(-1));
-      next.addEventListener("click", ()=> scrollByAmount( 1));
-
-      rail.addEventListener("keydown", (e)=>{
-        if (e.key === "ArrowLeft") { e.preventDefault(); scrollByAmount(-1); }
-        if (e.key === "ArrowRight"){ e.preventDefault(); scrollByAmount( 1); }
+      document.getElementById("galPrev").addEventListener("click", () => rail.scrollBy({left: -rail.clientWidth*.9, behavior:"smooth"}));
+      document.getElementById("galNext").addEventListener("click", () => rail.scrollBy({left:  rail.clientWidth*.9, behavior:"smooth"}));
+      rail.addEventListener("keydown", e=>{
+        if (e.key==="ArrowLeft") { e.preventDefault(); rail.scrollBy({left:-300, behavior:"smooth"}); }
+        if (e.key==="ArrowRight"){ e.preventDefault(); rail.scrollBy({left: 300, behavior:"smooth"}); }
       });
 
-      /* ---------- Lightbox (zoom & pan) ---------- */
       const dlg = document.getElementById("lightbox");
       const lbImg = document.getElementById("lbImg");
-      const lbClose = document.getElementById("lbClose");
-      const lbPlus  = document.getElementById("lbPlus");
-      const lbMinus = document.getElementById("lbMinus");
-      const lbReset = document.getElementById("lbReset");
+      let currentIndex=0, scale=1, tx=0, ty=0;
+      function applyT(){ lbImg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; }
+      function resetT(){ scale=1; tx=0; ty=0; applyT(); }
+      function openLB(idx){ currentIndex=idx; lbImg.src=items[idx].img.src; resetT(); dlg.showModal(); }
 
-      let currentIndex = 0;
-      let scale = 1, tx = 0, ty = 0;
+      items.forEach((it,idx) => it.wrap.addEventListener("click", ()=> openLB(idx)));
+      document.getElementById("lbClose").addEventListener("click", ()=> dlg.close());
+      document.getElementById("lbReset").addEventListener("click", resetT);
+      document.getElementById("lbPlus").addEventListener("click",  ()=>{ scale=Math.min(4,scale+.2); applyT(); });
+      document.getElementById("lbMinus").addEventListener("click", ()=>{ scale=Math.max(1,scale-.2); applyT(); });
 
-      function applyTransform(){
-        lbImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-      }
-      function resetTransform(){ scale = 1; tx = 0; ty = 0; applyTransform(); }
+      dlg.addEventListener("wheel", e=>{ e.preventDefault(); const d=-Math.sign(e.deltaY); const ps=scale; scale=Math.min(4,Math.max(1,scale+d*.15)); const r=lbImg.getBoundingClientRect(); const cx=e.clientX-r.left-r.width/2; const cy=e.clientY-r.top-r.height/2; tx=(tx-cx)*(scale/ps)+cx; ty=(ty-cy)*(scale/ps)+cy; applyT(); }, {passive:false});
 
-      function openLightbox(idx){
-        currentIndex = idx;
-        lbImg.src = items[idx].img.src;
-        resetTransform();
-        dlg.showModal();
-      }
-      function closeLightbox(){ dlg.close(); }
-
-      items.forEach((it, idx)=>{
-        it.wrap.addEventListener("click", ()=> openLightbox(idx));
+      let dragging=false,sx=0,sy=0,stx=0,sty=0;
+      lbImg.addEventListener("mousedown", e=>{ dragging=true; sx=e.clientX; sy=e.clientY; stx=tx; sty=ty; e.preventDefault(); });
+      window.addEventListener("mousemove", e=>{ if(!dragging)return; tx=stx+(e.clientX-sx); ty=sty+(e.clientY-sy); applyT(); });
+      window.addEventListener("mouseup", ()=> dragging=false);
+      dlg.addEventListener("keydown", e=>{
+        if (e.key==="Escape") dlg.close();
+        if (e.key==="ArrowRight"){ currentIndex=(currentIndex+1)%items.length; lbImg.src=items[currentIndex].img.src; resetT(); }
+        if (e.key==="ArrowLeft"){ currentIndex=(currentIndex-1+items.length)%items.length; lbImg.src=items[currentIndex].img.src; resetT(); }
       });
-
-      lbClose.addEventListener("click", closeLightbox);
-      lbReset.addEventListener("click", resetTransform);
-      lbPlus .addEventListener("click", ()=>{ scale = Math.min(4, scale + 0.2); applyTransform(); });
-      lbMinus.addEventListener("click", ()=>{ scale = Math.max(1, scale - 0.2); applyTransform(); });
-
-      dlg.addEventListener("wheel", (e)=>{
-        e.preventDefault();
-        const delta = -Math.sign(e.deltaY);
-        const prevScale = scale;
-        scale = Math.min(4, Math.max(1, scale + delta * 0.15));
-        const rect = lbImg.getBoundingClientRect();
-        const cx = e.clientX - rect.left - rect.width/2;
-        const cy = e.clientY - rect.top  - rect.height/2;
-        tx = (tx - cx) * (scale/prevScale) + cx;
-        ty = (ty - cy) * (scale/prevScale) + cy;
-        applyTransform();
-      }, {passive:false});
-
-      let dragging = false, sx=0, sy=0, stx=0, sty=0;
-      lbImg.addEventListener("mousedown", (e)=>{
-        dragging = true; sx = e.clientX; sy = e.clientY; stx = tx; sty = ty; e.preventDefault();
-      });
-      window.addEventListener("mousemove", (e)=>{
-        if (!dragging) return;
-        tx = stx + (e.clientX - sx);
-        ty = sty + (e.clientY - sy);
-        applyTransform();
-      });
-      window.addEventListener("mouseup", ()=> dragging = false);
-
-      dlg.addEventListener("keydown", (e)=>{
-        if (e.key === "Escape") closeLightbox();
-        if (e.key === "ArrowRight") {
-          currentIndex = (currentIndex+1) % items.length;
-          lbImg.src = items[currentIndex].img.src;
-          resetTransform();
-        }
-        if (e.key === "ArrowLeft")  {
-          currentIndex = (currentIndex-1+items.length) % items.length;
-          lbImg.src = items[currentIndex].img.src;
-          resetTransform();
-        }
-      });
-
-      dlg.addEventListener("click", (e)=>{
-        const r = dlg.getBoundingClientRect();
-        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeLightbox();
-      });
+      dlg.addEventListener("click", e=>{ const r=dlg.getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) dlg.close(); });
     })();
   </script>
 
-  <!-- Featured players renderer (same photo logic style as players.html) -->
+  <!-- Featured players -->
   <script>
     (function(){
       const grid = document.getElementById('featuredGrid');
       if (!grid) return;
-
       const SHARED_KEY = "ozarkShared_v1";
-      const SIGNUPS_ROSTER_KEY = "ozarkSignupsRoster_v1"; // fallback; main data still from shared/state
-
+      const SIGNUPS_KEY = "ozarkSignupsRoster_v1";
       const PHOTO_BASE = "images/players/";
       const PHOTO_EXTS = ["png","jpg","jpeg","webp"];
 
-      function loadSharedPlayers(){
-        try{
-          const raw = localStorage.getItem(SHARED_KEY);
-          if (!raw) return [];
-          const snap = JSON.parse(raw);
-          if (snap && Array.isArray(snap.players)) return snap.players;
-        }catch{}
+      function loadPlayers(){
+        try { const r=localStorage.getItem(SHARED_KEY); if(r){const s=JSON.parse(r); if(s&&Array.isArray(s.players)&&s.players.length) return s.players; } } catch{}
+        try { const r=localStorage.getItem(SIGNUPS_KEY); const a=r?JSON.parse(r):[]; if(Array.isArray(a)&&a.length) return a; } catch{}
+        if (window.state&&Array.isArray(window.state.players)&&window.state.players.length) return window.state.players;
         return [];
       }
 
-      function loadSignups(){
-        try{
-          const raw = localStorage.getItem(SIGNUPS_ROSTER_KEY);
-          if (!raw) return [];
-          const arr = JSON.parse(raw);
-          return Array.isArray(arr) ? arr : [];
-        }catch{}
-        return [];
+      function normTeam(t){ const s=(t||"").toLowerCase(); if(s.includes("val")) return "valley"; if(s.includes("oz")) return "ozark"; return "ozark"; }
+      function initials(p){ const fi=((p.firstName||"").trim()[0]||"").toUpperCase(); const li=((p.lastName||"").trim()[0]||"").toUpperCase(); return (fi+li)||"OI"; }
+      function fullName(p){ return ((p.firstName||"")+" "+(p.lastName||"")).trim(); }
+      function slug(p){
+        const norm=s=>String(s||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+        return [norm(p.firstName),norm(p.lastName)].filter(Boolean).join("-");
       }
-
-      function firstLastFrom(p){
-        const first = (p.firstName || p.FirstName || p.first || "").trim();
-        const last  = (p.lastName  || p.LastName  || p.last  || "").trim();
-        return { first, last };
+      function candidateURLs(p){
+        const ex=(p.photo||p.photourl||p.image||"").trim().replace(/\\/g,"/").replace(/^\/+/,"").replace(/^\.\//,"");
+        if (ex){ if(/^https?:\/\//i.test(ex)) return [ex]; if(ex.includes("/")) return [ex]; return [PHOTO_BASE+ex]; }
+        const s=slug(p); if(!s) return [];
+        return PHOTO_EXTS.map(e=>`${PHOTO_BASE}${s}.${e}`);
       }
+      function loadImg(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(url); i.onerror=rej; i.src=url; }); }
+      async function resolvePhoto(p){ for(const url of candidateURLs(p)){ try{ await loadImg(url); return url; }catch{} } return ""; }
 
-      function normalizeTeam(raw){
-        const t = (raw || "").toString().toLowerCase();
-        if (t.includes("val")) return "valley";
-        if (t.includes("oz"))  return "ozark";
-        return "";
-      }
+      function pickRandom(arr,n){ const c=arr.slice(),o=[]; while(c.length&&o.length<n){ const i=Math.floor(Math.random()*c.length); o.push(c.splice(i,1)[0]); } return o; }
 
-      function initialsOf(p){
-        const { first, last } = firstLastFrom(p);
-        const fi = first ? first[0] : "";
-        const li = last  ? last[0]  : "";
-        const both = (fi + li).trim();
-        return (both || "OI").toUpperCase();
-      }
-
-      function normalizePhotoValue(v){
-        if (!v) return "";
-        return String(v)
-          .trim()
-          .replace(/\\/g,"/")
-          .replace(/^\/+/, "")
-          .replace(/^\.\//,"");
-      }
-
-      function slugifyName(p){
-        const { first, last } = firstLastFrom(p);
-        const norm = s => String(s||"")
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g,"-")
-          .replace(/^-+|-+$/g,"");
-        const f = norm(first);
-        const l = norm(last);
-        return [f,l].filter(Boolean).join("-");
-      }
-
-      function candidatePhotoURLs(p){
-        // Prefer explicit CSV/photo fields first
-        const explicit = normalizePhotoValue(
-          p.photo || p.Photo ||
-          p.photourl || p.photoURL || p.PhotoURL ||
-          p.image || p.Image || ""
-        );
-        if (explicit){
-          if (/^https?:\/\//i.test(explicit)) return [explicit];          // absolute URL
-          if (explicit.includes("/")) return [explicit];                  // relative path already has folders
-          return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit];        // bare filename
-        }
-        // Else slug from first+last with common extensions
-        const slug = slugifyName(p);
-        if (!slug) return [];
-        return PHOTO_EXTS.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
-      }
-
-      function loadImage(url){
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(url);
-          img.onerror = reject;
-          img.src = url;
-        });
-      }
-
-      async function resolvePhotoURL(p){
-        const candidates = candidatePhotoURLs(p);
-        for (const url of candidates){
-          try {
-            await loadImage(url);
-            return url;
-          } catch(_){}
-        }
-        return "";
-      }
-
-      function getPlayers(){
-        // 1) Prefer window.state.players if script.js built it
-        if (window.state && Array.isArray(window.state.players) && window.state.players.length){
-          return window.state.players;
-        }
-        // 2) Fallback: shared snapshot used by scoreboard/pairings
-        const sharedPlayers = loadSharedPlayers();
-        if (sharedPlayers.length) return sharedPlayers;
-
-        // 3) Fallback: raw signups roster
-        const signups = loadSignups();
-        if (signups.length) return signups;
-
-        return [];
-      }
-
-      function pickRandom(src, count){
-        const copy = src.slice();
-        const out = [];
-        while (copy.length && out.length < count){
-          const idx = Math.floor(Math.random() * copy.length);
-          out.push(copy.splice(idx, 1)[0]);
-        }
-        return out;
-      }
-
-      function renderCard(p, idx){
-        const { first, last } = firstLastFrom(p);
-
-        const nicknameRaw = p.nickname || p.Nickname || p.nick || "";
-        const nickClean = nicknameRaw.toString().trim();
-        const nickname = nickClean ? ` “${nickClean}”` : "";
-
-        const teamNorm = normalizeTeam(p.team || p.Team) || "ozark";
-        const teamLabel = teamNorm === "valley" ? "Team Valley" : "Team Ozark";
-        const teamClass = teamNorm === "valley" ? "va" : "oz";
-
-        const hRaw = (
-          p.handicap ?? p.Handicap ??
-          p.hcp      ?? p.HCP      ??
-          p.hi       ?? p.Hi       ??
-          p.index    ?? p.Index    ?? ""
-        );
-        const hcapStr = hRaw !== null && hRaw !== undefined && String(hRaw).trim() !== ""
-          ? String(hRaw).trim()
-          : "";
-
-        const fullName = (first + " " + last).trim();
-
-        // Photo wrapper only; we hydrate with real image or initials later
-        const avatarHtml = `
-          <div class="player-photo-wrap" data-feature-index="${idx}">
-            ${initialsOf(p)}
-          </div>
-        `;
-
+      function renderCard(p,i){
+        const team=normTeam(p.team||p.Team);
+        const tLabel=team==="valley"?"Team Valley":"Team Ozark";
+        const tCls=team==="valley"?"va":"oz";
+        const hcp=(p.handicap??p.Handicap??p.hcp??p.HCP??"");
+        const hcpStr=hcp!==null&&hcp!==undefined&&String(hcp).trim()!==""?String(hcp).trim():"";
+        const nick=(p.nickname||p.Nickname||"").toString().trim();
+        const nameStr=fullName(p)+(nick?` "${nick}"`:"");
+        const playerLink=`player.html?id=${encodeURIComponent(p.id||slug(p))}`;
         return `
-          <article class="player-card" data-feature-index="${idx}">
-            ${avatarHtml}
+          <article class="player-card">
+            <div class="player-photo-wrap" data-fi="${i}">${initials(p)}</div>
             <div class="player-body">
-              <h3 class="player-name">${fullName}${nickname}</h3>
+              <h3 class="player-name"><a href="${playerLink}" style="color:inherit;text-decoration:none;">${nameStr}</a></h3>
               <p class="player-meta">
-                <span class="badge team ${teamClass}">${teamLabel}</span>
-                ${hcapStr ? `<span class="badge">HCP ${hcapStr}</span>` : ""}
+                <span class="badge team ${tCls}">${tLabel}</span>
+                ${hcpStr?`<span class="badge">HCP ${hcpStr}</span>`:""}
               </p>
             </div>
-          </article>
-        `;
+          </article>`;
       }
 
-      async function hydrateFeaturedPhotos(picks){
-        for (let i = 0; i < picks.length; i++){
-          const p = picks[i];
-          const wrap = grid.querySelector('.player-photo-wrap[data-feature-index="' + i + '"]');
-          if (!wrap) continue;
-
-          const url = await resolvePhotoURL(p);
-          const { first, last } = firstLastFrom(p);
-          const fullName = (first + " " + last).trim();
-
-          if (url){
-            wrap.innerHTML = "";
-            const img = document.createElement("img");
-            img.src = url;
-            img.alt = fullName || "Player photo";
-            img.loading = "lazy";
-            img.decoding = "async";
-            wrap.appendChild(img);
-          } else {
-            // keep initials fallback already in wrap
-            wrap.textContent = initialsOf(p);
-          }
+      async function hydratePhotos(picks){
+        for(let i=0;i<picks.length;i++){
+          const wrap=grid.querySelector(`[data-fi="${i}"]`); if(!wrap) continue;
+          const url=await resolvePhoto(picks[i]);
+          if(url){ wrap.innerHTML=""; const img=document.createElement("img"); img.src=url; img.alt=fullName(picks[i]); img.loading="lazy"; img.decoding="async"; wrap.appendChild(img); }
         }
       }
 
-      function renderFeatured(){
-        const players = getPlayers();
-        if (!players.length){
-          grid.innerHTML = `<p class="muted">Players will appear here once the field is loaded.</p>`;
-          return;
-        }
-        const picks = pickRandom(players, 4);
-        grid.innerHTML = picks.map((p, idx) => renderCard(p, idx)).join("");
-        // hydrate photos asynchronously
-        hydrateFeaturedPhotos(picks);
+      function render(){
+        const players=loadPlayers();
+        if(!players.length){ grid.innerHTML=`<p class="muted">Players will appear here once the field is set.</p>`; return; }
+        const picks=pickRandom(players,4);
+        grid.innerHTML=picks.map((p,i)=>renderCard(p,i)).join("");
+        hydratePhotos(picks);
       }
 
-      // Wait until after everything (including script.js) is loaded
-      window.addEventListener("load", renderFeatured);
+      window.addEventListener("load", render);
     })();
   </script>
 
@@ -1040,9 +742,7 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("./sw.js")
-          .catch(err => console.error("SW registration failed:", err));
+        navigator.serviceWorker.register("./sw.js").catch(()=>{});
       });
     }
   </script>

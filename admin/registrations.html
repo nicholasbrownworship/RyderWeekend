@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pending Registrations – Ozark Invitational Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="icon" href="../favicon.ico" />
+  <meta name="theme-color" content="#244f3c">
+
+  <style>
+    body { padding-top: 70px; background: #fcfaf6; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+    .admin-bar {
+      position: fixed; top: 70px; left: 0; right: 0; z-index: 90;
+      background: #163023; color: #fff;
+      padding: .85rem 1.5rem; display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .admin-bar h1 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+    .admin-bar p  { margin: 0; font-size: .8rem; opacity: .65; }
+    .admin-bar-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+
+    .abtn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .38rem .9rem; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1);
+      color: #fff; font-size: .82rem; font-weight: 600; cursor: pointer;
+      transition: background .12s ease; text-decoration: none;
+    }
+    .abtn:hover { background: rgba(255,255,255,.2); text-decoration: none; }
+    .abtn.primary { background: #d1a14b; border-color: transparent; color: #1a1407; }
+    .abtn.primary:hover { filter: brightness(1.06); }
+    .abtn.danger { background: rgba(192,57,43,.25); border-color: rgba(192,57,43,.4); }
+    .abtn.danger:hover { background: rgba(192,57,43,.4); }
+
+    .page-body {
+      max-width: 1100px; margin: 0 auto;
+      padding: 5.5rem 1.5rem 4rem;
+    }
+
+    /* Filter tabs */
+    .filter-bar {
+      display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .ftab {
+      padding: .35rem 1rem; border-radius: 999px;
+      border: 1.5px solid #e5ddd0; background: #fff;
+      font-size: .82rem; font-weight: 700; cursor: pointer;
+      color: #1a1f2e; transition: background .12s, color .12s, border-color .12s;
+    }
+    .ftab.active { background: #244f3c; color: #fff; border-color: transparent; }
+    .ftab:hover:not(.active) { border-color: #244f3c; color: #244f3c; }
+    .ftab-count {
+      display: inline-block; background: rgba(0,0,0,.12);
+      border-radius: 999px; padding: 0 .45rem;
+      font-size: .72rem; margin-left: .3rem;
+    }
+    .ftab.active .ftab-count { background: rgba(255,255,255,.22); }
+
+    /* Stats row */
+    .stats-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 1.75rem;
+    }
+    .stat-strip-card {
+      background: #fff; border: 1px solid #e5ddd0; border-radius: 14px;
+      padding: 1rem 1.1rem; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .stat-strip-card .sv { font-size: 1.8rem; font-weight: 900; color: #163023; line-height: 1; }
+    .stat-strip-card .sl { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-top: .25rem; }
+
+    /* Registration cards grid */
+    .reg-grid {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    }
+    @media (max-width: 800px) { .reg-grid { grid-template-columns: 1fr; } }
+
+    .reg-card {
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .reg-card.status-approved { border-color: rgba(36,79,60,.25); }
+    .reg-card.status-rejected { opacity: .6; }
+
+    .reg-card-head {
+      padding: .875rem 1.1rem; border-bottom: 1px solid #f0ebe0;
+      display: flex; gap: .875rem; align-items: center;
+    }
+    .reg-avatar {
+      width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #f3efe5, #e9e2cf);
+      border: 1px solid #e5ddd0; display: grid; place-items: center;
+      font-weight: 900; font-size: 1rem; color: #244f3c; overflow: hidden;
+    }
+    .reg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reg-card-title { flex: 1; }
+    .reg-name { font-weight: 800; font-size: 1rem; }
+    .reg-nick { font-size: .82rem; color: #64748b; }
+    .reg-submitted { font-size: .73rem; color: #94a3b8; margin-top: 2px; }
+
+    .status-pill {
+      padding: .22rem .65rem; border-radius: 999px;
+      font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    .sp-pending  { background: rgba(209,161,75,.15); color: #7a4f10; border: 1px solid rgba(209,161,75,.3); }
+    .sp-approved { background: rgba(36,79,60,.1);    color: #244f3c;  border: 1px solid rgba(36,79,60,.22); }
+    .sp-rejected { background: rgba(192,57,43,.08);  color: #c0392b;  border: 1px solid rgba(192,57,43,.2); }
+
+    .reg-card-body { padding: .875rem 1.1rem; flex: 1; }
+    .reg-field { font-size: .85rem; margin-bottom: .35rem; display: flex; gap: .5rem; }
+    .reg-field strong { color: #64748b; font-weight: 600; min-width: 78px; flex-shrink: 0; }
+
+    .reg-notes {
+      margin-top: .75rem; padding: .65rem .8rem;
+      background: #fcfaf6; border: 1px solid #f0ebe0;
+      border-radius: 8px; font-size: .83rem; color: #64748b;
+    }
+
+    .reg-card-foot {
+      padding: .75rem 1.1rem; border-top: 1px solid #f0ebe0;
+      background: rgba(252,250,246,.6);
+      display: flex; gap: .6rem; flex-wrap: wrap; align-items: center;
+    }
+    .btn-approve {
+      flex: 1; min-width: 80px;
+      background: #244f3c; color: #fff; border: none;
+      border-radius: 999px; padding: .42rem .9rem;
+      font-weight: 700; font-size: .82rem; cursor: pointer;
+      transition: background .12s;
+    }
+    .btn-approve:hover { background: #163023; }
+    .btn-reject {
+      background: #fff; color: #c0392b;
+      border: 1.5px solid rgba(192,57,43,.3); border-radius: 999px;
+      padding: .42rem .9rem; font-weight: 700; font-size: .82rem;
+      cursor: pointer; transition: background .12s;
+    }
+    .btn-reject:hover { background: rgba(192,57,43,.05); }
+    .btn-restore {
+      background: #fff; color: #244f3c;
+      border: 1.5px solid rgba(36,79,60,.3); border-radius: 999px;
+      padding: .42rem .9rem; font-weight: 700; font-size: .82rem;
+      cursor: pointer; transition: background .12s;
+    }
+    .btn-restore:hover { background: rgba(36,79,60,.05); }
+    .btn-view-profile {
+      color: #64748b; font-size: .78rem; font-weight: 600;
+      text-decoration: none; padding: .4rem .6rem;
+      border-radius: 8px;
+    }
+    .btn-view-profile:hover { background: rgba(0,0,0,.04); text-decoration: none; }
+
+    .empty-state {
+      text-align: center; padding: 4rem 1.5rem; color: #64748b;
+    }
+    .empty-state svg { width: 52px; height: 52px; opacity: .2; margin: 0 auto 1rem; display: block; }
+    .empty-state h3 { color: #1a1f2e; margin-bottom: .5rem; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999;
+      background: #163023; color: #fff; border-radius: 12px;
+      padding: .75rem 1.25rem; font-size: .875rem; font-weight: 600;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .search-row { display: flex; gap: .75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .search-input {
+      padding: .5rem .85rem; border: 1.5px solid #e5ddd0; border-radius: 999px;
+      font: inherit; font-size: .875rem; background: #fff; min-width: 220px;
+      transition: border-color .12s;
+    }
+    .search-input:focus { outline: none; border-color: #244f3c; box-shadow: 0 0 0 3px rgba(36,79,60,.1); }
+  </style>
+</head>
+<body>
+  <div id="siteHeader"></div>
+  <script>
+    fetch("../header.html")
+      .then(r => r.text())
+      .then(h => {
+        document.getElementById("siteHeader").innerHTML = h;
+        if (window.initTeamScoreWidget) window.initTeamScoreWidget();
+      });
+  </script>
+
+  <!-- ADMIN TOP BAR -->
+  <div class="admin-bar">
+    <div>
+      <h1>Player Registrations</h1>
+      <p>Ozark Invitational 2026 · Admin Console</p>
+    </div>
+    <div class="admin-bar-actions">
+      <button class="abtn" id="exportApprovedBtn" title="Export approved players as CSV">
+        ↓ Export Approved CSV
+      </button>
+      <button class="abtn danger" id="clearRejectedBtn">Clear Rejected</button>
+      <a class="abtn primary" href="../players.html">View Roster →</a>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- STATS -->
+    <div class="stats-strip" id="statsStrip"></div>
+
+    <!-- SEARCH + FILTER -->
+    <div class="search-row">
+      <input class="search-input" id="searchInput" type="search" placeholder="Search by name, email, or team…" />
+    </div>
+    <div class="filter-bar" id="filterBar">
+      <button class="ftab active" data-status="all">All <span class="ftab-count" id="countAll">0</span></button>
+      <button class="ftab" data-status="pending">Pending <span class="ftab-count" id="countPending">0</span></button>
+      <button class="ftab" data-status="approved">Approved <span class="ftab-count" id="countApproved">0</span></button>
+      <button class="ftab" data-status="rejected">Rejected <span class="ftab-count" id="countRejected">0</span></button>
+    </div>
+
+    <div id="regGrid" class="reg-grid"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function(){
+      const PENDING_KEY = "ozarkPendingRegistrations_v1";
+      const ROSTER_KEY  = "ozarkSignupsRoster_v1";
+      const PHOTO_BASE  = "../images/players/";
+      const PHOTO_EXTS  = ["png","jpg","jpeg","webp"];
+      const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley", "no-preference": "No Preference" };
+
+      let currentFilter = "all";
+      let searchQ = "";
+      let registrations = [];
+
+      // --- Storage helpers ---
+      function loadPending() {
+        try { return JSON.parse(localStorage.getItem(PENDING_KEY) || "[]"); } catch { return []; }
+      }
+      function savePending(arr) { localStorage.setItem(PENDING_KEY, JSON.stringify(arr)); }
+
+      function loadRoster() {
+        try { return JSON.parse(localStorage.getItem(ROSTER_KEY) || "[]"); } catch { return []; }
+      }
+      function saveRoster(arr) { localStorage.setItem(ROSTER_KEY, JSON.stringify(arr)); }
+
+      function initials(p) {
+        return (((p.firstName||"").trim()[0]||"") + ((p.lastName||"").trim()[0]||"")).toUpperCase() || "?";
+      }
+      function displayName(p) {
+        const nick = (p.nickname||"").trim();
+        return (p.firstName||"") + (nick ? ` "${nick}" ` : " ") + (p.lastName||"");
+      }
+      function teamLabel(t) { return TEAM_LABELS[t] || t || "—"; }
+      function fmtDate(iso) {
+        if (!iso) return "—";
+        try { return new Date(iso).toLocaleString(undefined, {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); } catch { return iso; }
+      }
+      function slugify(f, l) {
+        const c = s => String(s||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+        return [c(f),c(l)].filter(Boolean).join("-");
+      }
+
+      // --- Toast ---
+      let toastTimer;
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg; t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      // --- Photo loading ---
+      function candidateURLs(p) {
+        const ex = (p.photo||"").trim().replace(/\\/g,"/").replace(/^\/+/,"").replace(/^\.\//,"");
+        if (ex) { if(/^https?:\/\//i.test(ex)) return [ex]; if(ex.includes("/")) return [ex]; return [PHOTO_BASE+ex]; }
+        const s = slugify(p.firstName,p.lastName); if(!s) return [];
+        return PHOTO_EXTS.map(e=>`${PHOTO_BASE}${s}.${e}`);
+      }
+      function loadImgTest(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(url); i.onerror=rej; i.src=url; }); }
+      async function resolvePhoto(p, el) {
+        for (const u of candidateURLs(p)) {
+          try { await loadImgTest(u); el.innerHTML = `<img src="${u}" alt="${displayName(p)}" />`; return; } catch{}
+        }
+      }
+
+      // --- Counts ---
+      function updateCounts(data) {
+        document.getElementById("countAll").textContent     = data.length;
+        document.getElementById("countPending").textContent  = data.filter(r=>r.status==="pending").length;
+        document.getElementById("countApproved").textContent = data.filter(r=>r.status==="approved").length;
+        document.getElementById("countRejected").textContent = data.filter(r=>r.status==="rejected").length;
+      }
+
+      // --- Stats strip ---
+      function renderStats(data) {
+        const strip = document.getElementById("statsStrip");
+        const total    = data.length;
+        const pending  = data.filter(r=>r.status==="pending").length;
+        const approved = data.filter(r=>r.status==="approved").length;
+        const ozark    = data.filter(r=>r.status==="approved"&&r.team==="ozark").length;
+        const valley   = data.filter(r=>r.status==="approved"&&r.team==="valley").length;
+        strip.innerHTML = [
+          { v: total,    l: "Total Submissions" },
+          { v: pending,  l: "Awaiting Review" },
+          { v: approved, l: "Approved" },
+          { v: ozark,    l: "Team Ozark" },
+          { v: valley,   l: "Team Valley" },
+        ].map(s => `<div class="stat-strip-card"><div class="sv">${s.v}</div><div class="sl">${s.l}</div></div>`).join("");
+      }
+
+      // --- Approve ---
+      function approve(id) {
+        const data = loadPending();
+        const idx  = data.findIndex(r => r.id === id);
+        if (idx === -1) return;
+        data[idx].status = "approved";
+        data[idx].approvedAt = new Date().toISOString();
+        savePending(data);
+
+        // Add to active roster
+        const roster = loadRoster();
+        const alreadyIn = roster.some(r => r.id === id);
+        if (!alreadyIn) {
+          const player = { ...data[idx] };
+          delete player.status; delete player.submittedAt; delete player.approvedAt; delete player.teamPreference;
+          roster.push(player);
+          saveRoster(roster);
+        }
+
+        showToast(`✓ ${displayName(data[idx])} approved and added to roster.`);
+        reload();
+      }
+
+      // --- Reject ---
+      function reject(id) {
+        const data = loadPending();
+        const idx  = data.findIndex(r => r.id === id);
+        if (idx === -1) return;
+        data[idx].status   = "rejected";
+        data[idx].rejectedAt = new Date().toISOString();
+        savePending(data);
+
+        // Remove from roster if they were previously approved
+        const roster = loadRoster().filter(r => r.id !== id);
+        saveRoster(roster);
+
+        showToast(`✗ ${displayName(data[idx])} rejected.`);
+        reload();
+      }
+
+      // --- Restore to pending ---
+      function restore(id) {
+        const data = loadPending();
+        const idx  = data.findIndex(r => r.id === id);
+        if (idx === -1) return;
+        data[idx].status = "pending";
+        delete data[idx].approvedAt; delete data[idx].rejectedAt;
+        savePending(data);
+
+        // Remove from roster if they were approved
+        const roster = loadRoster().filter(r => r.id !== id);
+        saveRoster(roster);
+
+        showToast(`↩ ${displayName(data[idx])} moved back to pending.`);
+        reload();
+      }
+
+      // --- Render card ---
+      function renderCard(r) {
+        const statusClass = r.status || "pending";
+        const statusLabels = { pending: "Pending", approved: "Approved", rejected: "Rejected" };
+        const statusPillClass = { pending: "sp-pending", approved: "sp-approved", rejected: "sp-rejected" };
+        const nick = (r.nickname||"").trim();
+        const hcp  = r.handicap !== null && r.handicap !== undefined ? String(r.handicap) : "—";
+        const team = teamLabel(r.team || r.teamPreference || "");
+
+        let footBtns;
+        if (statusClass === "pending") {
+          footBtns = `
+            <button class="btn-approve" data-approve="${r.id}">✓ Approve</button>
+            <button class="btn-reject"  data-reject="${r.id}">✗ Reject</button>`;
+        } else if (statusClass === "approved") {
+          footBtns = `
+            <button class="btn-restore" data-restore="${r.id}">↩ Move to Pending</button>
+            <button class="btn-reject"  data-reject="${r.id}">✗ Reject</button>`;
+        } else {
+          footBtns = `
+            <button class="btn-restore" data-restore="${r.id}">↩ Restore to Pending</button>`;
+        }
+
+        const profileLink = `../player.html?id=${encodeURIComponent(r.id)}`;
+
+        return `
+          <div class="reg-card status-${statusClass}" data-id="${r.id}">
+            <div class="reg-card-head">
+              <div class="reg-avatar" data-avatar-id="${r.id}">${initials(r)}</div>
+              <div class="reg-card-title">
+                <div class="reg-name">${displayName(r)}</div>
+                ${nick ? `<div class="reg-nick">"${nick}"</div>` : ""}
+                <div class="reg-submitted">Submitted ${fmtDate(r.submittedAt)}</div>
+              </div>
+              <span class="status-pill ${statusPillClass[statusClass]}">${statusLabels[statusClass]}</span>
+            </div>
+            <div class="reg-card-body">
+              <div class="reg-field"><strong>Team</strong> ${team}</div>
+              <div class="reg-field"><strong>Handicap</strong> ${hcp}</div>
+              <div class="reg-field"><strong>Email</strong> <a href="mailto:${r.email||""}" style="color:#244f3c;">${r.email||"—"}</a></div>
+              <div class="reg-field"><strong>Phone</strong> ${r.phone||"—"}</div>
+              ${r.notes && r.notes.trim() ? `<div class="reg-notes">${r.notes}</div>` : ""}
+            </div>
+            <div class="reg-card-foot">
+              ${footBtns}
+              <a href="${profileLink}" class="btn-view-profile" target="_blank">Profile ↗</a>
+            </div>
+          </div>`;
+      }
+
+      // --- Main render ---
+      function renderGrid(data) {
+        const grid = document.getElementById("regGrid");
+        const q = searchQ.toLowerCase();
+        let filtered = data.filter(r => {
+          if (currentFilter !== "all" && r.status !== currentFilter) return false;
+          if (!q) return true;
+          const searchable = [r.firstName, r.lastName, r.nickname, r.email, r.phone, r.team, r.notes].join(" ").toLowerCase();
+          return searchable.includes(q);
+        });
+
+        if (!filtered.length) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <h3>${currentFilter === "pending" ? "No Pending Registrations" : "No Registrations Found"}</h3>
+              <p>${currentFilter === "pending"
+                ? "All caught up! No registrations are waiting for review."
+                : searchQ
+                  ? `No registrations match "${searchQ}".`
+                  : "Registrations will appear here once players submit through the registration form."}</p>
+              ${currentFilter === "pending" ? `<a href="../register.html" class="abtn primary" style="display:inline-block;margin-top:.5rem;text-decoration:none;padding:.5rem 1.1rem;border-radius:999px;background:#244f3c;color:#fff;font-weight:700;">View Registration Page</a>` : ""}
+            </div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(r => renderCard(r)).join("");
+
+        // Hydrate avatar photos
+        filtered.forEach(r => {
+          const el = grid.querySelector(`[data-avatar-id="${r.id}"]`);
+          if (el) resolvePhoto(r, el);
+        });
+
+        // Wire up action buttons
+        grid.querySelectorAll("[data-approve]").forEach(btn => {
+          btn.addEventListener("click", () => approve(btn.getAttribute("data-approve")));
+        });
+        grid.querySelectorAll("[data-reject]").forEach(btn => {
+          btn.addEventListener("click", () => reject(btn.getAttribute("data-reject")));
+        });
+        grid.querySelectorAll("[data-restore]").forEach(btn => {
+          btn.addEventListener("click", () => restore(btn.getAttribute("data-restore")));
+        });
+      }
+
+      // --- Full reload ---
+      function reload() {
+        registrations = loadPending();
+        updateCounts(registrations);
+        renderStats(registrations);
+        renderGrid(registrations);
+      }
+
+      // --- Filter tabs ---
+      document.getElementById("filterBar").addEventListener("click", e => {
+        const tab = e.target.closest(".ftab");
+        if (!tab) return;
+        document.querySelectorAll(".ftab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        currentFilter = tab.dataset.status;
+        renderGrid(registrations);
+      });
+
+      // --- Search ---
+      document.getElementById("searchInput").addEventListener("input", e => {
+        searchQ = e.target.value;
+        renderGrid(registrations);
+      });
+
+      // --- Export approved CSV ---
+      document.getElementById("exportApprovedBtn").addEventListener("click", () => {
+        const approved = registrations.filter(r => r.status === "approved");
+        if (!approved.length) { showToast("No approved registrations to export."); return; }
+        const cols = ["id","firstName","lastName","nickname","email","phone","handicap","team","notes"];
+        const csv  = [cols.join(",")]
+          .concat(approved.map(r => cols.map(c => {
+            const v = String(r[c] ?? "");
+            return /[",\n]/.test(v) ? `"${v.replace(/"/g,'""')}"` : v;
+          }).join(",")))
+          .join("\n");
+        const url = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+        const a = document.createElement("a"); a.href = url; a.download = "ozark_approved_players.csv";
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        showToast(`Exported ${approved.length} approved players.`);
+      });
+
+      // --- Clear rejected ---
+      document.getElementById("clearRejectedBtn").addEventListener("click", () => {
+        const data = loadPending().filter(r => r.status !== "rejected");
+        savePending(data);
+        showToast("Rejected registrations cleared.");
+        reload();
+      });
+
+      // --- Boot ---
+      reload();
+
+      // Refresh when storage changes from another tab
+      window.addEventListener("storage", e => {
+        if (e.key === PENDING_KEY || e.key === ROSTER_KEY) reload();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register – Ozark Invitational 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Register to play in the Ozark Invitational 2026 at Diamond Hills Country Club. Submit your info and a tournament director will confirm your spot." />
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
+  <meta name="theme-color" content="#244f3c">
+
+  <script>window.players = window.players || [];</script>
+  <script src="script.js?v=3" defer></script>
+
+  <style>
+    body { padding-top: 70px; }
+
+    .reg-hero {
+      background: linear-gradient(135deg, #163023 0%, #244f3c 60%, #2d6349 100%);
+      color: #fff; text-align: center; padding: 4rem 1.5rem 3.5rem;
+      position: relative; overflow: hidden;
+    }
+    .reg-hero::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 70% 40%, rgba(209,161,75,.12), transparent 55%);
+    }
+    .reg-hero-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+    .reg-hero h1 { font-size: clamp(1.75rem, 4vw, 2.6rem); margin-bottom: .6rem; font-weight: 900; }
+    .reg-hero .lead { opacity: .87; max-width: 52ch; margin: 0 auto .1rem; font-size: 1rem; }
+
+    .reg-steps {
+      display: flex; gap: .875rem; justify-content: center;
+      flex-wrap: wrap; margin-top: 1.75rem;
+    }
+    .reg-step {
+      display: flex; align-items: center; gap: .6rem;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px; padding: .65rem 1rem; font-size: .875rem;
+    }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #d1a14b; color: #1a1407;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: .75rem; flex-shrink: 0;
+    }
+
+    .reg-main { max-width: 700px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .notice-box {
+      background: rgba(209,161,75,.1); border: 1px solid rgba(209,161,75,.38);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      font-size: .875rem; color: #7a4f10;
+      margin-bottom: 1.5rem;
+      display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .notice-box svg { flex-shrink: 0; margin-top: 2px; width: 18px; height: 18px; }
+
+    .reg-card {
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.08), 0 12px 36px rgba(0,0,0,.05);
+      padding: 2rem 1.75rem;
+    }
+
+    .reg-card-head {
+      margin-bottom: 1.5rem; padding-bottom: 1rem;
+      border-bottom: 2px solid #e5ddd0;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+    }
+    .reg-card-head h2 { margin: 0 0 .25rem; font-size: 1.4rem; color: #244f3c; font-weight: 800; }
+    .reg-card-head p { margin: 0; font-size: .875rem; color: #64748b; }
+
+    .form-section-label {
+      font-size: .68rem; font-weight: 800; letter-spacing: .12em;
+      text-transform: uppercase; color: #244f3c; opacity: .75;
+      margin: 1.5rem 0 .875rem; display: block;
+    }
+    .form-section-label:first-child { margin-top: 0; }
+
+    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: .875rem; }
+    .frow .full { grid-column: 1 / -1; }
+    @media (max-width: 600px) { .frow { grid-template-columns: 1fr; } }
+
+    label {
+      display: block; font-size: .73rem; font-weight: 700;
+      letter-spacing: .07em; text-transform: uppercase;
+      color: #244f3c; margin-bottom: .35rem;
+    }
+    label .optional { font-weight: 500; opacity: .55; text-transform: none; letter-spacing: 0; font-size: .78em; }
+
+    input[type="text"], input[type="email"], input[type="number"],
+    input[type="tel"], select, textarea {
+      width: 100%; padding: .65rem .85rem;
+      border-radius: 8px; border: 1.5px solid #e5ddd0;
+      background: #fff; font: inherit; font-size: .95rem;
+      color: #1a1f2e;
+      transition: border-color .12s ease, box-shadow .12s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #244f3c;
+      box-shadow: 0 0 0 4px rgba(36,79,60,.1);
+    }
+    ::placeholder { color: rgba(0,0,0,.32); }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    select {
+      appearance: none;
+      background-image: linear-gradient(45deg,transparent 50%,#244f3c 50%), linear-gradient(135deg,#244f3c 50%,transparent 50%);
+      background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+      background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 2.5rem;
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .char-hint { font-size: .75rem; color: #94a3b8; margin-top: .3rem; }
+
+    .file-input-wrap {
+      border: 2px dashed #e5ddd0; border-radius: 10px;
+      padding: 1rem; text-align: center; cursor: pointer;
+      transition: border-color .12s ease, background .12s ease;
+    }
+    .file-input-wrap:hover { border-color: #244f3c; background: rgba(36,79,60,.03); }
+    .file-input-wrap input { display: none; }
+    .file-input-label { font-size: .875rem; color: #64748b; }
+    .file-input-label span { color: #244f3c; font-weight: 700; text-decoration: underline; cursor: pointer; }
+    #photoName { font-size: .82rem; color: #244f3c; margin-top: .35rem; display: none; }
+
+    .consent-row { display: flex; gap: .75rem; align-items: flex-start; margin-top: .5rem; }
+    .consent-row input[type="checkbox"] { flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px; accent-color: #244f3c; }
+    .consent-row label { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .875rem; opacity: 1; color: #1a1f2e; }
+
+    .reg-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .btn-submit {
+      background: #244f3c; color: #fff; border: none;
+      border-radius: 999px; padding: .75rem 1.75rem;
+      font-weight: 700; font-size: 1rem; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(36,79,60,.25);
+      transition: background .12s ease, transform .08s ease;
+    }
+    .btn-submit:hover { background: #163023; transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    #regMsg {
+      font-size: .9rem; padding: .6rem .9rem; border-radius: 10px;
+      display: none; flex: 1; min-width: 200px;
+    }
+    #regMsg.show { display: block; }
+    #regMsg.success { color: #1f5c35; background: rgba(36,79,60,.08); border: 1px solid rgba(36,79,60,.22); }
+    #regMsg.error   { color: #7b1a1a; background: rgba(185,62,62,.07); border: 1px solid rgba(185,62,62,.2); }
+
+    .success-card {
+      text-align: center; padding: 3rem 2rem;
+      display: none;
+    }
+    .success-card.show { display: block; }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(36,79,60,.1); display: grid; place-items: center;
+      margin: 0 auto 1.25rem;
+    }
+    .success-icon svg { width: 36px; height: 36px; color: #244f3c; }
+    .success-card h3 { font-size: 1.5rem; color: #244f3c; margin-bottom: .5rem; }
+    .success-card p { color: #64748b; max-width: 44ch; margin: 0 auto .75rem; }
+    .success-card .next-steps {
+      background: #fcfaf6; border: 1px solid #e5ddd0;
+      border-radius: 12px; padding: 1.1rem 1.25rem;
+      text-align: left; margin-top: 1.25rem;
+      font-size: .875rem;
+    }
+    .success-card .next-steps ul { margin: .5rem 0 0; padding-left: 1.1rem; }
+    .success-card .next-steps li { margin-bottom: .4rem; color: #1a1f2e; }
+  </style>
+</head>
+<body>
+  <div id="siteHeader"></div>
+  <script>
+    fetch("header.html")
+      .then(r => r.text())
+      .then(h => {
+        document.getElementById("siteHeader").innerHTML = h;
+        const here = (location.pathname.split('/').pop() || 'register.html').toLowerCase();
+        document.querySelectorAll('.nav a').forEach(a => {
+          const t = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+          if (t.toLowerCase() === here) a.setAttribute('aria-current', 'page');
+        });
+        if (window.initTeamScoreWidget) window.initTeamScoreWidget();
+      });
+  </script>
+
+  <!-- HERO -->
+  <div class="reg-hero" role="banner">
+    <div class="reg-hero-inner">
+      <p class="tagline" style="color:rgba(255,255,255,.7);">Brown Family · Ozark Invitational 2026</p>
+      <h1>Register to Play</h1>
+      <p class="lead">
+        Fill out the form below and Nick will review and confirm your spot.
+        Registration closes <strong>May 9, 2026</strong>.
+      </p>
+
+      <div class="reg-steps">
+        <div class="reg-step">
+          <div class="step-num">1</div>
+          <span>Fill out this form</span>
+        </div>
+        <div class="reg-step">
+          <div class="step-num">2</div>
+          <span>Nick reviews &amp; approves</span>
+        </div>
+        <div class="reg-step">
+          <div class="step-num">3</div>
+          <span>You're confirmed!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="reg-main">
+
+    <!-- NOTICE -->
+    <div class="notice-box" role="note">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+      </svg>
+      <div>
+        <strong>Pending approval</strong> — Your registration will be reviewed before your spot is confirmed.
+        Nick will reach out once you're approved. Entry fee ($150) is collected closer to the event.
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="reg-card" id="regCard">
+      <div class="reg-card-head">
+        <div>
+          <h2>Player Registration</h2>
+          <p>Ozark Invitational · Diamond Hills CC · May 23–24, 2026</p>
+        </div>
+      </div>
+
+      <form id="regForm" novalidate>
+        <!-- PERSONAL INFO -->
+        <span class="form-section-label">Personal Information</span>
+        <div class="frow">
+          <div>
+            <label for="firstName">First Name <span style="color:#c0392b">*</span></label>
+            <input type="text" id="firstName" name="firstName" placeholder="First name" required autocomplete="given-name" />
+          </div>
+          <div>
+            <label for="lastName">Last Name <span style="color:#c0392b">*</span></label>
+            <input type="text" id="lastName" name="lastName" placeholder="Last name" required autocomplete="family-name" />
+          </div>
+          <div class="full">
+            <label for="nickname">Nickname <span class="optional">(optional)</span></label>
+            <input type="text" id="nickname" name="nickname" placeholder="e.g., Big Easy, Long Ball" autocomplete="off" />
+          </div>
+        </div>
+
+        <!-- CONTACT -->
+        <span class="form-section-label">Contact Details</span>
+        <div class="frow">
+          <div>
+            <label for="email">Email Address <span style="color:#c0392b">*</span></label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div>
+            <label for="phone">Phone Number <span style="color:#c0392b">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required autocomplete="tel" />
+          </div>
+        </div>
+
+        <!-- GOLF INFO -->
+        <span class="form-section-label">Golf Information</span>
+        <div class="frow">
+          <div>
+            <label for="handicap">Handicap or Avg. Score <span style="color:#c0392b">*</span></label>
+            <input type="number" id="handicap" name="handicap" placeholder="e.g., 12 or 88" required min="0" max="200" />
+            <p class="char-hint">Official GHIN index or your honest average 18-hole score.</p>
+          </div>
+          <div>
+            <label for="team">Team Preference <span style="color:#c0392b">*</span></label>
+            <select id="team" name="team" required>
+              <option value="" disabled selected>Select a team…</option>
+              <option value="ozark">Team Ozark</option>
+              <option value="valley">Team Valley</option>
+              <option value="no-preference">No Preference</option>
+            </select>
+            <p class="char-hint">Final team assignments are made by the captains.</p>
+          </div>
+        </div>
+
+        <!-- PHOTO -->
+        <span class="form-section-label">Player Photo <span class="optional" style="text-transform:none;letter-spacing:0;">(optional)</span></span>
+        <div class="frow">
+          <div class="full">
+            <div class="file-input-wrap" id="fileWrap" onclick="document.getElementById('photo').click()">
+              <input type="file" id="photo" name="photo" accept="image/*" />
+              <div class="file-input-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto .5rem;">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                <span>Click to upload</span> or drag and drop · JPG, PNG, WEBP
+              </div>
+              <p id="photoName"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <span class="form-section-label">Additional Notes <span class="optional" style="text-transform:none;letter-spacing:0;">(optional)</span></span>
+        <div class="frow">
+          <div class="full">
+            <label for="notes">Anything we should know?</label>
+            <textarea id="notes" name="notes" placeholder="Dietary restrictions, scheduling conflicts, prior year results, or a quick intro if you're a new face…"></textarea>
+          </div>
+        </div>
+
+        <!-- CONSENT -->
+        <div class="consent-row" style="margin-top:1.25rem;">
+          <input type="checkbox" id="consent" name="consent" required />
+          <label for="consent">
+            I confirm that all information above is accurate and I understand my registration is pending approval
+            before my spot is confirmed. Entry fee of $150 is due upon confirmation.
+          </label>
+        </div>
+
+        <!-- ANTI-SPAM -->
+        <div style="position:absolute;left:-5000px;" aria-hidden="true">
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+        </div>
+        <input type="hidden" name="_subject" value="New Ozark Invitational Registration" />
+
+        <div class="reg-actions">
+          <button type="submit" class="btn-submit" id="submitBtn">Submit Registration</button>
+          <span id="regMsg" role="alert"></span>
+        </div>
+      </form>
+
+      <!-- SUCCESS STATE (replaces form) -->
+      <div class="success-card" id="successCard">
+        <div class="success-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h3>Registration Submitted!</h3>
+        <p id="successPlayerName" style="font-weight:700;color:#1a1f2e;font-size:1.1rem;margin-bottom:.5rem;"></p>
+        <p>Your registration is pending review. Nick will reach out to confirm your spot.</p>
+        <div class="next-steps">
+          <strong style="color:#1a1f2e;">What happens next?</strong>
+          <ul>
+            <li>Nick reviews your registration (usually within 1–2 days)</li>
+            <li>You'll hear back via email or phone to confirm your spot</li>
+            <li>Entry fee ($150) is collected closer to the event</li>
+            <li>Pairings and team assignments are announced the morning of each day</li>
+          </ul>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;">
+          <a href="players.html" class="btn secondary">View Player Roster</a>
+          <a href="index.html" class="btn outline">Back to Home</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR INFO -->
+    <div style="margin-top:1.5rem;display:grid;gap:1rem;">
+      <div style="background:#fff;border:1px solid #e5ddd0;border-radius:14px;padding:1.25rem 1.3rem;box-shadow:0 2px 8px rgba(0,0,0,.05);">
+        <h3 style="font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#244f3c;margin:0 0 .75rem;">Questions?</h3>
+        <p style="font-size:.875rem;color:#64748b;margin:0 0 .5rem;">Contact Nick Brown, Tournament Director:</p>
+        <a href="mailto:nicholasbrownworship@gmail.com" style="color:#244f3c;font-weight:700;font-size:.875rem;">nicholasbrownworship@gmail.com</a>
+      </div>
+      <div style="background:#fff;border:1px solid #e5ddd0;border-radius:14px;padding:1.25rem 1.3rem;box-shadow:0 2px 8px rgba(0,0,0,.05);">
+        <h3 style="font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#244f3c;margin:0 0 .75rem;">Tournament Details</h3>
+        <ul style="padding-left:1.1rem;margin:0;font-size:.875rem;color:#1a1f2e;">
+          <li style="margin-bottom:.4rem;"><strong>Date:</strong> May 23–24, 2026</li>
+          <li style="margin-bottom:.4rem;"><strong>Venue:</strong> Diamond Hills Country Club, Diamond City, AR</li>
+          <li style="margin-bottom:.4rem;"><strong>Entry:</strong> $150 per player</li>
+          <li style="margin-bottom:.4rem;"><strong>Includes:</strong> Greens fees, cart both days, lunch Day 1</li>
+          <li><strong>Format:</strong> Ryder Cup-style, 2 teams</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="players.html">Players</a>
+        <a href="rulebook.html">Rulebook</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <p class="footer-copy">Ozark Invitational &copy; 2026 · Built for the Brown family golf weekend.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      const PENDING_KEY = "ozarkPendingRegistrations_v1";
+      const DUPE_KEY    = "ozarkRegDupes_v1";
+      const FORMSPREE_URL = "https://formspree.io/f/xnnokdqb";
+
+      const form     = document.getElementById("regForm");
+      const submitBtn= document.getElementById("submitBtn");
+      const msgEl    = document.getElementById("regMsg");
+      const successCard = document.getElementById("successCard");
+      const photoInput  = document.getElementById("photo");
+      const photoName   = document.getElementById("photoName");
+
+      // Show selected filename
+      photoInput.addEventListener("change", () => {
+        const f = photoInput.files[0];
+        if (f) { photoName.textContent = f.name; photoName.style.display = "block"; }
+        else   { photoName.style.display = "none"; }
+      });
+
+      // Drag-drop highlight
+      const wrap = document.getElementById("fileWrap");
+      wrap.addEventListener("dragover", e => { e.preventDefault(); wrap.style.borderColor = "#244f3c"; });
+      wrap.addEventListener("dragleave", () => { wrap.style.borderColor = ""; });
+      wrap.addEventListener("drop", e => {
+        e.preventDefault(); wrap.style.borderColor = "";
+        const f = e.dataTransfer.files[0];
+        if (f && f.type.startsWith("image/")) {
+          const dt = new DataTransfer(); dt.items.add(f); photoInput.files = dt.files;
+          photoName.textContent = f.name; photoName.style.display = "block";
+        }
+      });
+
+      function setMsg(text, type) {
+        msgEl.textContent = text;
+        msgEl.className = "show " + type;
+      }
+      function clearMsg() { msgEl.className = ""; msgEl.textContent = ""; }
+
+      function loadDupes() { try { return JSON.parse(localStorage.getItem(DUPE_KEY) || "[]"); } catch { return []; } }
+      function saveDupes(a) { localStorage.setItem(DUPE_KEY, JSON.stringify(a)); }
+      function loadPending() { try { return JSON.parse(localStorage.getItem(PENDING_KEY) || "[]"); } catch { return []; } }
+      function savePending(a) { localStorage.setItem(PENDING_KEY, JSON.stringify(a)); }
+      function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g," ").trim(); }
+
+      function slugify(f, l) {
+        const clean = s => String(s||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+        return [clean(f), clean(l)].filter(Boolean).join("-");
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMsg();
+
+        const get = id => (document.getElementById(id)?.value || "").trim();
+        const firstName = get("firstName");
+        const lastName  = get("lastName");
+        const nickname  = get("nickname");
+        const email     = get("email");
+        const phone     = get("phone");
+        const handicap  = get("handicap");
+        const team      = get("team");
+        const notes     = get("notes");
+        const consent   = document.getElementById("consent").checked;
+        const file      = photoInput.files[0] || null;
+
+        if (!firstName || !lastName || !email || !phone || !handicap || !team) {
+          setMsg("Please fill in all required fields before submitting.", "error"); return;
+        }
+        if (!consent) {
+          setMsg("Please check the consent box to continue.", "error"); return;
+        }
+
+        // Duplicate check
+        const dupes = loadDupes();
+        const nameKey = norm(firstName + " " + lastName);
+        const emailKey = norm(email);
+        if (dupes.some(d => d.email === emailKey && d.name === nameKey)) {
+          setMsg("It looks like you've already submitted a registration with this name and email. Contact Nick if something is wrong.", "error");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting…";
+        setMsg("Sending your registration…", "success");
+
+        // Build player object for local storage
+        const id = (crypto?.randomUUID?.() || Date.now() + "-" + Math.random().toString(36).slice(2,8));
+        const slug = slugify(firstName, lastName);
+        const playerObj = {
+          id, firstName, lastName, nickname: nickname || "",
+          email, phone,
+          handicap: isNaN(Number(handicap)) ? handicap : Number(handicap),
+          team: team === "no-preference" ? "ozark" : team,
+          teamPreference: team,
+          notes: notes || "",
+          photo: file ? `images/players/${slug}.png` : "",
+          submittedAt: new Date().toISOString(),
+          status: "pending"
+        };
+
+        // Try Formspree submission (non-blocking; best-effort)
+        try {
+          const fd = new FormData();
+          fd.append("firstName", firstName);
+          fd.append("lastName", lastName);
+          fd.append("nickname", nickname || "—");
+          fd.append("email", email);
+          fd.append("phone", phone);
+          fd.append("handicap", handicap);
+          fd.append("team", team);
+          fd.append("notes", notes || "—");
+          fd.append("_subject", `New Registration: ${firstName} ${lastName}`);
+          fd.append("summary",
+`Registration Submitted — Ozark Invitational 2026
+
+Name: ${firstName} ${lastName}${nickname ? ` "${nickname}"` : ""}
+Email: ${email}
+Phone: ${phone}
+Handicap / Avg: ${handicap}
+Team Preference: ${team}
+Notes: ${notes || "—"}
+
+Review and approve at: [admin/registrations.html]`);
+          if (file) fd.append("photo", file, file.name);
+
+          await fetch(FORMSPREE_URL, {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: fd
+          });
+        } catch (_) {
+          // Formspree failure is non-fatal; data is saved locally
+        }
+
+        // Save to pending registrations
+        const pending = loadPending();
+        pending.push(playerObj);
+        savePending(pending);
+
+        // Save dupe record
+        dupes.push({ name: nameKey, email: emailKey, ts: Date.now() });
+        saveDupes(dupes);
+
+        // Show success
+        form.style.display = "none";
+        successCard.classList.add("show");
+        document.getElementById("successPlayerName").textContent =
+          firstName + (nickname ? ` "${nickname}" ` : " ") + lastName;
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Registration";
+      });
+    })();
+  </script>
+</body>
+</html>
