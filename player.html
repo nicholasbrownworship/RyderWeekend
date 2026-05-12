@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Player Profile – Ozark Invitational 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Player profile for the Ozark Invitational 2026." />
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="favicon.ico" />
+  <meta name="theme-color" content="#244f3c">
+
+  <script>window.players = window.players || [];</script>
+  <script src="script.js?v=3" defer></script>
+
+  <style>
+    body { padding-top: 70px; }
+
+    .profile-hero {
+      background: linear-gradient(135deg, #163023 0%, #244f3c 60%, #2d6349 100%);
+      padding: 2.75rem 1.5rem 3.5rem; color: #fff; position: relative; overflow: hidden;
+    }
+    .profile-hero::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 75% 40%, rgba(209,161,75,.14), transparent 55%);
+    }
+    .profile-hero-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; gap: 2rem; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .profile-back {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: rgba(255,255,255,.65); font-size: .85rem; font-weight: 600;
+      margin-bottom: 1.25rem; transition: color .12s ease; cursor: pointer;
+      text-decoration: none;
+    }
+    .profile-back:hover { color: #fff; text-decoration: none; }
+
+    .profile-avatar-wrap {
+      width: 110px; height: 110px; border-radius: 18px;
+      overflow: hidden; flex-shrink: 0;
+      background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.22);
+      display: grid; place-items: center;
+      font-size: 2.25rem; font-weight: 900; color: rgba(255,255,255,.85);
+    }
+    .profile-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .profile-hero-body { flex: 1; }
+    .profile-hero-body h1 {
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      margin: 0 0 .3rem; font-weight: 900;
+    }
+    .profile-hero-body .nick {
+      font-size: 1.05rem; opacity: .75; margin-bottom: .8rem; font-style: italic;
+    }
+    .profile-chips { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .profile-chip {
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px; padding: .28rem .85rem; font-size: .82rem; font-weight: 600;
+    }
+    .profile-chip.team-oz { background: rgba(46,204,113,.15); border-color: rgba(46,204,113,.3); }
+    .profile-chip.team-va { background: rgba(52,152,219,.15); border-color: rgba(52,152,219,.3); }
+
+    .profile-body {
+      max-width: 1100px; margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .profile-body { grid-template-columns: 1fr; }
+      .profile-hero-inner { flex-direction: column; text-align: center; }
+      .profile-chips { justify-content: center; }
+      .profile-back { margin-left: auto; margin-right: auto; }
+    }
+
+    .profile-card {
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      padding: 1.4rem 1.5rem; margin-bottom: 1.25rem;
+    }
+    .profile-card:last-child { margin-bottom: 0; }
+    .profile-card-title {
+      font-size: .7rem; font-weight: 800; letter-spacing: .12em;
+      text-transform: uppercase; color: #64748b; margin-bottom: 1rem;
+    }
+
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .875rem;
+    }
+    .stat-box {
+      background: #fcfaf6; border: 1px solid #e5ddd0;
+      border-radius: 12px; padding: .9rem 1rem;
+    }
+    .stat-box .sl { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; }
+    .stat-box .sv { font-size: 1.45rem; font-weight: 900; color: #163023; line-height: 1; margin-top: .3rem; }
+    .stat-box .ss { font-size: .78rem; color: #64748b; margin-top: .2rem; }
+
+    .info-list { list-style: none; padding: 0; margin: 0; }
+    .info-list li {
+      display: flex; gap: .6rem; align-items: flex-start;
+      padding: .55rem 0; border-bottom: 1px solid #f0ebe0;
+      font-size: .9rem;
+    }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list .il-label { color: #64748b; font-weight: 600; min-width: 80px; flex-shrink: 0; }
+
+    .placements-list { list-style: none; padding: 0; margin: 0; }
+    .placements-list li {
+      padding: .6rem 0; border-bottom: 1px solid #f0ebe0; font-size: .88rem;
+      display: flex; gap: .75rem; align-items: center;
+    }
+    .placements-list li:last-child { border-bottom: none; }
+    .placements-list .pl-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #244f3c; flex-shrink: 0; margin-top: 3px;
+    }
+
+    .not-found {
+      max-width: 500px; margin: 0 auto;
+      text-align: center; padding: 5rem 1.5rem;
+    }
+    .not-found svg { width: 56px; height: 56px; opacity: .2; margin: 0 auto 1.25rem; display: block; }
+    .not-found h2 { color: #1a1f2e; margin-bottom: .5rem; }
+    .not-found p { color: #64748b; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div id="siteHeader"></div>
+  <script>
+    fetch("header.html")
+      .then(r => r.text())
+      .then(h => {
+        document.getElementById("siteHeader").innerHTML = h;
+        if (window.initTeamScoreWidget) window.initTeamScoreWidget();
+      });
+  </script>
+
+  <div id="profileRoot"></div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="players.html">Players</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="register.html">Register</a>
+      </nav>
+      <p class="footer-copy">Ozark Invitational &copy; 2026 · Built for the Brown family golf weekend.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      const SHARED_KEY  = "ozarkShared_v1";
+      const SIGNUPS_KEY = "ozarkSignupsRoster_v1";
+      const PHOTO_BASE  = "images/players/";
+      const PHOTO_EXTS  = ["png","jpg","jpeg","webp"];
+      const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
+      const root        = document.getElementById("profileRoot");
+
+      // --- Helpers ---
+      function normStr(s) { return String(s||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
+      function displayName(p) {
+        const nick = (p.nickname||"").trim();
+        return (p.firstName||"") + (nick ? ` "${nick}" ` : " ") + (p.lastName||"");
+      }
+      function initials(p) {
+        return (((p.firstName||"").trim()[0]||"") + ((p.lastName||"").trim()[0]||"")).toUpperCase() || "?";
+      }
+      function teamOf(p) { const t=(p.team||"").toLowerCase(); return t.includes("val")?"valley":t.includes("oz")?"ozark":t; }
+      function getHcp(p) { const v=p.handicap??p.Handicap??p.hcp??p.HCP??""; return v!==null&&v!==undefined&&String(v).trim()!==""?String(v).trim():null; }
+
+      // --- Data loading ---
+      function getAllPlayers() {
+        const byId = new Map();
+        const add = arr => (arr||[]).forEach(p => { if(p&&p.id) byId.set(String(p.id), p); });
+
+        // Shared snapshot
+        try { const r=localStorage.getItem(SHARED_KEY); if(r){ const s=JSON.parse(r); if(s&&Array.isArray(s.players)) add(s.players); } } catch{}
+        // Approved signups
+        try { const r=localStorage.getItem(SIGNUPS_KEY); const a=r?JSON.parse(r):[]; if(Array.isArray(a)) add(a); } catch{}
+        // Script.js window.state.players
+        if (window.state&&Array.isArray(window.state.players)) add(window.state.players);
+        // window.players (seeded)
+        if (Array.isArray(window.players)) add(window.players);
+
+        return Array.from(byId.values());
+      }
+
+      function findPlayer(idParam) {
+        if (!idParam) return null;
+        const all = getAllPlayers();
+        const normId = normStr(idParam);
+        // exact id match
+        let p = all.find(x => String(x.id) === idParam);
+        if (p) return p;
+        // slug match
+        p = all.find(x => {
+          const slug = normStr((x.firstName||"") + "-" + (x.lastName||""));
+          return slug === normId;
+        });
+        if (p) return p;
+        // partial name match
+        p = all.find(x => {
+          const full = normStr((x.firstName||"") + (x.lastName||""));
+          return full.includes(normId) || normId.includes(full);
+        });
+        return p || null;
+      }
+
+      // --- Photo ---
+      function candidateURLs(p) {
+        const ex = (p.photo||p.photourl||p.image||"").trim().replace(/\\/g,"/").replace(/^\/+/,"").replace(/^\.\//,"");
+        if (ex) { if(/^https?:\/\//i.test(ex)) return [ex]; if(ex.includes("/")) return [ex]; return [PHOTO_BASE+ex]; }
+        const slug = normStr((p.firstName||"") + "-" + (p.lastName||"")); if (!slug) return [];
+        return PHOTO_EXTS.map(e => `${PHOTO_BASE}${slug}.${e}`);
+      }
+      function loadImg(url) { return new Promise((res,rej) => { const i=new Image(); i.onload=()=>res(url); i.onerror=rej; i.src=url; }); }
+      async function resolvePhoto(p) { for(const u of candidateURLs(p)) { try { await loadImg(u); return u; } catch{} } return ""; }
+
+      // --- Placements ---
+      function placementsFor(id) {
+        const out = [];
+        try {
+          const raw = localStorage.getItem(SHARED_KEY); if (!raw) return out;
+          const snap = JSON.parse(raw);
+          const g = snap?.groups || {};
+          const fmt = snap?.format || {};
+          ["day1","day2"].forEach(d => {
+            ["front","back"].forEach(s => {
+              const groups = g?.[d]?.[s] || [];
+              const f = fmt?.[d]?.[s] || "Best Ball";
+              groups.forEach((arr,gi) => {
+                if ((arr||[]).some(x => String(x)===String(id))) {
+                  out.push({ day: d==="day1"?"Day 1":"Day 2", side: s==="front"?"Front 9":"Back 9", format: f, group: gi+1 });
+                }
+              });
+            });
+          });
+        } catch{}
+        return out;
+      }
+
+      // --- Render not found ---
+      function renderNotFound() {
+        root.innerHTML = `
+          <div class="not-found">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <h2>Player Not Found</h2>
+            <p>We couldn't find a player matching that link. They may not be in the roster yet, or the link may be outdated.</p>
+            <a href="players.html" class="btn secondary">View All Players</a>
+          </div>`;
+      }
+
+      // --- Render profile ---
+      async function renderProfile(p) {
+        const name = displayName(p).trim();
+        const team = teamOf(p);
+        const teamLabel = TEAM_LABELS[team] || team || "—";
+        const teamCls = team === "valley" ? "team-va" : "team-oz";
+        const hcp = getHcp(p);
+        const nick = (p.nickname||"").trim();
+        const placements = placementsFor(p.id);
+        const photoURL = await resolvePhoto(p);
+
+        // Update page title
+        document.title = `${name} – Ozark Invitational 2026`;
+        document.querySelector('meta[name="description"]').setAttribute("content",
+          `Player profile for ${name} — ${teamLabel} · Ozark Invitational 2026`);
+
+        const avatarHTML = photoURL
+          ? `<img src="${photoURL}" alt="${name} photo" id="profilePhoto" />`
+          : `<span id="profileInitials">${initials(p)}</span>`;
+
+        const placementsHTML = placements.length
+          ? placements.map(pl => `<li><span class="pl-dot"></span>${pl.day} · ${pl.side} · ${pl.format} — Group ${pl.group}</li>`).join("")
+          : `<li style="color:#94a3b8;font-size:.85rem;">Not placed yet — check back after pairings are announced.</li>`;
+
+        const contactItems = [
+          p.email ? `<li><span class="il-label">Email</span> <a href="mailto:${p.email}" style="color:#244f3c;font-weight:600;">${p.email}</a></li>` : "",
+          p.phone ? `<li><span class="il-label">Phone</span> ${p.phone}</li>` : "",
+        ].filter(Boolean).join("") || `<li><span class="il-label" style="min-width:auto;">No contact info available.</span></li>`;
+
+        const notesHTML = p.notes && p.notes.trim()
+          ? `<div class="profile-card"><p class="profile-card-title">Notes / Bio</p><p style="font-size:.9rem;color:#374151;line-height:1.65;">${p.notes}</p></div>`
+          : "";
+
+        root.innerHTML = `
+          <!-- PROFILE HERO -->
+          <div class="profile-hero" role="banner">
+            <div class="profile-hero-inner">
+              <div style="flex:1;">
+                <a href="players.html" class="profile-back">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  All Players
+                </a>
+                <div class="profile-hero-inner" style="padding:0;max-width:none;margin:0;">
+                  <div class="profile-avatar-wrap">${avatarHTML}</div>
+                  <div class="profile-hero-body">
+                    <h1>${name}</h1>
+                    ${nick ? `<p class="nick">"${nick}"</p>` : ""}
+                    <div class="profile-chips">
+                      <span class="profile-chip ${teamCls}">${teamLabel}</span>
+                      ${hcp ? `<span class="profile-chip">HCP ${hcp}</span>` : ""}
+                      <span class="profile-chip">Ozark Invitational 2026</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROFILE BODY -->
+          <div class="profile-body">
+            <!-- LEFT COLUMN -->
+            <div>
+              <!-- Stats -->
+              <div class="profile-card">
+                <p class="profile-card-title">Stats</p>
+                <div class="stats-row">
+                  <div class="stat-box">
+                    <p class="sl">Team</p>
+                    <p class="sv" style="font-size:1.1rem;">${teamLabel}</p>
+                  </div>
+                  <div class="stat-box">
+                    <p class="sl">Handicap</p>
+                    <p class="sv">${hcp || "—"}</p>
+                    ${hcp ? '<p class="ss">Index / Avg score</p>' : ""}
+                  </div>
+                  <div class="stat-box">
+                    <p class="sl">Rounds Played</p>
+                    <p class="sv">${placements.length || "—"}</p>
+                    <p class="ss">in this tournament</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pairings / Placements -->
+              <div class="profile-card">
+                <p class="profile-card-title">Tournament Pairings</p>
+                <ul class="placements-list">${placementsHTML}</ul>
+              </div>
+
+              ${notesHTML}
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+              <!-- Contact -->
+              <div class="profile-card">
+                <p class="profile-card-title">Contact</p>
+                <ul class="info-list">${contactItems}</ul>
+              </div>
+
+              <!-- Tournament Info -->
+              <div class="profile-card">
+                <p class="profile-card-title">Tournament</p>
+                <ul class="info-list">
+                  <li><span class="il-label">Event</span> Ozark Invitational</li>
+                  <li><span class="il-label">Year</span> 2026</li>
+                  <li><span class="il-label">Venue</span> Diamond Hills CC</li>
+                  <li><span class="il-label">Dates</span> May 23–24, 2026</li>
+                </ul>
+              </div>
+
+              <div style="margin-top:1rem;">
+                <a href="players.html" class="btn outline" style="width:100%;justify-content:center;">← Back to Roster</a>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // --- Boot ---
+      function boot() {
+        const params = new URLSearchParams(location.search);
+        const idParam = params.get("id") || params.get("player") || params.get("slug") || "";
+        if (!idParam) { renderNotFound(); return; }
+
+        const p = findPlayer(idParam);
+        if (!p) { renderNotFound(); return; }
+        renderProfile(p);
+      }
+
+      // Wait for script.js to finish (players array may not be ready immediately)
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 100));
+      } else {
+        setTimeout(boot, 100);
+      }
+    })();
+  </script>
+</body>
+</html>

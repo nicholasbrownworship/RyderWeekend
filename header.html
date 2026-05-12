@@ -1,46 +1,61 @@
 <!-- header.html -->
 <header class="topbar">
-  <a href="index.html" class="brand">
+  <a href="index.html" class="brand" aria-label="Ozark Invitational – Home">
     <img src="./images/logo.png" alt="Ozark Invitational" class="brand-img" />
   </a>
 
-  <nav class="nav" aria-label="Primary">
-    <a href="tv.html">tv</a>
+  <nav class="nav" id="mainNav" aria-label="Primary navigation">
     <a href="index.html">Home</a>
-    <a href="scorecard.html">Scorecard</a>
-    <a href="scoreboard.html">Scoreboard</a>
-    <a href="leaderboard.html">Leaderboard</a>
     <a href="players.html">Players</a>
-    <a href="index.html#sponsors">Sponsors</a>
-    <a href="index.html#signup" class="btn-nav">Sign Up</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="scoreboard.html">Scoreboard</a>
+    <a href="scorecard.html">Scorecard</a>
+    <a href="rulebook.html">Rulebook</a>
+
+    <span class="nav-divider" aria-hidden="true"></span>
+
+    <a href="register.html" class="btn-nav">Register</a>
     <a href="broadcast.html" class="btn-nav">Watch Live</a>
-    <a href="rulebook.html" class="btn-nav">Rulebook</a>
-    <a href="printables.html" class="btn-nav">Printables</a>
-    <a href="player-tools.html" class="btn-nav">Tools</a>
+
+    <span class="nav-divider" aria-hidden="true"></span>
+
+    <a href="printables.html" class="btn-nav-outline">Printables</a>
+    <a href="player-tools.html" class="btn-nav-outline">Tools</a>
+    <a href="admin/registrations.html" class="btn-nav-outline">Admin</a>
+    <a href="tv.html" class="btn-nav-outline">TV</a>
   </nav>
 
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  <!-- Team score widget injected by script.js -->
+  <div id="teamScoreWidget" class="team-score-widget" aria-label="Team scores" aria-live="polite"></div>
+
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mainNav">☰</button>
 
   <script>
-    // Highlight current page link
     (function(){
-      const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-      document.querySelectorAll('.nav a').forEach(a => {
-        const target = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
-        if (target.toLowerCase() === here) a.setAttribute('aria-current','page');
+      // Highlight current page
+      var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      document.querySelectorAll('.nav a').forEach(function(a) {
+        var t = (a.getAttribute('href') || '').split('#')[0] || 'index.html';
+        if (t.toLowerCase() === here) a.setAttribute('aria-current', 'page');
       });
-    })();
 
-    // Mobile menu toggle
-    (function(){
-      const btn = document.getElementById('navToggle');
-      const nav = document.querySelector('.nav');
-      if(!btn || !nav) return;
-      btn.addEventListener('click', ()=>{
-        const open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        nav.classList.toggle('open', !open);
-      });
+      // Mobile menu toggle
+      var btn = document.getElementById('navToggle');
+      var nav = document.getElementById('mainNav');
+      if (btn && nav) {
+        btn.addEventListener('click', function() {
+          var open = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!open));
+          nav.classList.toggle('open', !open);
+        });
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+          if (nav.classList.contains('open') && !nav.contains(e.target) && !btn.contains(e.target)) {
+            nav.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
     })();
   </script>
 </header>

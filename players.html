@@ -3,456 +3,514 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Players – Ozark Invitational</title>
+  <title>Players – Ozark Invitational 2026</title>
+  <meta name="description" content="Browse the full player roster for the Ozark Invitational 2026. Filter by team, search by name, and view individual player profiles." />
 
-  <!-- Site-wide styles & scripts -->
   <link rel="stylesheet" href="styles.css" />
-  <script src="script.js" defer></script>
+  <link rel="icon" href="favicon.ico" />
+  <meta name="theme-color" content="#244f3c">
+
+  <script>window.players = window.players || [];</script>
+  <script src="script.js?v=3" defer></script>
 
   <style>
-    :root{
-      --green:#244f3c; --green-dark:#163023; --gold:#d1a14b; --cream:#f5f0e6; --bg:#fcfaf6; --text:#222;
-      --panel:#ffffff; --line:#e7e0d1; --radius:16px; --shadow:0 14px 38px rgba(0,0,0,.06);
-      --oz:#2ecc71; --va:#3498db; --muted:#6b7280; --ink:#1f2937;
+    body { padding-top: 70px; background: #fcfaf6; }
+
+    /* Page header */
+    .players-page-head {
+      background: linear-gradient(135deg, #163023 0%, #244f3c 100%);
+      padding: 2.75rem 1.5rem 2.5rem; color: #fff;
+      position: relative; overflow: hidden;
     }
-    html,body{height:100%}
-    body{margin:0;padding-top:70px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    .players-page-head::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 50%, rgba(209,161,75,.1), transparent 55%);
+    }
+    .players-page-head-inner {
+      max-width: 1100px; margin: 0 auto; position: relative; z-index: 1;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 1.25rem; flex-wrap: wrap;
+    }
+    .players-page-head h1 { margin: 0 0 .3rem; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; }
+    .players-page-head p  { margin: 0; opacity: .75; font-size: .9rem; }
 
-    .wrap{max-width:1100px;margin:88px auto 24px;padding:16px}
+    .head-actions { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .head-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .45rem 1rem; border-radius: 999px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+      color: #fff; font-size: .85rem; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: background .12s ease;
+    }
+    .head-btn:hover { background: rgba(255,255,255,.22); text-decoration: none; }
+    .head-btn.primary { background: #d1a14b; border-color: transparent; color: #1a1407; }
+    .head-btn.primary:hover { filter: brightness(1.05); }
 
-    .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--green);display:grid;place-items:center}
-    .logo img{display:block;height:100%;width:auto}
-    .title{font-weight:800;letter-spacing:-.01em}
-    .sub{opacity:.75;font-size:.95rem;margin-top:-2px}
+    /* Toolbar */
+    .toolbar-wrap {
+      background: #fff; border-bottom: 1px solid #e5ddd0;
+      padding: .875rem 1.5rem; position: sticky; top: 70px; z-index: 50;
+    }
+    .toolbar-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; gap: .75rem; align-items: center; flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1; min-width: 200px; max-width: 340px;
+      padding: .5rem .9rem; border: 1.5px solid #e5ddd0; border-radius: 999px;
+      font: inherit; font-size: .875rem; background: #fcfaf6;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    .search-box:focus { outline: none; border-color: #244f3c; box-shadow: 0 0 0 3px rgba(36,79,60,.1); background: #fff; }
 
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-    .input{padding:.55rem .7rem;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;min-width:220px}
-    .seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;overflow:hidden}
-    .seg button{padding:.45rem .8rem;border:0;background:transparent;cursor:pointer;font-weight:700}
-    .seg button[aria-pressed="true"]{background:var(--cream)}
+    .seg-group {
+      display: flex; background: #fcfaf6;
+      border: 1.5px solid #e5ddd0; border-radius: 999px; overflow: hidden;
+    }
+    .seg-btn {
+      padding: .42rem .85rem; border: none; background: transparent;
+      cursor: pointer; font-weight: 700; font-size: .8rem; color: #64748b;
+      transition: background .1s, color .1s; white-space: nowrap;
+    }
+    .seg-btn[aria-pressed="true"] { background: #244f3c; color: #fff; border-radius: 999px; }
 
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-    @media (max-width: 1100px){ .grid{grid-template-columns:repeat(8,1fr)} }
-    @media (max-width: 720px){ .grid{grid-template-columns:repeat(4,1fr)} }
+    .player-count { font-size: .82rem; color: #94a3b8; margin-left: auto; white-space: nowrap; }
 
-    .card{grid-column:span 4;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;gap:12px;padding:12px;align-items:center}
-    .avatar{width:72px;height:72px;border-radius:12px;flex:none;position:relative;overflow:hidden;background:linear-gradient(135deg,#f3efe5,#e9e2cf);display:grid;place-items:center;border:1px solid var(--line)}
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-    .avatar .init{font-weight:800;color:#5a513f;font-size:1.1rem}
+    /* Grid */
+    .players-body {
+      max-width: 1100px; margin: 0 auto;
+      padding: 1.75rem 1.5rem 4rem;
+    }
 
-    .meta{flex:1;min-width:0}
-    .name{font-weight:900;letter-spacing:.01em}
-    .nick{color:var(--muted);font-size:.9rem}
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .chip{border:1px solid var(--line);border-radius:999px;padding:.2rem .55rem;background:#fff;font-size:.8rem}
-    .chip.oz{border-color:rgba(46,204,113,.45)}
-    .chip.va{border-color:rgba(52,152,219,.45)}
+    .pgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
 
-    .act{display:flex;gap:8px;margin-left:auto}
-    .btn{background:var(--green);color:#fff;border:none;border-radius:10px;padding:.45rem .75rem;font-weight:700;cursor:pointer}
-    .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+    .pcard {
+      background: #fff; border: 1px solid #e5ddd0;
+      border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      display: flex; gap: 12px; align-items: center;
+      padding: 1rem 1.1rem; cursor: pointer;
+      text-decoration: none; color: inherit;
+      transition: transform .12s ease, box-shadow .18s ease, border-color .15s ease;
+    }
+    .pcard:hover {
+      transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.09);
+      border-color: rgba(36,79,60,.2); text-decoration: none;
+    }
 
-    .empty{padding:16px;border:1px dashed var(--line);border-radius:12px;text-align:center;color:var(--muted);background:#fff}
+    .pcard-avatar {
+      width: 60px; height: 60px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, #f3efe5, #e9e2cf);
+      border: 1px solid #e5ddd0; display: grid; place-items: center;
+      font-weight: 900; font-size: 1rem; color: #244f3c;
+      overflow: hidden;
+    }
+    .pcard-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    /* Modal */
-    dialog.profile{border:1px solid var(--line);border-radius:16px;max-width:720px;width:clamp(320px, 90vw, 720px);padding:0;box-shadow:var(--shadow);background:#fff}
-    .p-head{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--line);align-items:center}
-    .p-head .avatar{width:84px;height:84px;border-radius:14px}
-    .p-title{font-weight:900}
-    .p-sub{color:var(--muted);font-size:.95rem;margin-top:2px}
-    .p-body{padding:14px;display:grid;gap:14px}
-    .p-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .stat{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
-    .stat h4{margin:.1rem 0 .4rem;font-size:.95rem}
-    .list{margin:0;padding-left:1.1rem}
-    .closebar{display:flex;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--line);background:#faf7ef}
-    .closebar .btn{background:#fff;color:var(--green);border:1px solid var(--green)}
+    .pcard-body { flex: 1; min-width: 0; }
+    .pcard-name { font-weight: 800; font-size: .97rem; margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcard-nick { font-size: .82rem; color: #64748b; margin-bottom: 5px; }
+    .pcard-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .chip {
+      border-radius: 999px; padding: .15rem .52rem;
+      border: 1px solid #e5ddd0; background: #fcfaf6;
+      font-size: .73rem; font-weight: 600;
+    }
+    .chip.oz { border-color: rgba(46,204,113,.4); color: #1f5c35; }
+    .chip.va { border-color: rgba(52,152,219,.4); color: #8a672a; }
+
+    .pcard-arrow {
+      color: #c7c0b5; font-size: 1.1rem; flex-shrink: 0; margin-left: 4px;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem;
+      color: #64748b;
+    }
+    .empty-state h3 { color: #1a1f2e; margin-bottom: .5rem; }
+
+    /* Profile modal */
+    dialog.profile-modal {
+      border: 1px solid #e5ddd0; border-radius: 20px;
+      max-width: 680px; width: clamp(320px, 92vw, 680px);
+      padding: 0; box-shadow: 0 12px 48px rgba(0,0,0,.15);
+      background: #fff;
+    }
+    dialog.profile-modal::backdrop { background: rgba(0,0,0,.42); }
+
+    .pm-head {
+      display: flex; gap: 14px; padding: 1.25rem 1.25rem 1rem;
+      border-bottom: 1px solid #f0ebe0; align-items: center;
+    }
+    .pm-avatar {
+      width: 76px; height: 76px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg,#f3efe5,#e9e2cf);
+      border: 1px solid #e5ddd0; display: grid; place-items: center;
+      font-weight: 900; font-size: 1.3rem; color: #244f3c; overflow: hidden;
+    }
+    .pm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pm-title { font-weight: 900; font-size: 1.1rem; }
+    .pm-sub   { color: #64748b; font-size: .9rem; margin-top: 2px; }
+    .pm-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 6px; }
+
+    .pm-body { padding: 1.1rem 1.25rem; display: grid; gap: 1rem; }
+    .pm-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 500px) { .pm-row { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      border: 1px solid #f0ebe0; border-radius: 12px;
+      padding: .875rem 1rem; background: #fff;
+    }
+    .stat-card h4 {
+      margin: 0 0 .5rem; font-size: .72rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .1em; color: #94a3b8;
+    }
+    .stat-card ul { margin: 0; padding-left: 1.1rem; }
+    .stat-card li { font-size: .875rem; margin-bottom: .35rem; }
+    .stat-card a { color: #244f3c; font-weight: 600; }
+
+    .pm-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .875rem 1.25rem; border-top: 1px solid #f0ebe0;
+      background: rgba(252,250,246,.6); gap: .75rem;
+    }
+    .pm-close-btn {
+      background: #fff; color: #244f3c; border: 1.5px solid #244f3c;
+      border-radius: 999px; padding: .4rem 1.1rem; font-weight: 700;
+      font-size: .875rem; cursor: pointer;
+    }
+    .pm-close-btn:hover { background: rgba(36,79,60,.05); }
+    .pm-profile-btn {
+      background: #244f3c; color: #fff; border: none;
+      border-radius: 999px; padding: .4rem 1.1rem; font-weight: 700;
+      font-size: .875rem; cursor: pointer; text-decoration: none;
+      display: inline-block;
+    }
+    .pm-profile-btn:hover { background: #163023; text-decoration: none; }
   </style>
 </head>
 <body>
-  <!-- Shared header -->
+  <!-- Header -->
   <div id="siteHeader"></div>
   <script>
     fetch("header.html").then(r=>r.text()).then(h=>{
       document.getElementById("siteHeader").innerHTML = h;
-      const here = (location.pathname.split('/').pop()||'players.html').toLowerCase();
+      const here=(location.pathname.split('/').pop()||'players.html').toLowerCase();
       document.querySelectorAll('.nav a').forEach(a=>{
-        const t = (a.getAttribute('href')||'').split('#')[0]||'index.html';
-        if (t.toLowerCase()===here) a.setAttribute('aria-current','page');
+        const t=(a.getAttribute('href')||'').split('#')[0]||'index.html';
+        if(t.toLowerCase()===here) a.setAttribute('aria-current','page');
       });
-      
-      // 🔥 NEW: boot the header score widget
-      if (window.initTeamScoreWidget) {
-        window.initTeamScoreWidget();
-      }
+      if(window.initTeamScoreWidget) window.initTeamScoreWidget();
     });
-    
   </script>
 
-  <div class="wrap">
-    <div class="hdr">
-      <div class="brand">
-        <div class="logo"><img src="images/logo.png" alt="Ozark Invitational logo" onerror="this.style.display='none'"/></div>
-        <div>
-          <div class="title">Players</div>
-          <div class="sub">Browse the roster, filter by team, view profiles &amp; placements</div>
-        </div>
+  <!-- PAGE HEADER -->
+  <div class="players-page-head">
+    <div class="players-page-head-inner">
+      <div>
+        <p style="font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:.35rem;font-weight:600;">Ozark Invitational 2026</p>
+        <h1>Player Roster</h1>
+        <p>Browse the field, filter by team, and view individual profiles.</p>
       </div>
-
-      <div class="toolbar">
-        <input id="q" class="input" type="search" placeholder="Search by name or nickname…" />
-        <div class="seg" role="tablist" aria-label="Team filter">
-          <button class="tbtn" data-team="all" aria-pressed="true">All</button>
-          <button class="tbtn" data-team="ozark" aria-pressed="false">Ozark</button>
-          <button class="tbtn" data-team="valley" aria-pressed="false">Valley</button>
-        </div>
-        <div class="seg" role="tablist" aria-label="Sort">
-          <button class="sbtn" data-sort="name" aria-pressed="true">A→Z</button>
-          <button class="sbtn" data-sort="hcp" aria-pressed="false">Handicap</button>
-        </div>
+      <div class="head-actions">
+        <a href="register.html" class="head-btn primary">+ Register to Play</a>
+        <a href="leaderboard.html" class="head-btn">Leaderboard</a>
       </div>
     </div>
-
-    <div id="grid" class="grid"></div>
-    <div id="empty" class="empty" hidden>No players found.</div>
   </div>
 
-  <!-- Profile Modal -->
-  <dialog id="profileDlg" class="profile">
-    <div class="p-head">
-      <div class="avatar">
-        <img id="pPhoto" alt="" style="display:none">
-        <div id="pInit" class="init" style="display:grid"></div>
+  <!-- STICKY TOOLBAR -->
+  <div class="toolbar-wrap">
+    <div class="toolbar-inner">
+      <input id="searchInput" class="search-box" type="search" placeholder="Search name or nickname…" aria-label="Search players" />
+
+      <div class="seg-group" role="group" aria-label="Filter by team">
+        <button class="seg-btn" data-team="all"    aria-pressed="true">All</button>
+        <button class="seg-btn" data-team="ozark"  aria-pressed="false">Ozark</button>
+        <button class="seg-btn" data-team="valley" aria-pressed="false">Valley</button>
       </div>
+
+      <div class="seg-group" role="group" aria-label="Sort players">
+        <button class="seg-btn sort-btn" data-sort="name" aria-pressed="true">A→Z</button>
+        <button class="seg-btn sort-btn" data-sort="hcp"  aria-pressed="false">Handicap</button>
+      </div>
+
+      <span class="player-count" id="playerCount" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="players-body">
+    <div id="pgrid" class="pgrid"></div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <dialog id="profileModal" class="profile-modal" aria-label="Player profile">
+    <div class="pm-head">
+      <div class="pm-avatar" id="pmAvatar"></div>
       <div>
-        <div id="pName" class="p-title"></div>
-        <div id="pSub" class="p-sub"></div>
-        <div class="chips" id="pChips"></div>
+        <div id="pmName"  class="pm-title"></div>
+        <div id="pmSub"   class="pm-sub"></div>
+        <div id="pmChips" class="pm-chips"></div>
       </div>
     </div>
-    <div class="p-body">
-      <div class="p-row">
-        <div class="stat">
+    <div class="pm-body">
+      <div class="pm-row">
+        <div class="stat-card">
           <h4>Contact</h4>
-          <ul class="list" id="pContact"></ul>
+          <ul id="pmContact"></ul>
         </div>
-        <div class="stat">
-          <h4>Handicap &amp; Team</h4>
-          <ul class="list" id="pFacts"></ul>
+        <div class="stat-card">
+          <h4>Details</h4>
+          <ul id="pmFacts"></ul>
         </div>
       </div>
-      <div class="stat">
-        <h4>Placements</h4>
-        <ul class="list" id="pPlaces"></ul>
+      <div class="stat-card">
+        <h4>Tournament Pairings</h4>
+        <ul id="pmPlacements"></ul>
       </div>
     </div>
-    <div class="closebar">
-      <button class="btn" id="pClose">Close</button>
+    <div class="pm-foot">
+      <button class="pm-close-btn"  id="pmClose">Close</button>
+      <a      class="pm-profile-btn" id="pmProfileLink" href="#" target="_blank">Full Profile →</a>
     </div>
   </dialog>
 
   <script>
-    // ---- Keys used around the site
-    const SHARED_KEY  = "ozarkShared_v1";
-    const STORAGE_KEY = "ozarkPairings_v3_twoDays";
-    const SIGNUPS_KEY = "ozarkSignups_v1";
-    const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
-    const TEAM_COLORS = { ozark: "#2ecc71", valley: "#3498db" };
+    (function(){
+      const SHARED_KEY  = "ozarkShared_v1";
+      const SIGNUPS_KEY = "ozarkSignupsRoster_v1";
+      const TEAM_LABELS = { ozark: "Team Ozark", valley: "Team Valley" };
+      const PHOTO_BASE  = "images/players/";
+      const PHOTO_EXTS  = ["png","jpg","jpeg","webp"];
+      const AVATAR_CACHE = new Map();
 
-    // ---- Photo resolver (aligned with scoreboard)
-    const PHOTO_BASE = "images/players/";
-    const PHOTO_EXTS = ["png","jpg","jpeg","webp"];
-    const AVATAR_CACHE = new Map(); // id -> url or ""
-
-    function normalizePhotoValue(v){
-      if (!v) return "";
-      let s = String(v).trim().replace(/\\/g,"/").replace(/^\/+/, "").replace(/^\.\//,"");
-      return s;
-    }
-    function slugify(first, last){
-      const f = String(first||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      const l = String(last ||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      return [f,l].filter(Boolean).join("-");
-    }
-    function candidatePhotoURLs(p){
-      // Prefer explicit CSV-provided photo fields if present
-      const explicit = normalizePhotoValue(p.photo || p.photourl || p.image || "");
-      if (explicit){
-        if (/^https?:\/\//i.test(explicit)) return [explicit];             // absolute URL
-        if (explicit.includes("/")) return [explicit];                      // relative path (e.g., images/players/nick-brown.png)
-        return [PHOTO_BASE.replace(/\/+$/,"") + "/" + explicit];            // bare filename -> join to base
+      // --- Helpers ---
+      function normStr(s){ return String(s||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,""); }
+      function displayName(p){
+        const nick=(p.nickname||"").trim();
+        return ((p.firstName||"")+(nick?` "${nick}" `:" ")+(p.lastName||"")).replace(/\s+/g," ").trim();
       }
-      // Else try slug from first/last with common extensions
-      const slug = slugify(p.firstName, p.lastName);
-      if (!slug) return [];
-      return PHOTO_EXTS.map(ext => `${PHOTO_BASE}${slug}.${ext}`);
-    }
-    function loadImage(url){
-      return new Promise((res, rej)=>{
-        const img = new Image();
-        img.onload = ()=> res(url);
-        img.onerror = rej;
-        img.src = url;
-      });
-    }
-    async function resolvePhotoURL(p){
-      if (!p || !p.id) return "";
-      if (AVATAR_CACHE.has(p.id)) return AVATAR_CACHE.get(p.id);
-      const candidates = candidatePhotoURLs(p);
-      for (const url of candidates){
-        try { await loadImage(url); AVATAR_CACHE.set(p.id, url); return url; }
-        catch {}
+      function initials(p){ return(((p.firstName||"").trim()[0]||"")+((p.lastName||"").trim()[0]||"")).toUpperCase()||"?"; }
+      function teamOf(p){ const t=(p.team||"").toLowerCase(); return t.includes("val")?"valley":t.includes("oz")?"ozark":t; }
+      function getHcp(p){ const v=p.handicap??p.Handicap??""; return v!==null&&v!==undefined&&String(v).trim()!==""?+v:null; }
+
+      // --- Photo ---
+      function candidateURLs(p){
+        const ex=(p.photo||p.photourl||p.image||"").trim().replace(/\\/g,"/").replace(/^\/+/,"").replace(/^\.\//,"");
+        if(ex){ if(/^https?:\/\//i.test(ex)) return[ex]; if(ex.includes("/")) return[ex]; return[PHOTO_BASE+ex]; }
+        const s=normStr((p.firstName||"")+"-"+(p.lastName||"")); if(!s) return[];
+        return PHOTO_EXTS.map(e=>`${PHOTO_BASE}${s}.${e}`);
       }
-      AVATAR_CACHE.set(p.id, ""); // remember miss
-      return "";
-    }
-
-    // ---- State
-    let roster = [];
-    let snapshot = null;
-    let filters = { team:'all', q:'', sort:'name' };
-
-    // ---- Helpers
-    const byName = (a,b)=> (displayName(a).localeCompare(displayName(b), undefined, {sensitivity:'base'}));
-    const byHcp  = (a,b)=>{
-      const ha = Number.isFinite(a.handicap)?a.handicap:9999;
-      const hb = Number.isFinite(b.handicap)?b.handicap:9999;
-      return ha - hb || byName(a,b);
-    };
-
-    function displayName(p){
-      const nick = p.nickname && p.nickname.trim().length ? ` "${p.nickname}"` : "";
-      return `${p.firstName||""}${nick} ${p.lastName||""}`.replace(/\s+/g,' ').trim();
-    }
-    function initials(p){
-      const a = (p.firstName||"").trim()[0]||"";
-      const b = (p.lastName||"").trim()[0]||"";
-      return (a+b||"?").toUpperCase();
-    }
-    function loadShared(){
-      try{
-        const raw = localStorage.getItem(SHARED_KEY);
-        if (raw) snapshot = JSON.parse(raw);
-      }catch{}
-    }
-    function loadRoster(){
-      // Priority: shared snapshot -> saved state -> signups
-      if (snapshot && Array.isArray(snapshot.players)) {
-        roster = snapshot.players.slice();
-        return;
+      function loadImg(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(url); i.onerror=rej; i.src=url; }); }
+      async function resolvePhoto(p){
+        if(!p||!p.id) return "";
+        if(AVATAR_CACHE.has(p.id)) return AVATAR_CACHE.get(p.id);
+        for(const url of candidateURLs(p)){ try{ await loadImg(url); AVATAR_CACHE.set(p.id,url); return url; }catch{} }
+        AVATAR_CACHE.set(p.id,""); return "";
       }
-      try{
-        const st = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
-        if (st && Array.isArray(st.players) && st.players.length){ roster = st.players; return; }
-      }catch{}
-      try{
-        const su = JSON.parse(localStorage.getItem(SIGNUPS_KEY)||'null');
-        if (Array.isArray(su) && su.length){
-          roster = su.map(p=>({
-            id: p.id || crypto.randomUUID?.() || Math.random().toString(36).slice(2,9),
-            firstName: p.firstName || (p.name||"").split(" ")[0] || "",
-            lastName:  p.lastName  || (p.name||"").split(" ").slice(1).join(" ") || "",
-            nickname:  p.nickname || "",
-            team: (p.team||"").toLowerCase().includes("val") ? "valley" : "ozark",
-            email: p.email||"", phone: p.phone||"",
-            handicap: Number.isFinite(+p.handicap) ? +p.handicap : null,
-            photo: p.photo || p.photourl || p.image || ""
+
+      // --- Data loading ---
+      let roster=[], snapshot=null;
+
+      function loadData(){
+        try{ const r=localStorage.getItem(SHARED_KEY); if(r) snapshot=JSON.parse(r); }catch{}
+        if(snapshot&&Array.isArray(snapshot.players)&&snapshot.players.length){ roster=snapshot.players.slice(); return; }
+
+        // Combine seeded players + approved signups
+        const byId=new Map();
+        if(Array.isArray(window.players)) window.players.forEach(p=>{ if(p&&p.id) byId.set(String(p.id),p); });
+        if(window.state&&Array.isArray(window.state.players)) window.state.players.forEach(p=>{ if(p&&p.id) byId.set(String(p.id),p); });
+        try{
+          const r=localStorage.getItem(SIGNUPS_KEY); const a=r?JSON.parse(r):[];
+          if(Array.isArray(a)) a.forEach(p=>{ if(p&&p.id) byId.set(String(p.id),p); });
+        }catch{}
+        roster=Array.from(byId.values());
+      }
+
+      // --- Placements ---
+      function placementsFor(id){
+        const out=[];
+        try{
+          if(!snapshot) return out;
+          const g=snapshot?.groups||{}, fmt=snapshot?.format||{};
+          ["day1","day2"].forEach(d=>["front","back"].forEach(s=>{
+            const groups=g?.[d]?.[s]||[], f=fmt?.[d]?.[s]||"Best Ball";
+            groups.forEach((arr,gi)=>{ if((arr||[]).some(x=>String(x)===String(id))) out.push(`${d==="day1"?"Day 1":"Day 2"} · ${s==="front"?"Front 9":"Back 9"} · ${f} — Group ${gi+1}`); });
           }));
-        }
-      }catch{}
-    }
-
-    function applyFilters(){
-      const q = filters.q.toLowerCase();
-      let arr = roster
-        .filter(p => filters.team==='all' || p.team===filters.team)
-        .filter(p => displayName(p).toLowerCase().includes(q) || (p.email||'').toLowerCase().includes(q));
-      arr.sort(filters.sort==='hcp' ? byHcp : byName);
-      return arr;
-    }
-
-    function renderGrid(){
-      const grid = document.getElementById('grid');
-      const empty = document.getElementById('empty');
-      const rows = applyFilters();
-      if (!rows.length){
-        grid.innerHTML = "";
-        empty.hidden = false;
-        return;
+        }catch{}
+        return out;
       }
-      empty.hidden = true;
 
-      const byId = new Map(rows.map(p=>[String(p.id), p]));
-      grid.innerHTML = rows.map(p=>{
-        const chipTeam = `<span class="chip ${p.team==='ozark'?'oz':'va'}">${TEAM_LABELS[p.team]||''}</span>`;
-        const chipHcp  = Number.isFinite(p.handicap) ? `<span class="chip">HCP ${p.handicap}</span>` : '';
-        const safeId = String(p.id||'');
-        // No src yet; we hydrate photos after render using resolver
-        return `
-          <div class="card" data-id="${safeId}">
-            <div class="avatar">
-              <img data-photo-id="${safeId}" alt="" style="display:none">
-              <div class="init">${initials(p)}</div>
-            </div>
-            <div class="meta">
-              <div class="name">${displayName(p)}</div>
-              ${p.nickname?`<div class="nick">“${p.nickname}”</div>`:''}
-              <div class="chips">${chipTeam}${chipHcp}</div>
-            </div>
-            <div class="act">
-              <button class="btn ghost" data-view="${safeId}">Profile</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+      // --- Filter / sort ---
+      let filters={ team:"all", q:"", sort:"name" };
 
-      // Hook up buttons
-      grid.querySelectorAll('[data-view]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const id = btn.getAttribute('data-view');
-          const p  = byId.get(id);
-          if (p) openProfile(p);
+      function applyFilters(){
+        const q=filters.q.toLowerCase();
+        let arr=roster.filter(p=>{
+          if(filters.team!=="all"&&teamOf(p)!==filters.team) return false;
+          if(!q) return true;
+          return displayName(p).toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q);
         });
-      });
-      grid.querySelectorAll('.card').forEach(c=>{
-        c.addEventListener('click', (e)=>{
-          if (e.target.closest('[data-view]')) return;
-          const id = c.getAttribute('data-id');
-          const p  = byId.get(id);
-          if (p) openProfile(p);
-        });
-      });
-
-      // Hydrate photos after DOM is ready
-      hydrateCardPhotos(byId);
-    }
-
-    async function hydrateCardPhotos(byId){
-      const imgs = document.querySelectorAll('img[data-photo-id]');
-      for (const img of imgs){
-        const id = img.getAttribute('data-photo-id');
-        const p = byId.get(id);
-        if (!p) continue;
-        const url = await resolvePhotoURL(p);
-        const init = img.parentElement?.querySelector('.init');
-        if (url){
-          img.src = url;
-          img.style.display = '';
-          if (init) init.style.display = 'none';
-        } else {
-          img.style.display = 'none';
-          if (init) init.style.display = 'grid';
-        }
+        arr.sort(filters.sort==="hcp"
+          ? (a,b)=>{ const ha=Number.isFinite(getHcp(a))?getHcp(a):9999; const hb=Number.isFinite(getHcp(b))?getHcp(b):9999; return ha-hb||displayName(a).localeCompare(displayName(b)); }
+          : (a,b)=>displayName(a).localeCompare(displayName(b),undefined,{sensitivity:"base"})
+        );
+        return arr;
       }
-    }
 
-    function placementsFor(id){
-      const out = [];
-      const g = snapshot?.groups || {};
-      const fmt = snapshot?.format || {};
-      const days = ['day1','day2'];
-      const sides = ['front','back'];
-      days.forEach(d=>{
-        sides.forEach(s=>{
-          const groups = g?.[d]?.[s] || [];
-          const f = fmt?.[d]?.[s] || 'Best Ball';
-          groups.forEach((arr, gi)=>{
-            if ((arr||[]).some(x => String(x)===String(id))){
-              out.push(`${d==='day1'?'Day 1':'Day 2'} • ${s==='front'?'Front 9':'Back 9'} • ${f} — Group ${gi+1}`);
-            }
+      // --- Render ---
+      function renderGrid(){
+        const grid=document.getElementById("pgrid");
+        const countEl=document.getElementById("playerCount");
+        const rows=applyFilters();
+        countEl.textContent=rows.length===1?"1 player":`${rows.length} players`;
+
+        if(!rows.length){
+          grid.innerHTML=`<div class="empty-state"><h3>No players found</h3><p>${filters.q?`No results for "${filters.q}".`:"No players in this team yet."}</p></div>`;
+          return;
+        }
+
+        const byId=new Map(rows.map(p=>[String(p.id),p]));
+        grid.innerHTML=rows.map(p=>{
+          const team=teamOf(p);
+          const tCls=team==="valley"?"va":"oz";
+          const hcp=getHcp(p);
+          const nick=(p.nickname||"").trim();
+          const profileURL=`player.html?id=${encodeURIComponent(p.id)}`;
+          return `
+            <a class="pcard" href="${profileURL}" data-id="${p.id}" aria-label="View profile of ${displayName(p)}">
+              <div class="pcard-avatar" data-photo-id="${p.id}">${initials(p)}</div>
+              <div class="pcard-body">
+                <div class="pcard-name">${displayName(p)}</div>
+                ${nick?`<div class="pcard-nick">"${nick}"</div>`:""}
+                <div class="pcard-chips">
+                  <span class="chip ${tCls}">${TEAM_LABELS[team]||team}</span>
+                  ${Number.isFinite(hcp)?`<span class="chip">HCP ${hcp}</span>`:""}
+                </div>
+              </div>
+              <span class="pcard-arrow" aria-hidden="true">›</span>
+            </a>`;
+        }).join("");
+
+        // Wire up modal on card click (but not if navigating to profile)
+        grid.querySelectorAll(".pcard").forEach(card=>{
+          card.addEventListener("click", e=>{
+            // Only open modal if the click isn't on a child link
+            if(e.defaultPrevented) return;
+            e.preventDefault();
+            const id=card.getAttribute("data-id");
+            const p=byId.get(id);
+            if(p) openModal(p);
           });
         });
-      });
-      return out;
-    }
 
-    // ---- Profile modal
-    async function setProfilePhoto(p){
-      const pPhoto = document.getElementById('pPhoto');
-      const pInit  = document.getElementById('pInit');
-      pPhoto.style.display = 'none';
-      pInit.style.display  = 'grid';
-      const url = await resolvePhotoURL(p);
-      if (url){
-        pPhoto.src = url;
-        pPhoto.alt = `${displayName(p)} photo`;
-        pPhoto.style.display = '';
-        pInit.style.display = 'none';
+        hydratePhotos(byId);
       }
-    }
 
-    function openProfile(p){
-      const dlg = document.getElementById('profileDlg');
-      const pName = document.getElementById('pName');
-      const pSub  = document.getElementById('pSub');
-      const pChips= document.getElementById('pChips');
-      const pContact = document.getElementById('pContact');
-      const pFacts = document.getElementById('pFacts');
-      const pPlaces= document.getElementById('pPlaces');
-      const pInit  = document.getElementById('pInit');
-
-      pName.textContent = displayName(p);
-      pSub.textContent  = p.nickname ? `“${p.nickname}”` : '';
-      pChips.innerHTML  = `
-        <span class="chip" style="border-color:${p.team==='ozark'?'rgba(46,204,113,.45)':'rgba(52,152,219,.45)'}">${TEAM_LABELS[p.team]||''}</span>
-        ${Number.isFinite(p.handicap)?`<span class="chip">Handicap ${p.handicap}</span>`:''}
-      `;
-
-      pContact.innerHTML = [
-        p.email ? `<li><a href="mailto:${p.email}">${p.email}</a></li>` : '',
-        p.phone ? `<li>${p.phone}</li>` : ''
-      ].join('') || `<li class="muted">No contact saved.</li>`;
-
-      pFacts.innerHTML = `
-        <li>Team: ${TEAM_LABELS[p.team]||''}</li>
-        <li>Handicap: ${Number.isFinite(p.handicap)?p.handicap:'—'}</li>
-      `;
-
-      const places = placementsFor(p.id);
-      pPlaces.innerHTML = places.length ? places.map(x=>`<li>${x}</li>`).join('') : `<li class="muted">Not placed yet.</li>`;
-
-      // initials fallback shown until image resolves
-      pInit.textContent = initials(p);
-      setProfilePhoto(p);
-
-      dlg.showModal();
-    }
-
-    document.getElementById('pClose').addEventListener('click', ()=> document.getElementById('profileDlg').close());
-
-    // ---- Filters
-    document.getElementById('q').addEventListener('input', e=>{ filters.q = e.target.value; renderGrid(); });
-    document.querySelectorAll('.tbtn').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        document.querySelectorAll('.tbtn').forEach(x=>x.setAttribute('aria-pressed','false'));
-        b.setAttribute('aria-pressed','true');
-        filters.team = b.dataset.team;
-        renderGrid();
-      });
-    });
-    document.querySelectorAll('.sbtn').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        document.querySelectorAll('.sbtn').forEach(x=>x.setAttribute('aria-pressed','false'));
-        b.setAttribute('aria-pressed','true');
-        filters.sort = b.dataset.sort;
-        renderGrid();
-      });
-    });
-
-    // ---- Boot
-    loadShared();
-    loadRoster();
-    renderGrid();
-
-    // Live update if pairings change elsewhere (to keep placements fresh)
-    window.addEventListener('storage', (e)=>{
-      if (e.key===SHARED_KEY && e.newValue){
-        try{ snapshot = JSON.parse(e.newValue); }catch{}
-        renderGrid();
+      async function hydratePhotos(byId){
+        for(const [id,p] of byId){
+          const el=document.querySelector(`[data-photo-id="${id}"]`);
+          if(!el) continue;
+          const url=await resolvePhoto(p);
+          if(url){ el.innerHTML=`<img src="${url}" alt="${displayName(p)}" loading="lazy" />`; }
+        }
       }
-    });
+
+      // --- Modal ---
+      async function openModal(p){
+        const modal    = document.getElementById("profileModal");
+        const pmAvatar = document.getElementById("pmAvatar");
+        const pmName   = document.getElementById("pmName");
+        const pmSub    = document.getElementById("pmSub");
+        const pmChips  = document.getElementById("pmChips");
+        const pmContact= document.getElementById("pmContact");
+        const pmFacts  = document.getElementById("pmFacts");
+        const pmPlaces = document.getElementById("pmPlacements");
+        const pmLink   = document.getElementById("pmProfileLink");
+
+        const team=teamOf(p);
+        const hcp=getHcp(p);
+        const nick=(p.nickname||"").trim();
+        const tCls=team==="valley"?"va":"oz";
+
+        pmAvatar.textContent=initials(p);
+        pmName.textContent=displayName(p);
+        pmSub.textContent=nick?`"${nick}"`:"";
+        pmChips.innerHTML=`
+          <span class="chip ${tCls}">${TEAM_LABELS[team]||team}</span>
+          ${Number.isFinite(hcp)?`<span class="chip">Handicap ${hcp}</span>`:""}`;
+
+        pmContact.innerHTML=[
+          p.email?`<li><a href="mailto:${p.email}">${p.email}</a></li>`:"",
+          p.phone?`<li>${p.phone}</li>`:"",
+        ].filter(Boolean).join("")||`<li style="color:#94a3b8">No contact on file.</li>`;
+
+        pmFacts.innerHTML=`
+          <li>Team: ${TEAM_LABELS[team]||team}</li>
+          <li>Handicap: ${Number.isFinite(hcp)?hcp:"—"}</li>`;
+
+        const places=placementsFor(p.id);
+        pmPlaces.innerHTML=places.length
+          ? places.map(x=>`<li>${x}</li>`).join("")
+          : `<li style="color:#94a3b8">Not yet placed.</li>`;
+
+        pmLink.href=`player.html?id=${encodeURIComponent(p.id)}`;
+
+        // Photo
+        pmAvatar.textContent=initials(p);
+        const url=await resolvePhoto(p);
+        if(url){ pmAvatar.innerHTML=`<img src="${url}" alt="${displayName(p)}" />`; }
+
+        modal.showModal();
+      }
+
+      document.getElementById("pmClose").addEventListener("click",()=> document.getElementById("profileModal").close());
+      document.getElementById("profileModal").addEventListener("click",e=>{
+        const r=document.getElementById("profileModal").getBoundingClientRect();
+        if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) document.getElementById("profileModal").close();
+      });
+
+      // --- Toolbar events ---
+      document.getElementById("searchInput").addEventListener("input",e=>{ filters.q=e.target.value; renderGrid(); });
+
+      document.querySelectorAll("[data-team]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          document.querySelectorAll("[data-team]").forEach(b=>b.setAttribute("aria-pressed","false"));
+          btn.setAttribute("aria-pressed","true");
+          filters.team=btn.dataset.team;
+          renderGrid();
+        });
+      });
+
+      document.querySelectorAll(".sort-btn").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          document.querySelectorAll(".sort-btn").forEach(b=>b.setAttribute("aria-pressed","false"));
+          btn.setAttribute("aria-pressed","true");
+          filters.sort=btn.dataset.sort;
+          renderGrid();
+        });
+      });
+
+      // --- Boot ---
+      function boot(){ loadData(); renderGrid(); }
+
+      if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,80));
+      } else {
+        setTimeout(boot,80);
+      }
+
+      // Live-update when shared state changes
+      window.addEventListener("storage",e=>{
+        if(e.key===SHARED_KEY||e.key===SIGNUPS_KEY){ try{ if(e.key===SHARED_KEY&&e.newValue) snapshot=JSON.parse(e.newValue); }catch{} loadData(); renderGrid(); }
+      });
+    })();
   </script>
 </body>
 </html>
